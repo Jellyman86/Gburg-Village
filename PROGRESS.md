@@ -138,3 +138,9 @@ This section takes precedence over the earlier resume order and connector fallba
 - Started separate transparent pixel-art 4x4 walking-sheet generations using the supplied photos for likeness and existing Jason sheet for style. Stephanie: long dark hair, blue Bills top, jeans, white sneakers. Mark: short brown/gray hair, blue jersey, navy shorts, white sneakers.
 - This is asset creation only. No existing sprite, character settings, gameplay, or play.html changed. Generation, exact frame sizing, alpha, foot alignment and animation validation are not complete at this checkpoint. No new characters integrated or deployed.
 - Next: inspect generated sheets; normalize and validate each frame against the contract before any game integration. Keep large HTML and embedded asset data out of chat.
+
+### Stephanie and Mark artwork results
+- Generated and displayed separate 16-pose sheets in the built-in image tool. Mark wears blue #17 jersey; Stephanie wears blue Bills logo top. Visual inspection confirms front/left/right/back rows, likeness cues and requested team colors.
+- Verified both PNGs are RGBA with alpha spanning 0 to 255. Mark source is 1312x1199; Stephanie source is 1254x1254. They are source artwork, NOT drop-in 256x256 game sheets. Some poses are too similar; walk-cycle cleanup remains necessary.
+- Outputs in this session: generated_images/exec-b8794f2f-18e3-40e3-9a06-3c2e4c4b0158.png (Mark); generated_images/exec-23f59f0c-da08-4486-8283-2e0746c9cca9.png (Stephanie). Generated images are retained by the conversation; scratch paths are transient.
+- No assets integrated, no game movement test performed, no gameplay deployment claimed. Next implementation step: prepare consistent 64x64 frames at (32,60), verify alternating feet and loop continuity, then integrate only if requested. Connor remains unchanged.
