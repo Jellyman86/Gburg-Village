@@ -91,3 +91,79 @@
  // Read-only diagnostic state for repeatable browser checks.
  window.GAME={get ready(){return loaded;},get state(){return{player:{...player},camera:{...camera},nearest:nearest?.id||null,viewport:{width:canvas.width,height:canvas.height},dialog:$('dialog').open,input:{joy:{...joy},touchRun,keys:[...keys]}};},select,blocked};
 })();
+
+
+// Original village theme, synthesized locally with no external audio downloads.
+(() => {
+ 'use strict';
+ const stage=document.getElementById('stage');
+ if(!stage||document.getElementById('music-toggle'))return;
+ const button=document.createElement('button');
+ button.id='music-toggle';button.type='button';button.className='quiet';
+ button.style.cssText='position:absolute;top:10px;right:10px;z-index:3;min-height:44px;padding:8px 12px;background:#17383bee;border-color:#d3b16d;font:12px system-ui;border-radius:6px;touch-action:manipulation';
+ stage.append(button);
+ const Audio=window.AudioContext||window.webkitAudioContext;
+ let enabled=true,context=null,buffer=null,source=null,offset=0,startedAt=0;
+ try{enabled=localStorage.getItem('village-music')!=='off';}catch(_){}
+ function paint(){
+  const playing=!!source&&context.state==='running';
+  button.textContent=!Audio?'Music unavailable':!enabled?'♫ Music: Off':playing?'♫ Music: On':'♫ Tap for music';
+  button.setAttribute('aria-pressed',String(enabled));
+  button.setAttribute('aria-label',!Audio?'Music is unavailable in this browser':playing?'Turn background music off':!enabled?'Turn background music on':'Start background music');
+  button.disabled=!Audio;
+ }
+ function compose(){
+  const rate=22050,beat=60/92,duration=16*4*beat;
+  const result=context.createBuffer(1,Math.round(duration*rate),rate),data=result.getChannelData(0);
+  function note(midi,at,length,volume,voice){
+   const frequency=440*Math.pow(2,(midi-69)/12),start=Math.round(at*rate),count=Math.floor(length*rate);
+   for(let i=0;i<count;i++){
+    const t=i/rate,phase=2*Math.PI*frequency*t;
+    const envelope=Math.min(1,t/.018)*Math.pow(1-i/count,2)*Math.exp(-t*(voice==='pad'?.3:2.4));
+    const wave=Math.sin(phase)+(voice==='bell'?.24*Math.sin(phase*2):voice==='pluck'?.15*Math.sin(phase*3):0);
+    data[(start+i)%data.length]+=wave*envelope*volume;
+   }
+  }
+  const chords=[[48,52,55,59],[43,47,50,57],[45,48,52,55],[41,45,48,52],[48,52,55,59],[43,47,50,57],[41,45,48,52],[43,47,50,55]];
+  const melody=[[76,79,83,79],[74,71,69,67],[72,76,79,76],[77,76,72,69],[79,83,84,83],[79,74,71,69],[77,76,72,76],[74,71,67,null],[76,79,83,86],[83,79,74,71],[72,76,81,79],[77,76,72,null],[79,83,84,79],[74,79,83,81],[77,76,72,69],[71,74,67,null]];
+  for(let bar=0;bar<16;bar++){
+   const chord=chords[bar%8],at=bar*4*beat;
+   chord.forEach(n=>note(n,at,4.5*beat,.055,'pad'));
+   note(chord[0]-12,at,2.7*beat,.12,'pad');
+   [0,2,1,3,0,2,1,3].forEach((n,i)=>note(chord[n]+12,at+i*.5*beat,.85*beat,.095,'pluck'));
+   melody[bar].forEach((n,i)=>{if(n!==null)note(n,at+i*beat,1.7*beat,.13,'bell');});
+  }
+  return result;
+ }
+ function stop(){
+  if(source){offset=(context.currentTime-startedAt+offset)%buffer.duration;source.stop();source.disconnect();source=null;}
+  paint();
+ }
+ async function start(){
+  if(!Audio||!enabled||document.hidden||(source&&context.state==='running'))return;
+  try{
+   if(!context){context=new Audio();context.addEventListener('statechange',paint);}
+   await context.resume();
+   if(!enabled||document.hidden||source){paint();return;}
+   if(!buffer)buffer=compose();
+   source=context.createBufferSource();source.buffer=buffer;source.loop=true;
+   source.connect(context.destination);startedAt=context.currentTime;source.start(0,offset);paint();
+  }catch(error){console.warn('Music can be retried with the music button.',error);paint();}
+ }
+ button.addEventListener('click',()=>{
+  if(enabled&&source&&context.state==='running'){enabled=false;stop();}
+  else{enabled=true;start();}
+  try{localStorage.setItem('village-music',enabled?'on':'off');}catch(_){}
+  paint();
+ });
+ function gesture(event){if(!button.contains(event.target)&&!event.repeat)start();}
+ document.addEventListener('pointerdown',gesture,{passive:true});
+ document.addEventListener('keydown',gesture);
+ document.addEventListener('visibilitychange',()=>{
+  if(document.hidden){stop();if(context)context.suspend().catch(()=>{});}
+  else if(context&&enabled)start();
+ });
+ window.addEventListener('pagehide',()=>{stop();if(context)context.suspend().catch(()=>{});});
+ window.addEventListener('pageshow',()=>{if(context&&enabled)start();});
+ paint();
+})();
