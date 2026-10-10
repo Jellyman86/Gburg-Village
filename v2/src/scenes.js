@@ -1,0 +1,24 @@
+// V2-only scenes. Coordinates are native image proportions; images remain separate.
+(() => {
+ const rects=(list,w,h)=>list.map(([x,y,rw,rh])=>({x:x*w/1000,y:y*h/1000,w:rw*w/1000,h:rh*h/1000}));
+ const make=(id,name,w,h,paths,ports,hint)=>({id,name,width:w,height:h,image:`assets/${id}.webp`,bounds:{left:0,top:0,right:w,bottom:h},spawn:{x:w/2,y:h/2},obstacles:[],walkable:rects(paths,w,h),landmarks:ports.map(([id,name,x,y,to,tx,ty])=>({id,name,x:x*w/1000,y:y*h/1000,radius:55,to,arrival:[tx,ty]})),hint});
+ const plaza=window.TOWN;plaza.id='plaza';plaza.hint='Walk east across the plaza. Use Go near the gold route marker.';
+ plaza.landmarks.push({id:'to-district',name:'Shops & Main Street →',x:1415,y:780,radius:58,to:'district',arrival:[435,630]});
+ window.SCENES={plaza,
+ district:make('district','Shops & Main Street',3256,1086,
+ [[20,246,620,75],[415,275,38,725],[25,615,450,65],[20,945,960,48],[625,0,25,375],[430,313,550,63],[950,305,35,665],[640,315,30,675],[430,665,540,65]],
+ [['to-plaza','← Family meeting spot',435,630,'plaza',1415/1536*1000,780/1024*1000],['to-neighborhood','Main Street → Home',895,966,'neighborhood',120,870],['to-recreation','Walk to the courts & pool',535,966,'recreation',80,870]],
+ 'Follow Main Street along the bottom toward Home, or the courts and pool.'),
+ neighborhood:make('neighborhood','Main Street · Home',1254,1254,
+ [[85,705,72,280],[88,925,817,54],[837,682,67,293],[199,255,590,48],[196,265,82,360],[218,610,555,61],[729,266,66,405],[112,649,140,70],[772,647,96,80],[682,229,55,63]],
+ [['to-district','← Main Street shops',120,870,'district',895,966],['to-house','Dinosaur house · Enter',713,276,'house',285,863],['to-recreation','Courts & pool →',865,880,'recreation',80,870]],
+ 'Follow the loop to the green dinosaur. Go at its front steps enters the house.'),
+ recreation:make('recreation','Lakelands · Courts & Pool',1254,1254,
+ [[48,125,61,848],[72,945,865,39],[888,570,42,405],[845,150,90,430],[105,125,775,44],[528,154,41,240],[207,344,657,43],[207,353,34,207],[230,515,578,45],[231,547,24,205],[405,545,30,208],[231,736,200,26],[614,543,26,44],[825,548,36,184],[224,905,660,69]],
+ [['to-district','← Main Street shops',80,870,'district',535,966]],
+ 'Explore the paths beside the courts and pools. Main Street leads back to the shops.'),
+ house:make('house','Home · Living floor',1448,1086,
+ [[200,825,615,65],[198,548,88,330],[260,790,280,99],[505,524,58,328],[515,360,68,210],[510,291,130,90],[519,127,36,232],[215,330,303,35],[387,125,31,238],[162,299,257,61],[199,339,38,213],[540,826,420,49],[537,686,46,183]],
+ [['to-neighborhood','Front door · Go outside',285,863,'neighborhood',713,276]],
+ 'Home! Walk through the living floor. The front door returns to the neighborhood.')};
+})();
