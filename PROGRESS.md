@@ -203,3 +203,9 @@ This section takes precedence over the earlier resume order and connector fallba
 ### 2026-10-10: Publication and cache refresh
 - Published integration commit ccdaa1a. GitHub Pages build and deployment succeeded. Live browser initially mixed the updated HTML with cached original character scripts.
 - Added version queries to the changed script/style references so a refresh loads the new picker and movement code together. Live verification continues after this small follow-up.
+
+### 2026-10-10: Live character integration verified
+- Integration and cache-refresh deployments completed successfully. Verified live scripts/style and all six atlases byte-match the tested files.
+- Live browser loaded all ten picker entries, finished asset loading, selected Vito successfully and rendered the full group. Original four character assets remain unchanged.
+- Character integration complete for the hosted modular game. Movement/animation, desktop/phone layouts and touch controls passed the checks recorded above. Physical iPhone/Safari verification remains pending; standalone play.html remains the earlier version.
+- Next authorized phase can add superpowers once the user supplies the ability list; no power behavior added here.
