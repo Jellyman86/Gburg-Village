@@ -164,3 +164,8 @@ This section takes precedence over the earlier resume order and connector fallba
 - Checks passed: exact sheet/frame dimensions, transparent binary alpha, no frame edge clipping, every frame ends at foot baseline y=60, four distinct frames per row. Inspected both atlases and four consecutive preview frames for all eight direction loops. Rendered 32-frame moving GIF at nominal 8 FPS; movement segments restart within panels.
 - Saved Adam_Kate_Sprite_Pack.zip, 3,933,967 bytes, file identity libfile_bde399600eb48191b2e9550554c22fc2. Contains source art, frames, strips, sheets, character.json files, GIF, README, validation results and preparation script. Session path: /workspace/scratch/db84f21c5f3d/output/Adam_Kate_Sprite_Pack.zip.
 - Asset preparation complete; new characters NOT integrated into gameplay, NOT deployed and NOT iPhone-tested. Existing game assets, Connor and play.html unchanged.
+
+### 2026-10-10: Brie and Vito sprite creation started
+- User supplied four photo references and requested Vito in New York Knicks themed clothing. Inspected supplied local copies.
+- Brie: long brown hair, black sleeveless high-neck top and taupe trousers matching kitchen photo, gold bracelet, white sneakers. Vito: short dark hair, blue/orange Knicks jersey and shorts, white/orange sneakers; cap in reference is likeness-only, do not copy its different team logo.
+- Started separate transparent 4x4 sheet generations, matching existing Jason style. Next: 64x64 frame normalization, foot alignment and movement-preview checks, save reusable pack. No gameplay integration requested; existing characters unchanged.
