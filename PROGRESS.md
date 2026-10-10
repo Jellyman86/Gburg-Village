@@ -86,3 +86,10 @@ This section takes precedence over the earlier resume order and connector fallba
 - Direct authenticated Git push remains unavailable. Do not attempt credential guessing or a large connector write.
 - Confirmed local play.html size: 5,402,535 bytes. Existing portable builder is a small Python script; no netlify.toml or root _redirects file exists in the checkout.
 - Next investigation: whether a small deployment build configuration can run the existing builder on the hosting service, avoiding upload of the generated HTML entirely. This is an alternative under investigation, not an implemented fix. Small connector writes are already verified through this log.
+
+### Baby step 3 result — local build route validated
+- Ran tools/build_portable.py in a temporary copy of index.html, style.css, src, assets, and tools. Build exited 0 and embedded 5 assets. The temporary copy was then removed; repository game files were not changed.
+- Generated bundle: 5,410,884 bytes. It contains the exact current src/game.js; the committed 5,402,535-byte play.html does not. This confirms source/bundle mismatch, but not which bundle the user's phone loads.
+- Official Netlify docs confirm netlify.toml can specify a build command: https://docs.netlify.com/build/configure-builds/file-based-configuration/ . Candidate command: python3 tools/build_portable.py. This would generate the large file at build time without transmitting its contents through chat.
+- This is a deployment-build alternative, NOT a restored Git push route. It depends on the actual site using Netlify Git-based builds. No deployment config was added and no game deployment was changed.
+- Next: get/verify the exact game URL used on the iPhone and establish whether its host builds this GitHub repository. Then inspect source/bundle feature differences and determine whether the small build configuration is appropriate before applying it.
