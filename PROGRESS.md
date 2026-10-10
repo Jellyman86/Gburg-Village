@@ -114,3 +114,9 @@ This section takes precedence over the earlier resume order and connector fallba
 - WebKit documents that default Web Audio can obey iOS Silent Mode: https://bugs.webkit.org/show_bug.cgi?id=252746 and https://bugs.webkit.org/show_bug.cgi?id=237322 . Working hypothesis: silent mode is muting synthesized music even if the button says On.
 - Next smallest diagnostic: ask user to turn Silent Mode off, raise media volume, then tap the game music button. If still silent, obtain the exact button label and whether opened in Safari or an in-app browser before changing code.
 - No game code changed. No giant payload sent. Await physical iPhone diagnostic result; do not claim an audio fix yet.
+
+### 2026-10-10, 14:46 America/New_York: squirrel encounter authorized
+- User requested the suggested squirrel encounter: a brief animated dash, funny family reaction, then departure. Also asked about using a cheaper model for later sprite-sheet additions.
+- Plan: add a small pixel squirrel drawn in canvas, spawn only on a clear nearby route visible to the player, briefly pause/sniff, then dash away. Space encounters apart and avoid interrupting Rex chases. No additional asset downloads are needed.
+- Working in src/game.js only for gameplay; current root GitHub Pages loads this file directly. Small source updates through the connector are allowed; the 5.4 MB portable bundle will not be transmitted through chat. Portable bundle parity remains a separate unresolved limitation.
+- Next: implement locally, check movement/timing/collision and source syntax, save source through a bounded connector update, then verify deployment and record status.
