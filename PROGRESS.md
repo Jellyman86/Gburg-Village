@@ -199,3 +199,7 @@ This section takes precedence over the earlier resume order and connector fallba
 - Chromium checks passed at desktop 1280x900, phone portrait 390x844 and landscape 844x390: all six new characters move/animate in down/left/right/up directions, run faster with Shift, and return to idle on release. No page errors or horizontal page overflow. Reviewed portrait layout screenshot.
 - Mobile touch checks passed: picker tap selects Brie, joystick moves her, simultaneous second touch holds Run, and releasing both returns to idle.
 - Publication targets the modular index.html game; standalone play.html is not regenerated in this step. Physical iPhone/Safari verification remains pending. Next: publish the small changed source files and twelve character files together, then verify live assets.
+
+### 2026-10-10: Publication and cache refresh
+- Published integration commit ccdaa1a. GitHub Pages build and deployment succeeded. Live browser initially mixed the updated HTML with cached original character scripts.
+- Added version queries to the changed script/style references so a refresh loads the new picker and movement code together. Live verification continues after this small follow-up.
