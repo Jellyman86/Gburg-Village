@@ -105,3 +105,12 @@ This section takes precedence over the earlier resume order and connector fallba
 - DIAGNOSIS: the supplied live site serves older source lacking both requested features. Stale play.html alone is not the explanation for this root URL. Current GitHub source has not reached this deployed response; no physical iPhone test yet.
 - No game changes or Netlify configuration changes were made. Do not add speculative caching fixes or assume iOS audio is the primary issue before deploying current source.
 - Next baby step: inspect Netlify's deployment source/latest deploy for gburgvill to determine whether GitHub continuous deployment is configured, failing, or absent (e.g. manual upload). User can provide a screenshot of its Deploys page. Once established, deploy current source and arrange portable rebuild as appropriate, then verify live features and ask for iPhone testing.
+
+### 2026-10-10, 14:33 America/New_York: corrected target — GitHub Pages mobile audio
+- User clarified the intended URL is https://jellyman86.github.io/Gburg-Village/ and reports the game works there but mobile has no sound. Netlify deployment repair is not the active goal.
+- Live Pages root (2,412 bytes) and src/game.js (19,111 UTF-8 bytes) both match the local current source exactly. Live source includes music, dinosaur, AudioContext resume, unlock buffer, and touchend/click/pointerdown gesture handlers. Therefore missing deployed audio code is NOT the issue at this target.
+- Read current music implementation: it synthesizes music via Web Audio, starts after gestures, and displays Music On / Off / Tap for music based on state.
+- The user's earlier screenshot visibly shows the iPhone silent-mode bell icon. This may be relevant but does not prove the current phone setting or cause.
+- WebKit documents that default Web Audio can obey iOS Silent Mode: https://bugs.webkit.org/show_bug.cgi?id=252746 and https://bugs.webkit.org/show_bug.cgi?id=237322 . Working hypothesis: silent mode is muting synthesized music even if the button says On.
+- Next smallest diagnostic: ask user to turn Silent Mode off, raise media volume, then tap the game music button. If still silent, obtain the exact button label and whether opened in Safari or an in-app browser before changing code.
+- No game code changed. No giant payload sent. Await physical iPhone diagnostic result; do not claim an audio fix yet.
