@@ -180,3 +180,8 @@ This section takes precedence over the earlier resume order and connector fallba
 ### Sprite pack revision — in progress
 - User requested a revision to the latest sprite pack. The previous pack is superseded pending asset preparation and preview checks.
 - Next: finish revision, validate frame alignment and animation, update the existing deliverable. No game integration or deployment in this step.
+
+### Sprite pack revision completed
+- Updated the existing latest sprite pack deliverable and its preview. Earlier version is superseded.
+- Rechecked 64x64 frames, 256x256 atlases, transparency, foot baseline, no edge clipping and direction animation previews. Other character assets verified byte-identical across 24 files.
+- No game integration or deployment. Next: additional requested sprite work or authorized game integration. Public log retains task status only.
