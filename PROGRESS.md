@@ -223,3 +223,9 @@ This section takes precedence over the earlier resume order and connector fallba
 - Node power checks passed: four throw directions, cooldowns, effect expiry, wall collision, wavefront timing/range and single-hit reactions. Desktop 1280x900, portrait 390x844 and landscape 844x390 browser checks passed: throws, Cry button, cooldown UI, held-key repeat guard, modal pause and movement regressions for all six newer characters. Real browser touch events verified joystick + Run and joystick + power tap without duplicate casts or stuck movement. Reviewed football/cry screenshots.
 - Updated portable builder to handle version-query script/style URLs and inline the new powers module. Temporary build smoke check passed; existing play.html is not regenerated or uploaded. Physical iPhone/Safari checks still pending.
 - Next: publish the tested modular game update, verify Pages deployment and the live action controls.
+
+### 2026-10-10: First powers and scattered visitors deployed
+- Published commit 68e4261; GitHub Pages build/deploy succeeded. Live index.html, powers.js, game.js and style.css byte-match the tested files.
+- Live browser loaded all ten characters and selected Connor/Coco. Throw button activation and X-triggered Cry produced the expected action messages and cooldown states. Reviewed the live plaza layout with the smaller original family group and visitors elsewhere.
+- The character-only rollback branch remains at bced9a1. Repository walking atlases are byte-identical to that checkpoint. PROGRESS.md records tests and deployment; physical iPhone/Safari verification remains pending.
+- This first pass adds only Connor/Coco abilities. Other characters await the user's power list.
