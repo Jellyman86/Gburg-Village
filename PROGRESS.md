@@ -68,3 +68,6 @@ This section takes precedence over the earlier resume order and connector fallba
 - Git is installed and the local command runner works.
 - About to test read-only remote access for this repository with interactive prompts disabled. No game changes or test commits will be made.
 - If remote access fails, record the exact failure before choosing the next route. Do not fall back to a giant connector write.
+
+- Result: read-only Git access SUCCEEDED; remote HEAD matched the checkpoint commit 6409d32.
+- Baby step 2: clone the repository to local disk, inspect repository instructions and file sizes, then test push negotiation with --dry-run. Large file contents will not be printed. A dry run does not prove that a subsequent real push will be accepted.
