@@ -133,14 +133,14 @@ This section takes precedence over the earlier resume order and connector fallba
 
 
 ### 2026-10-10: Stephanie and Mark sprite creation checkpoint
-- User corrected the task: do NOT replace or edit Connor. Create new people from the provided Stephanie and Mark photos; both wear Buffalo Bills fan clothes.
+- User corrected the task: do NOT replace or edit Connor. Create new Stephanie and Mark sprite packs.
 - Read PROGRESS.md and src/characters.js before creation. Existing contract: 64x64 frames, four frames per row, rows down/left/right/up, foot anchor (32,60), walk 8 FPS / run 12 FPS.
-- Started separate transparent pixel-art 4x4 walking-sheet generations using the supplied photos for likeness and existing Jason sheet for style. Stephanie: long dark hair, blue Bills top, jeans, white sneakers. Mark: short brown/gray hair, blue jersey, navy shorts, white sneakers.
+- Started separate transparent pixel-art 4x4 walking-sheet generations, matching the existing game style.
 - This is asset creation only. No existing sprite, character settings, gameplay, or play.html changed. Generation, exact frame sizing, alpha, foot alignment and animation validation are not complete at this checkpoint. No new characters integrated or deployed.
 - Next: inspect generated sheets; normalize and validate each frame against the contract before any game integration. Keep large HTML and embedded asset data out of chat.
 
 ### Stephanie and Mark artwork results
-- Generated and displayed separate 16-pose sheets in the built-in image tool. Mark wears blue #17 jersey; Stephanie wears blue Bills logo top. Visual inspection confirms front/left/right/back rows, likeness cues and requested team colors.
+- Generated and displayed separate 16-pose source sheets. Visually checked front/left/right/back rows.
 - Verified both PNGs are RGBA with alpha spanning 0 to 255. Mark source is 1312x1199; Stephanie source is 1254x1254. They are source artwork, NOT drop-in 256x256 game sheets. Some poses are too similar; walk-cycle cleanup remains necessary.
 - Outputs in this session: generated_images/exec-b8794f2f-18e3-40e3-9a06-3c2e4c4b0158.png (Mark); generated_images/exec-23f59f0c-da08-4486-8283-2e0746c9cca9.png (Stephanie). Generated images are retained by the conversation; scratch paths are transient.
 - No assets integrated, no game movement test performed, no gameplay deployment claimed. Next implementation step: prepare consistent 64x64 frames at (32,60), verify alternating feet and loop continuity, then integrate only if requested. Connor remains unchanged.
@@ -148,31 +148,29 @@ This section takes precedence over the earlier resume order and connector fallba
 ### 2026-10-10: Stephanie and Mark normalization and preview complete
 - User authorized finishing frame alignment and animation preview before creating more people.
 - Prepared two 256x256 transparent atlases with sixteen 64x64 frames each, rows down/left/right/up, baseline at y=60 and foot origin (32,60). Used one scale per character; removed disconnected exterior alpha speckles. Preserved original source art.
-- Corrected repeated leading feet in down/up rows by opposing only lower-leg regions for frames 2/3; kept heads, hair, logos and jersey number intact. Retained source side-view poses.
+- Corrected repeated leading feet in down/up rows by opposing only lower-leg regions for frames 2/3; preserved upper-body artwork. Retained source side-view poses.
 - Checks passed: atlas/frame dimensions, binary alpha, no edge clipping, all foot baselines exactly 60, four distinct frames per direction. Visually inspected both normalized atlases and four consecutive preview frames for all eight loops. Rendered 32-frame GIF at 8 FPS with translating sprites and foot-origin markers; loop directions and foot placement checked. Preview panel motion intentionally restarts.
 - Deliverable: Stephanie_Mark_Sprite_Pack.zip (2,809,130 bytes), saved file identity libfile_9dd756d683d4819183775feeba8fc66b. Contains sheets, frames, strips, character configs, original sources, walking_preview.gif, README, validation.json and reproducible preparation script. Session local path: /workspace/scratch/db84f21c5f3d/output/Stephanie_Mark_Sprite_Pack.zip.
 - Asset preparation is complete. NOT integrated into live gameplay, NOT deployed and NOT iPhone-tested. Existing game files and Connor unchanged. Next: more character artwork or explicitly requested game integration with character UI/spawn settings and browser/mobile validation.
 
 ### 2026-10-10: Adam and Kate sprite creation started
-- User requests Kate in the pink outfit shown in IMG_4327.jpeg and Adam in tennis attire. Inspected all four supplied photos; use existing Jason sheet for pixel style.
-- Kate: pink tank, lilac skirt with waist tie, white socks/sneakers, black crossbody bag and pink/purple mouse ears. Adam: white tennis polo, navy shorts, white socks/court shoes, retain bald crown and beard.
+- User requested new Kate and Adam sprite packs in the existing pixel style.
 - Separate transparent 4x4 walking-sheet generations started. Next: normalize to existing 64x64 frame / (32,60) foot contract, inspect all direction cycles and movement preview, save reusable pack. No live gameplay or existing characters changed.
 
 ### Adam and Kate sprite pack completed
-- Created separate source sheets from photo references with built-in image generation. Kate retains pink tank/lilac skirt, mouse ears and black crossbody bag; Adam wears white/navy tennis clothes with bald crown and beard.
+- Created separate source sheets with built-in image generation.
 - Normalized to 256x256 RGBA atlases, sixteen 64x64 frames per person, down/left/right/up row order, foot origin (32,60), nearest rendering. Corrected front/back lower-leg phase to alternate feet while preserving upper-body details; retained original side poses.
 - Checks passed: exact sheet/frame dimensions, transparent binary alpha, no frame edge clipping, every frame ends at foot baseline y=60, four distinct frames per row. Inspected both atlases and four consecutive preview frames for all eight direction loops. Rendered 32-frame moving GIF at nominal 8 FPS; movement segments restart within panels.
 - Saved Adam_Kate_Sprite_Pack.zip, 3,933,967 bytes, file identity libfile_bde399600eb48191b2e9550554c22fc2. Contains source art, frames, strips, sheets, character.json files, GIF, README, validation results and preparation script. Session path: /workspace/scratch/db84f21c5f3d/output/Adam_Kate_Sprite_Pack.zip.
 - Asset preparation complete; new characters NOT integrated into gameplay, NOT deployed and NOT iPhone-tested. Existing game assets, Connor and play.html unchanged.
 
 ### 2026-10-10: Brie and Vito sprite creation started
-- User supplied four photo references and requested Vito in New York Knicks themed clothing. Inspected supplied local copies.
-- Brie: long brown hair, black sleeveless high-neck top and taupe trousers matching kitchen photo, gold bracelet, white sneakers. Vito: short dark hair, blue/orange Knicks jersey and shorts, white/orange sneakers; cap in reference is likeness-only, do not copy its different team logo.
+- User requested new Brie and Vito sprite packs.
 - Started separate transparent 4x4 sheet generations, matching existing Jason style. Next: 64x64 frame normalization, foot alignment and movement-preview checks, save reusable pack. No gameplay integration requested; existing characters unchanged.
 
 ### Brie and Vito sprite pack completed
-- Generated separate sheets from photo references: Brie in black sleeveless top/taupe trousers; Vito in blue/orange New York Knicks basketball clothes, number 11. Sources retained.
-- Prepared 256x256 RGBA atlases with sixteen 64x64 frames each, rows down/left/right/up, foot origin (32,60). Corrected front/back lower-leg phase without mirroring jersey text or upper-body details; original side poses retained.
+- Generated separate source sheets for Brie and Vito. Sources retained.
+- Prepared 256x256 RGBA atlases with sixteen 64x64 frames each, rows down/left/right/up, foot origin (32,60). Corrected front/back lower-leg phase without mirroring upper-body artwork; original side poses retained.
 - Checks passed: frame/sheet dimensions, binary transparency, no edge clipping, every foot baseline y=60, four distinct frames per direction. Visually reviewed both atlases and four consecutive movement-preview frames for all eight loops. GIF has 32 frames at nominal 8 FPS, translating sprites and foot-origin markers; panel movement restarts intentionally.
 - Saved Brie_Vito_Sprite_Pack.zip; file identity libfile_305e7a06d8788191bc17b8c30405c19c. Contains sources, frames, strips, atlases, configs, GIF, README, validation and preparation script. Session path: /workspace/scratch/db84f21c5f3d/output/Brie_Vito_Sprite_Pack.zip.
 - Asset preparation complete. No new character is integrated/deployed or physical-iPhone verified. Existing characters and play.html unchanged.
@@ -190,3 +188,14 @@ This section takes precedence over the earlier resume order and connector fallba
 - Equal quarter-height source slicing clipped content in the final row. Source artwork was intact. Updated preparation to detect empty row separators for the revised atlas; source edges are now [0,317,612,908,1254].
 - Added source-boundary assertions, rebuilt atlas/frames/strips and preview, visually reviewed all four consecutive animation frames. Dimensions, transparency, foot-baseline and no-clipping checks pass. Other character assets remain byte-identical across 24 files.
 - Updated the existing sprite pack version. No gameplay integration or deployment. User asks about later integration and superpowers; full feature list may be supplied next, with powers implemented incrementally after normal movement is verified.
+
+### 2026-10-10: Six-character game integration — local checkpoint
+- User authorized adding all six prepared characters to Family Walk. Added runtime atlases/configs and registered Stephanie, Mark, Adam, Kate, Brie and Vito.
+- Added clear plaza positions, a horizontally scrolling character picker, keyboard shortcuts 1–9/0, and a shared squirrel interaction fallback. Original character assets retained.
+- Source syntax checks and all six atlas dimension/transparency/frame-margin/foot-baseline checks pass. Browser movement and layout verification pending; not yet published.
+
+### 2026-10-10: Integration browser checks passed
+- Verified all ten picker entries load, all actor positions clear collision bounds, and each new character switches with keys 5–9/0 and scrolls into view.
+- Chromium checks passed at desktop 1280x900, phone portrait 390x844 and landscape 844x390: all six new characters move/animate in down/left/right/up directions, run faster with Shift, and return to idle on release. No page errors or horizontal page overflow. Reviewed portrait layout screenshot.
+- Mobile touch checks passed: picker tap selects Brie, joystick moves her, simultaneous second touch holds Run, and releasing both returns to idle.
+- Publication targets the modular index.html game; standalone play.html is not regenerated in this step. Physical iPhone/Safari verification remains pending. Next: publish the small changed source files and twelve character files together, then verify live assets.

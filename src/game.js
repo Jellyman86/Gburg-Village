@@ -4,7 +4,7 @@
  const town=window.TOWN,characters=window.CHARACTERS,ids=Object.keys(characters);
  const keys=new Set(),sheets={},portraits={},buttons={},camera={x:0,y:0};
  const player={...town.spawn,id:'jason',direction:'down',frame:1,moving:false,running:false,clock:0};
- const family=ids.map((id,i)=>({id,x:town.spawn.x+(i-1.5)*42,y:town.spawn.y+34,direction:'down',frame:1}));
+ const family=ids.map((id,i)=>({id,x:town.spawn.x+(i<4?(i-1.5)*42:((i-4)%3-1)*58),y:town.spawn.y+(i<4?34:70+Math.floor((i-4)/3)*40),direction:'down',frame:1}));
  let loaded=false,previous=0,toastTimer=0,nearest=null,joyId=null,runId=null,joy={x:0,y:0},touchRun=false,background;
  const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
  function updateCamera(){camera.x=Math.round(clamp(player.x-canvas.width/2,0,Math.max(0,town.width-canvas.width)));camera.y=Math.round(clamp(player.y-canvas.height*.57,0,Math.max(0,town.height-canvas.height)));}
@@ -20,13 +20,13 @@
  function toast(message){$('toast').textContent=message;$('toast').classList.add('visible');clearTimeout(toastTimer);toastTimer=setTimeout(()=>$('toast').classList.remove('visible'),2400);}
  function resetInput(){keys.clear();joy={x:0,y:0};joyId=null;runId=null;touchRun=false;$('stick').style.transform='';$('run').classList.remove('active');player.moving=false;player.running=false;player.clock=0;player.frame=1;}
  window.addEventListener('blur',resetInput);document.addEventListener('visibilitychange',()=>{if(document.hidden)resetInput();previous=0;});
- function select(id){if(!characters[id])return;player.id=id;player.frame=1;player.clock=0;for(const key of ids)buttons[key].setAttribute('aria-pressed',String(key===id));$('status').textContent=characters[id].name+' · Ready for a walk';canvas.focus({preventScroll:true});}
+ function select(id){if(!characters[id])return;player.id=id;player.frame=1;player.clock=0;for(const key of ids)buttons[key].setAttribute('aria-pressed',String(key===id));buttons[id].scrollIntoView({block:'nearest',inline:'nearest'});$('status').textContent=characters[id].name+' · Ready for a walk';canvas.focus({preventScroll:true});}
  ids.forEach((id,i)=>{
   const button=document.createElement('button');button.className='character-button';button.dataset.character=id;
   button.setAttribute('aria-label','Play as '+characters[id].name);button.setAttribute('aria-pressed',String(i===0));
   const portrait=document.createElement('canvas');portrait.width=48;portrait.height=56;portrait.setAttribute('aria-hidden','true');
   const name=document.createElement('span');name.textContent=characters[id].name;
-  const shortcut=document.createElement('small');shortcut.textContent=i+1;
+  const shortcut=document.createElement('small');shortcut.textContent=(i+1)%10;
   button.append(portrait,name,shortcut);button.addEventListener('click',()=>select(id));$('party').append(button);portraits[id]=portrait;buttons[id]=button;
  });
  function blocked(x,y){const b=town.bounds,rx=8,ry=4;if(x-rx<b.left||x+rx>b.right||y-ry<b.top||y+ry>b.bottom)return true;return town.obstacles.some(o=>x+rx>o.x&&x-rx<o.x+o.w&&y+ry>o.y&&y-ry<o.y+o.h);}
@@ -131,7 +131,7 @@
    const reactions={jason:'Jason: That squirrel definitely has somewhere to be.',
     connor:'Connor: Race you, squirrel!',coco:'Coco: Tiny fluffy dinosaur!',
     peachy:'Peachy: Even the squirrel is getting its steps in.'};
-   toast(reactions[player.id]);return true;
+   toast(reactions[player.id]||characters[player.id].name+': Look at that squirrel go!');return true;
   }
   return false;
  }
@@ -171,11 +171,11 @@
  function updateNearby(){nearest=town.landmarks.filter(l=>Math.hypot(l.x-player.x,l.y-player.y)<l.radius).sort((a,b)=>Math.hypot(a.x-player.x,a.y-player.y)-Math.hypot(b.x-player.x,b.y-player.y))[0]||null;$('nearby').hidden=!nearest;if(nearest)$('nearby-text').textContent=nearest.name;$('interact').setAttribute('aria-label',nearest?'Look at '+nearest.name:'Look around');}
  function showDialog(title,body,tag='MARKET SQUARE'){resetInput();$('dialog-title').textContent=title;$('dialog-body').textContent=body;$('dialog-tag').textContent=tag;if(!$('dialog').open)$('dialog').showModal();}
  function interact(){if(!loaded||$('dialog').open)return;updateNearby();if(nearest)showDialog(nearest.name,nearest.text);else toast('Walk toward a gold diamond to look around.');}
- $('help').addEventListener('click',()=>showDialog('A walk with the family','Move with WASD or the arrow keys. Hold Shift to run. Press E or Space near a gold diamond to look around. Choose a character above or use 1–4. On a phone, drag the left joystick and hold Run with your other thumb. Landscape gives you a wider view. Rex the dinosaur sometimes plays tag! Hold Run or Shift to outrun him. Getting tagged is harmless.','HOW TO PLAY'));
+ $('help').addEventListener('click',()=>showDialog('A walk with the family','Move with WASD or the arrow keys. Hold Shift to run. Press E or Space near a gold diamond to look around. Swipe the character row to see everyone, or use 1–9 and 0 to switch. On a phone, drag the left joystick and hold Run with your other thumb. Landscape gives you a wider view. Rex the dinosaur sometimes plays tag! Hold Run or Shift to outrun him. Getting tagged is harmless.','HOW TO PLAY'));
  const close=()=>{$('dialog').close();resetInput();canvas.focus({preventScroll:true});};
  $('close-dialog').addEventListener('click',close);$('continue').addEventListener('click',close);$('dialog').addEventListener('close',()=>{resetInput();canvas.focus({preventScroll:true});});
  const movementKeys=['KeyW','KeyA','KeyS','KeyD','ArrowUp','ArrowLeft','ArrowDown','ArrowRight','ShiftLeft','ShiftRight'];
- window.addEventListener('keydown',e=>{if(e.ctrlKey||e.altKey||e.metaKey||$('dialog').open)return;if(movementKeys.includes(e.code)){e.preventDefault();keys.add(e.code);}if(['KeyE','Space'].includes(e.code)){e.preventDefault();if(!e.repeat)interact();}if(/^Digit[1-4]$/.test(e.code)&&!e.repeat)select(ids[Number(e.code.slice(-1))-1]);});
+ window.addEventListener('keydown',e=>{if(e.ctrlKey||e.altKey||e.metaKey||$('dialog').open)return;if(movementKeys.includes(e.code)){e.preventDefault();keys.add(e.code);}if(['KeyE','Space'].includes(e.code)){e.preventDefault();if(!e.repeat)interact();}if(/^Digit[0-9]$/.test(e.code)&&!e.repeat){const digit=Number(e.code.slice(-1));select(ids[digit===0?9:digit-1]);}});
  window.addEventListener('keyup',e=>keys.delete(e.code));
  const joyEl=$('joystick');
  function setJoy(e){const r=joyEl.getBoundingClientRect(),max=r.width*.34,dx=e.clientX-r.left-r.width/2,dy=e.clientY-r.top-r.height/2,len=Math.hypot(dx,dy),ratio=len>max?max/len:1,x=dx*ratio,y=dy*ratio;$('stick').style.transform=`translate(${x}px,${y}px)`;joy=len<max*.18?{x:0,y:0}:{x:x/max,y:y/max};}
@@ -223,7 +223,7 @@
  }).catch(error=>{$('loading').innerHTML='';const message=document.createElement('b');message.textContent=error.message;const help=document.createElement('span');help.textContent='Extract the full ZIP, then open index.html or the standalone play.html.';$('loading').append(message,help);console.error(error);});
  resize();requestAnimationFrame(frame);
  // Read-only diagnostic state for repeatable browser checks.
- window.GAME={get ready(){return loaded;},get state(){return{player:{...player},dinosaur:{...dino},squirrel:{...squirrel},camera:{...camera},nearest:nearest?.id||null,viewport:{width:canvas.width,height:canvas.height},dialog:$('dialog').open,input:{joy:{...joy},touchRun,keys:[...keys]}};},select,blocked};
+ window.GAME={get ready(){return loaded;},get state(){return{player:{...player},actors:family.map(actor=>({...actor})),dinosaur:{...dino},squirrel:{...squirrel},camera:{...camera},nearest:nearest?.id||null,viewport:{width:canvas.width,height:canvas.height},dialog:$('dialog').open,input:{joy:{...joy},touchRun,keys:[...keys]}};},select,blocked};
 })();
 
 
