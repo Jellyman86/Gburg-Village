@@ -130,3 +130,11 @@ This section takes precedence over the earlier resume order and connector fallba
 - User asked whether a cheaper model can add sprite sheets later. Suggested next scope is integration from an exact sprite contract (dimensions, frame order, transparency, feet anchor, and existing examples); no sprite sheet assets were requested or created in this step.
 
 - Deployment check attempt: direct HTTPS request to GitHub Pages was blocked by this session's network restriction (URLError: Operation not permitted). Source is committed in GitHub, but Pages deployment and physical iPhone behavior are not verified. Next action: reload root Pages on the phone, walk for 8+ seconds on the plaza, and observe squirrel dash/reaction; retry live-source verification when allowed.
+
+
+### 2026-10-10: Stephanie and Mark sprite creation checkpoint
+- User corrected the task: do NOT replace or edit Connor. Create new people from the provided Stephanie and Mark photos; both wear Buffalo Bills fan clothes.
+- Read PROGRESS.md and src/characters.js before creation. Existing contract: 64x64 frames, four frames per row, rows down/left/right/up, foot anchor (32,60), walk 8 FPS / run 12 FPS.
+- Started separate transparent pixel-art 4x4 walking-sheet generations using the supplied photos for likeness and existing Jason sheet for style. Stephanie: long dark hair, blue Bills top, jeans, white sneakers. Mark: short brown/gray hair, blue jersey, navy shorts, white sneakers.
+- This is asset creation only. No existing sprite, character settings, gameplay, or play.html changed. Generation, exact frame sizing, alpha, foot alignment and animation validation are not complete at this checkpoint. No new characters integrated or deployed.
+- Next: inspect generated sheets; normalize and validate each frame against the contract before any game integration. Keep large HTML and embedded asset data out of chat.
