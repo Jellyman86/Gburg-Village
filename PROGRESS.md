@@ -278,3 +278,11 @@ This section takes precedence over the earlier resume order and connector fallba
 - GitHub secure browser sign-in succeeded. Actual local file uploads through GitHub's file chooser now work; image contents are not sent in chat or connector arguments. Use this route for subsequent large assets while the browser session remains available.
 - Separate work/map-v2-tested branch contains all four maps and eight V2 page/runtime/style files, uploaded as files. Source checkpoint 065d71e. Test script and progress log are being included before fast-forward publication. Root game files remain unchanged.
 - All desktop, portrait and landscape checks passed as recorded above. Next: verify branch files byte-for-byte, fast-forward main only with expected head guard, verify Pages deployment and live original/V2 responses, then record final deployment status.
+
+### 2026-10-10: Map V2 published and live-verified
+- Fast-forwarded main from 64708d2 to f24e1ec41a7b1bdd6a126fe96c7e6477085eef2c after comparing every uploaded V2 file against its tested local bytes. Changes are confined to v2/, tools/check_v2.cjs and this log. Original root entry point/style/src/assets/play.html remain unchanged.
+- GitHub Pages workflow 38096498019 build and deploy both succeeded. Live https://jellyman86.github.io/Gburg-Village/v2/ loads the ten-character game; Connor selection and Throw football activation succeeded in the live browser.
+- All 12 live V2 files (including four separate lossless images) byte-match the tested local copies. Live original index.html, src/game.js and style.css also match the original unchanged files.
+- Included: shops/Main Street, neighborhood, dinosaur-door house interior, and recreation area with clubhouse, pools, courts and playground. Explicit Go/E route transitions connect areas; Back to plaza returns safely. Geography is approximate preview art, not a surveyed seamless map.
+- Desktop, portrait and landscape browser route/control tests passed. Physical iPhone/Safari remains a user device check. Publication complete; no further permission or deployment action is needed.
+- Future large-file uploads: use signed-in GitHub browser file chooser with /home/oai/share paths, or an authenticated file-based Git workflow. Do not use large base64 connector writes. Keep updates isolated to v2/ unless the user requests changing the original.
