@@ -185,3 +185,8 @@ This section takes precedence over the earlier resume order and connector fallba
 - Updated the existing latest sprite pack deliverable and its preview. Earlier version is superseded.
 - Rechecked 64x64 frames, 256x256 atlases, transparency, foot baseline, no edge clipping and direction animation previews. Other character assets verified byte-identical across 24 files.
 - No game integration or deployment. Next: additional requested sprite work or authorized game integration. Public log retains task status only.
+
+### Source row crop correction
+- Equal quarter-height source slicing clipped content in the final row. Source artwork was intact. Updated preparation to detect empty row separators for the revised atlas; source edges are now [0,317,612,908,1254].
+- Added source-boundary assertions, rebuilt atlas/frames/strips and preview, visually reviewed all four consecutive animation frames. Dimensions, transparency, foot-baseline and no-clipping checks pass. Other character assets remain byte-identical across 24 files.
+- Updated the existing sprite pack version. No gameplay integration or deployment. User asks about later integration and superpowers; full feature list may be supplied next, with powers implemented incrementally after normal movement is verified.
