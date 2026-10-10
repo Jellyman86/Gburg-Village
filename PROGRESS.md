@@ -62,3 +62,9 @@ This section takes precedence over the earlier resume order and connector fallba
 - If the file-based editing/upload route is blocked, stop before any large write and explain the exact blocker. Do not silently fall back to the previous failing approach.
 - Keep operations small and save checkpoints. Never promise that the app cannot crash.
 - Distinguish proposed, locally edited, committed, pushed, deployed, and iPhone-verified work. A log entry alone does not establish the status of game changes.
+
+### 2026-10-10, 13:09 America/New_York: baby step 1 — Git access check
+- User requested small steps with each attempt logged.
+- Git is installed and the local command runner works.
+- About to test read-only remote access for this repository with interactive prompts disabled. No game changes or test commits will be made.
+- If remote access fails, record the exact failure before choosing the next route. Do not fall back to a giant connector write.
