@@ -246,3 +246,9 @@ This section takes precedence over the earlier resume order and connector fallba
 - Added tools/check_game_browser.cjs. Chromium desktop 1280x900, phone 390x844 and landscape 844x390 passed all-character action/rapid-tap/movement checks and real traversal to the unicorn. Mounted checks passed collision at Five Guys, faster galloping, character switching, all ten mounted powers and dismount/remount. Actual browser touch events passed joystick + power while riding and tap-to-dismount without stuck input. No page errors or horizontal page overflow.
 - Reviewed all ten action screenshots plus unicorn discovery and riding views. Shortened touch ride prompts so they fit beside the action button. Original sprites/spawn positions preserved.
 - Temporary portable build inlined every module successfully; play.html remains unchanged. Physical iPhone/Safari verification remains pending. Next: publish the modular update atomically and verify deployment/live controls.
+
+### 2026-10-10: Full power roster and unicorn deployed
+- Published gameplay commit 1aa38ce. GitHub Pages build and deploy succeeded; live index.html, game.js, powers.js and unicorn.js byte-match the tested files.
+- All ten actions, shorter cooldowns and riding are available in the modular game. Desktop and simulated phone/landscape gameplay checks passed before publishing; physical iPhone/Safari verification remains pending.
+- Final cloud-browser follow-up timed out during browser documentation retrieval; deployment and exact live file checks independently passed. No gameplay repair was needed.
+- Rollback branch checkpoints/first-powers-before-unicorn-2026-10-10 retains the user-confirmed previous version. No walking asset changes or large play.html upload.
