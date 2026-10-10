@@ -71,3 +71,12 @@ This section takes precedence over the earlier resume order and connector fallba
 
 - Result: read-only Git access SUCCEEDED; remote HEAD matched the checkpoint commit 6409d32.
 - Baby step 2: clone the repository to local disk, inspect repository instructions and file sizes, then test push negotiation with --dry-run. Large file contents will not be printed. A dry run does not prove that a subsequent real push will be accepted.
+
+### 2026-10-10: baby steps 1–2 results — stopped at write-route blocker
+- Read-only Git access and shallow clone succeeded. Local checkout: /workspace/scratch/1ab4fb53ebd3/Gburg-Village (transient; re-clone if missing).
+- Git push negotiation failed: command GIT_TERMINAL_PROMPT=0 git push --dry-run origin HEAD:main returned exit 128, "fatal: could not read Username for 'https://github.com': terminal prompts disabled". Read success does NOT establish authenticated write access.
+- No game files were edited, no build was run, and no Git push succeeded.
+- Inspected index.html and tools/build_portable.py only. The existing Python builder embeds assets and current source into play.html on disk, which is a promising way to rebuild without printing the bundle. index.html loads src/characters.js, src/map.js, and src/game.js.
+- No AGENTS.md appeared in the bounded tracked-file search. Mobile entry point, source/bundle parity, and deployment behavior remain unverified.
+- STOPPED per agreed guardrail: file-based Git write access is blocked by unavailable authentication. Small progress-log updates through the connector still work; no giant Update File request was attempted.
+- Next action: establish an authorized authenticated file-based push route, or agree on an alternative that transports the generated bundle without a giant connector request. Do not request that the user paste credentials into chat. Resume game diagnosis only after resolving the workflow checkpoint.
