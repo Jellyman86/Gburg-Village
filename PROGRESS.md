@@ -157,3 +157,10 @@ This section takes precedence over the earlier resume order and connector fallba
 - User requests Kate in the pink outfit shown in IMG_4327.jpeg and Adam in tennis attire. Inspected all four supplied photos; use existing Jason sheet for pixel style.
 - Kate: pink tank, lilac skirt with waist tie, white socks/sneakers, black crossbody bag and pink/purple mouse ears. Adam: white tennis polo, navy shorts, white socks/court shoes, retain bald crown and beard.
 - Separate transparent 4x4 walking-sheet generations started. Next: normalize to existing 64x64 frame / (32,60) foot contract, inspect all direction cycles and movement preview, save reusable pack. No live gameplay or existing characters changed.
+
+### Adam and Kate sprite pack completed
+- Created separate source sheets from photo references with built-in image generation. Kate retains pink tank/lilac skirt, mouse ears and black crossbody bag; Adam wears white/navy tennis clothes with bald crown and beard.
+- Normalized to 256x256 RGBA atlases, sixteen 64x64 frames per person, down/left/right/up row order, foot origin (32,60), nearest rendering. Corrected front/back lower-leg phase to alternate feet while preserving upper-body details; retained original side poses.
+- Checks passed: exact sheet/frame dimensions, transparent binary alpha, no frame edge clipping, every frame ends at foot baseline y=60, four distinct frames per row. Inspected both atlases and four consecutive preview frames for all eight direction loops. Rendered 32-frame moving GIF at nominal 8 FPS; movement segments restart within panels.
+- Saved Adam_Kate_Sprite_Pack.zip, 3,933,967 bytes, file identity libfile_bde399600eb48191b2e9550554c22fc2. Contains source art, frames, strips, sheets, character.json files, GIF, README, validation results and preparation script. Session path: /workspace/scratch/db84f21c5f3d/output/Adam_Kate_Sprite_Pack.zip.
+- Asset preparation complete; new characters NOT integrated into gameplay, NOT deployed and NOT iPhone-tested. Existing game assets, Connor and play.html unchanged.
