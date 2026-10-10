@@ -4,7 +4,8 @@
  const town=window.TOWN,characters=window.CHARACTERS,ids=Object.keys(characters);
  const keys=new Set(),sheets={},portraits={},buttons={},camera={x:0,y:0};
  const player={...town.spawn,id:'jason',direction:'down',frame:1,moving:false,running:false,clock:0};
- const family=ids.map((id,i)=>({id,x:town.spawn.x+(i<4?(i-1.5)*42:((i-4)%3-1)*58),y:town.spawn.y+(i<4?34:70+Math.floor((i-4)/3)*40),direction:'down',frame:1}));
+ const visitorSpawns={stephanie:{x:304,y:375},mark:{x:906,y:375},adam:{x:568,y:555},kate:{x:768,y:562},brie:{x:465,y:825},vito:{x:1167,y:780}};
+ const family=ids.map((id,i)=>({id,...(visitorSpawns[id]||{x:town.spawn.x+(i-1.5)*42,y:town.spawn.y+34}),direction:'down',frame:1}));
  let loaded=false,previous=0,toastTimer=0,nearest=null,joyId=null,runId=null,joy={x:0,y:0},touchRun=false,background;
  const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
  function updateCamera(){camera.x=Math.round(clamp(player.x-canvas.width/2,0,Math.max(0,town.width-canvas.width)));camera.y=Math.round(clamp(player.y-canvas.height*.57,0,Math.max(0,town.height-canvas.height)));}
@@ -20,7 +21,7 @@
  function toast(message){$('toast').textContent=message;$('toast').classList.add('visible');clearTimeout(toastTimer);toastTimer=setTimeout(()=>$('toast').classList.remove('visible'),2400);}
  function resetInput(){keys.clear();joy={x:0,y:0};joyId=null;runId=null;touchRun=false;$('stick').style.transform='';$('run').classList.remove('active');player.moving=false;player.running=false;player.clock=0;player.frame=1;}
  window.addEventListener('blur',resetInput);document.addEventListener('visibilitychange',()=>{if(document.hidden)resetInput();previous=0;});
- function select(id){if(!characters[id])return;player.id=id;player.frame=1;player.clock=0;for(const key of ids)buttons[key].setAttribute('aria-pressed',String(key===id));buttons[id].scrollIntoView({block:'nearest',inline:'nearest'});$('status').textContent=characters[id].name+' · Ready for a walk';canvas.focus({preventScroll:true});}
+ function select(id){if(!characters[id])return;player.id=id;player.frame=1;player.clock=0;for(const key of ids)buttons[key].setAttribute('aria-pressed',String(key===id));buttons[id].scrollIntoView({block:'nearest',inline:'nearest'});paintPower();$('status').textContent=characters[id].name+' · Ready for a walk';canvas.focus({preventScroll:true});}
  ids.forEach((id,i)=>{
   const button=document.createElement('button');button.className='character-button';button.dataset.character=id;
   button.setAttribute('aria-label','Play as '+characters[id].name);button.setAttribute('aria-pressed',String(i===0));
@@ -39,12 +40,33 @@
  // A tiny pixel T-rex plays tag: short chases, long rests, no damage.
  const dinoHome={x:910,y:370};
  const dino={...dinoHome,facing:1,clock:0,
-  mode:'wander',timer:7,target:null,turnTimer:0,moving:false};
+  mode:'wander',timer:7,target:null,turnTimer:0,moving:false,stunned:0};
+ const powers=window.FAMILY_POWERS.create({blocked,getTarget:()=>dino,onHit:()=>{
+  dino.stunned=2;dino.mode='wander';dino.timer=6;dino.target=null;dino.moving=false;toast('Rex is startled! A little time to get away.');
+ }});
+ const powerButton=$('power'),powerLabel=$('power-label'),powerHint=$('power-hint');
+ function paintPower(){
+  const power=window.FAMILY_POWERS.definitions[player.id];powerButton.hidden=!power;
+  if(!power)return;
+  const remaining=powers.cooldown(player.id),ready=remaining===0;
+  powerButton.disabled=!loaded||!ready||$('dialog').open;
+  powerLabel.textContent=power.label;powerHint.textContent=ready?'X · Ready':remaining.toFixed(1)+'s';
+  powerButton.setAttribute('aria-label',characters[player.id].name+': '+power.name+(ready?'. Ready.':'. Recharging.'));
+ }
+ function activatePower(){
+  if(!loaded||$('dialog').open)return false;
+  const used=powers.activate(player);
+  if(used){toast(window.FAMILY_POWERS.definitions[player.id].name+'!');paintPower();}
+  return used;
+ }
+ powerButton.addEventListener('pointerdown',e=>{e.preventDefault();activatePower();canvas.focus({preventScroll:true});});
+ powerButton.addEventListener('click',e=>{if(e.detail===0)activatePower();});
  function dinoRest(message){
   dino.mode='wander';dino.timer=14+Math.random()*12;dino.target=null;
   if(message)toast(message);
  }
  function updateDino(dt){
+  if(dino.stunned>0){dino.stunned=Math.max(0,dino.stunned-dt);dino.moving=false;return;}
   dino.timer-=dt;dino.turnTimer-=dt;
   const distance=Math.hypot(player.x-dino.x,player.y-dino.y);
   if(dino.mode==='chase'){
@@ -90,6 +112,7 @@
   if(dino.mode==='chase'){
    ctx.fillStyle='#ffde87';ctx.font='bold 14px system-ui';ctx.textAlign='center';ctx.fillText('!',0,-48);
   }
+  if(dino.stunned>0){ctx.fillStyle='#aeeaff';ctx.font='bold 12px system-ui';ctx.textAlign='center';ctx.fillText('✦',0,-48);}
   ctx.scale(dino.facing,1);ctx.translate(-24,-42-bob);
   // Pixel blocks keep the silhouette crisp at the game's native resolution.
   const rect=(color,x,y,w,h)=>{ctx.fillStyle=color;ctx.fillRect(x,y,w,h);};
@@ -169,13 +192,13 @@
  }
 
  function updateNearby(){nearest=town.landmarks.filter(l=>Math.hypot(l.x-player.x,l.y-player.y)<l.radius).sort((a,b)=>Math.hypot(a.x-player.x,a.y-player.y)-Math.hypot(b.x-player.x,b.y-player.y))[0]||null;$('nearby').hidden=!nearest;if(nearest)$('nearby-text').textContent=nearest.name;$('interact').setAttribute('aria-label',nearest?'Look at '+nearest.name:'Look around');}
- function showDialog(title,body,tag='MARKET SQUARE'){resetInput();$('dialog-title').textContent=title;$('dialog-body').textContent=body;$('dialog-tag').textContent=tag;if(!$('dialog').open)$('dialog').showModal();}
+ function showDialog(title,body,tag='MARKET SQUARE'){resetInput();$('dialog-title').textContent=title;$('dialog-body').textContent=body;$('dialog-tag').textContent=tag;if(!$('dialog').open)$('dialog').showModal();paintPower();}
  function interact(){if(!loaded||$('dialog').open)return;updateNearby();if(nearest)showDialog(nearest.name,nearest.text);else toast('Walk toward a gold diamond to look around.');}
- $('help').addEventListener('click',()=>showDialog('A walk with the family','Move with WASD or the arrow keys. Hold Shift to run. Press E or Space near a gold diamond to look around. Swipe the character row to see everyone, or use 1–9 and 0 to switch. On a phone, drag the left joystick and hold Run with your other thumb. Landscape gives you a wider view. Rex the dinosaur sometimes plays tag! Hold Run or Shift to outrun him. Getting tagged is harmless.','HOW TO PLAY'));
+ $('help').addEventListener('click',()=>showDialog('A walk with the family','Move with WASD or the arrow keys. Hold Shift to run. Press E or Space near a gold diamond to look around. Swipe the character row to see everyone, or use 1–9 and 0 to switch. On a phone, drag the left joystick and hold Run with your other thumb. Landscape gives you a wider view. Select Connor to throw a football or Coco to send crying shockwaves: tap Throw/Cry or press X. The button shows the cooldown. Both can briefly startle Rex. Rex the dinosaur sometimes plays tag! Hold Run or Shift to outrun him. Getting tagged is harmless.','HOW TO PLAY'));
  const close=()=>{$('dialog').close();resetInput();canvas.focus({preventScroll:true});};
  $('close-dialog').addEventListener('click',close);$('continue').addEventListener('click',close);$('dialog').addEventListener('close',()=>{resetInput();canvas.focus({preventScroll:true});});
  const movementKeys=['KeyW','KeyA','KeyS','KeyD','ArrowUp','ArrowLeft','ArrowDown','ArrowRight','ShiftLeft','ShiftRight'];
- window.addEventListener('keydown',e=>{if(e.ctrlKey||e.altKey||e.metaKey||$('dialog').open)return;if(movementKeys.includes(e.code)){e.preventDefault();keys.add(e.code);}if(['KeyE','Space'].includes(e.code)){e.preventDefault();if(!e.repeat)interact();}if(/^Digit[0-9]$/.test(e.code)&&!e.repeat){const digit=Number(e.code.slice(-1));select(ids[digit===0?9:digit-1]);}});
+ window.addEventListener('keydown',e=>{if(e.ctrlKey||e.altKey||e.metaKey||$('dialog').open)return;if(movementKeys.includes(e.code)){e.preventDefault();keys.add(e.code);}if(['KeyE','Space'].includes(e.code)){e.preventDefault();if(!e.repeat)interact();}if(e.code==='KeyX'){e.preventDefault();if(!e.repeat)activatePower();}if(/^Digit[0-9]$/.test(e.code)&&!e.repeat){const digit=Number(e.code.slice(-1));select(ids[digit===0?9:digit-1]);}});
  window.addEventListener('keyup',e=>keys.delete(e.code));
  const joyEl=$('joystick');
  function setJoy(e){const r=joyEl.getBoundingClientRect(),max=r.width*.34,dx=e.clientX-r.left-r.width/2,dy=e.clientY-r.top-r.height/2,len=Math.hypot(dx,dy),ratio=len>max?max/len:1,x=dx*ratio,y=dy*ratio;$('stick').style.transform=`translate(${x}px,${y}px)`;joy=len<max*.18?{x:0,y:0}:{x:x/max,y:y/max};}
@@ -201,7 +224,7 @@
   if(length>.01){player.direction=Math.abs(x)>Math.abs(y)?(x>0?'right':'left'):(y>0?'down':'up');const speed=player.running?c.runSpeed:c.speed;move(x*speed*dt,y*speed*dt);}
   player.moving=Math.hypot(player.x-oldX,player.y-oldY)>.01;
   if(player.moving){player.clock+=dt*(player.running?c.runFPS:c.walkFPS);player.frame=Math.floor(player.clock)%4;}else{player.clock=0;player.frame=1;}
-  updateDino(dt);updateSquirrel(dt);
+  powers.update(dt);updateDino(dt);updateSquirrel(dt);paintPower();
   updateCamera();updateNearby();$('status').textContent=c.name+' · '+(player.moving?(player.running?'Running':'Walking'):'Taking it all in');$('area-label').textContent=player.y<401?'CENTER POINT WAY':player.y<785?'THE GREEN':'THE PLAZA';
  }
  function sprite(actor,active){
@@ -209,21 +232,23 @@
   ctx.fillStyle=active?'#182b365c':'#182b3645';ctx.beginPath();ctx.ellipse(x,y,actor.id==='coco'?10:13,4,0,0,Math.PI*2);ctx.fill();
   if(active){ctx.strokeStyle='#f9df89';ctx.lineWidth=1;ctx.beginPath();ctx.ellipse(x,y+1,15,5,0,0,Math.PI*2);ctx.stroke();}
   ctx.drawImage(sheets[actor.id],actor.frame*64,c.rows[actor.direction]*64,64,64,x-c.foot.x,y-c.foot.y,64,64);
+  if(active)powers.drawActor(ctx,actor);
  }
  function draw(){
   if(!loaded)return;ctx.fillStyle='#17383b';ctx.fillRect(0,0,canvas.width,canvas.height);ctx.save();ctx.translate(-camera.x,-camera.y);ctx.drawImage(background,0,0);
   town.landmarks.forEach(l=>{ctx.fillStyle=nearest===l?'#ffeda6':'#eedba2';ctx.strokeStyle='#705b35';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(l.x,l.y-21);ctx.lineTo(l.x+5,l.y-15);ctx.lineTo(l.x,l.y-9);ctx.lineTo(l.x-5,l.y-15);ctx.closePath();ctx.fill();ctx.stroke();});
-  family.filter(a=>a.id!==player.id).concat(player,dino,squirrel.active?squirrel:[]).sort((a,b)=>a.y-b.y).forEach(a=>a===dino?drawDino():a===squirrel?drawSquirrel():sprite(a,a===player));ctx.restore();
+  powers.drawGround(ctx);
+  family.filter(a=>a.id!==player.id).concat(player,dino,squirrel.active?squirrel:[]).sort((a,b)=>a.y-b.y).forEach(a=>a===dino?drawDino():a===squirrel?drawSquirrel():sprite(a,a===player));powers.drawAir(ctx);ctx.restore();
  }
  function frame(time){const dt=previous?Math.min((time-previous)/1000,.05):0;previous=time;update(dt);draw();requestAnimationFrame(frame);}
  function loadImage(path){return new Promise((resolve,reject)=>{const img=new Image();img.onload=()=>resolve(img);img.onerror=()=>reject(new Error('Could not load '+path));img.src=window.EMBEDDED_ASSETS?.[path]||path;});}
  Promise.all([loadImage(town.image).then(img=>{background=img;}),...ids.map(id=>loadImage(characters[id].sheet).then(img=>{sheets[id]=img;}))]).then(()=>{
   ids.forEach(id=>{const p=portraits[id].getContext('2d');p.imageSmoothingEnabled=false;p.drawImage(sheets[id],64,0,64,64,-8,-5,64,64);});
-  loaded=true;$('loading').hidden=true;resize();updateNearby();canvas.focus({preventScroll:true});
+  loaded=true;$('loading').hidden=true;resize();updateNearby();paintPower();canvas.focus({preventScroll:true});
  }).catch(error=>{$('loading').innerHTML='';const message=document.createElement('b');message.textContent=error.message;const help=document.createElement('span');help.textContent='Extract the full ZIP, then open index.html or the standalone play.html.';$('loading').append(message,help);console.error(error);});
  resize();requestAnimationFrame(frame);
  // Read-only diagnostic state for repeatable browser checks.
- window.GAME={get ready(){return loaded;},get state(){return{player:{...player},actors:family.map(actor=>({...actor})),dinosaur:{...dino},squirrel:{...squirrel},camera:{...camera},nearest:nearest?.id||null,viewport:{width:canvas.width,height:canvas.height},dialog:$('dialog').open,input:{joy:{...joy},touchRun,keys:[...keys]}};},select,blocked};
+ window.GAME={get ready(){return loaded;},get state(){return{player:{...player},actors:family.map(actor=>({...actor})),powers:powers.state,dinosaur:{...dino},squirrel:{...squirrel},camera:{...camera},nearest:nearest?.id||null,viewport:{width:canvas.width,height:canvas.height},dialog:$('dialog').open,input:{joy:{...joy},touchRun,keys:[...keys]}};},select,blocked};
 })();
 
 

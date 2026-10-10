@@ -9,3 +9,9 @@
 .location{flex-shrink:0}.party{position:relative;flex:1;min-width:0;overflow-x:auto;justify-content:flex-start;overscroll-behavior-x:contain;scrollbar-width:thin;scrollbar-color:#6c8375 transparent}.character-button{flex:0 0 auto}.party::-webkit-scrollbar{height:3px}.party::-webkit-scrollbar-thumb{background:#6c8375;border-radius:3px}
 @media(max-width:760px){.character-button{min-width:98px}.party{gap:3px}}
 @media(orientation:landscape) and (max-height:540px){.party{flex:1;min-width:0}.character-button{min-width:90px}}
+
+/* A tap action remains separate from hold-to-run and Look. */
+.power-button{position:absolute;right:22px;bottom:22px;z-index:2;width:90px;min-height:62px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;border-radius:12px;border:2px solid #c5eefa;background:#27566aed;box-shadow:0 2px 12px #0004;font:600 14px system-ui;touch-action:none;user-select:none;-webkit-user-select:none}
+.power-button[hidden]{display:none}.power-button small{font:10px system-ui;color:#d4eff4}.power-button:disabled{cursor:default;border-color:#7096a0;background:#244650e6;color:#bdd1d8}.power-button:not(:disabled):active{background:#4388a0}
+body.touch .power-button{bottom:108px;width:66px;height:66px;min-height:0;border-radius:50%;font-size:13px}body.touch .power-button small{font-size:9px}
+@media(orientation:landscape) and (max-height:540px){body.touch .power-button{right:22px;bottom:87px;width:56px;height:56px;font-size:12px}.power-button small{font-size:8px}}

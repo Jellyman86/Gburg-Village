@@ -209,3 +209,17 @@ This section takes precedence over the earlier resume order and connector fallba
 - Live browser loaded all ten picker entries, finished asset loading, selected Vito successfully and rendered the full group. Original four character assets remain unchanged.
 - Character integration complete for the hosted modular game. Movement/animation, desktop/phone layouts and touch controls passed the checks recorded above. Physical iPhone/Safari verification remains pending; standalone play.html remains the earlier version.
 - Next authorized phase can add superpowers once the user supplies the ability list; no power behavior added here.
+
+### 2026-10-10: Pre-power rollback checkpoint and first abilities
+- Confirmed main commit bced9a1 contains the deployed ten-character game; saved a separate GitHub branch checkpoints/characters-before-powers-2026-10-10 at that exact commit before making gameplay changes.
+- User requested starting with Connor's football throw and Coco's crying shockwaves. Implementing a shared tap action/X shortcut, per-character cooldowns, pixel effects and a brief harmless Rex reaction. Existing walking atlases retained.
+- User also requested spreading out the six visitors while preserving the original four meeting-spot positions. Assigned separate walkable positions around shops, the green and plaza; collision/reachability checks pending.
+- Local implementation checkpoint only; browser checks and deployment pending.
+
+### 2026-10-10: First-power and spawn checks passed
+- Added src/powers.js with a direction-based football arc, raised hand, tear streams and three expanding blue rings. Action button appears for Connor/Coco on desktop and touch layouts; X activates it. Cooldowns are 1.3s/2.8s and remain independent across character switching. Walking sprites and neon hat are unchanged.
+- Football samples scenery collisions in small steps; both powers trigger one harmless 2s Rex pause per cast. Browser gameplay confirmed Coco can reach Rex with a wave, pause him and let him recover.
+- Kept the original four meeting-spot actor homes and player start exactly unchanged. Visitors now stand near Java Nation, Market Square, the side path, the green, the west plaza and Five Guys. All six positions are clear, reachable from the family spot and over 190 map pixels apart.
+- Node power checks passed: four throw directions, cooldowns, effect expiry, wall collision, wavefront timing/range and single-hit reactions. Desktop 1280x900, portrait 390x844 and landscape 844x390 browser checks passed: throws, Cry button, cooldown UI, held-key repeat guard, modal pause and movement regressions for all six newer characters. Real browser touch events verified joystick + Run and joystick + power tap without duplicate casts or stuck movement. Reviewed football/cry screenshots.
+- Updated portable builder to handle version-query script/style URLs and inline the new powers module. Temporary build smoke check passed; existing play.html is not regenerated or uploaded. Physical iPhone/Safari checks still pending.
+- Next: publish the tested modular game update, verify Pages deployment and the live action controls.
