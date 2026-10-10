@@ -111,6 +111,63 @@
   ctx.restore();
  }
 
+ // A rare, harmless squirrel surprise on a clear path near the family.
+ const squirrel={active:false,x:0,y:0,facing:1,clock:0,progress:0,
+  pause:0,cooldown:8,from:0,to:0};
+ function beginSquirrel(){
+  const margin=22,half=Math.min(80,(canvas.width-2*margin)/2);
+  if(half<35)return false;
+  for(const dy of [-45,30,-15,60]){
+   const y=player.y+dy;
+   const middle=clamp(player.x,camera.x+half+margin,camera.x+canvas.width-half-margin);
+   const left=middle-half,right=middle+half;
+   if(y<camera.y+margin||y>camera.y+canvas.height-margin)continue;
+   let clear=true;
+   for(let x=left;x<=right;x+=4)if(blocked(x,y)){clear=false;break;}
+   if(!clear||blocked(right,y))continue;
+   const facing=Math.random()<.5?1:-1;
+   Object.assign(squirrel,{active:true,x:facing===1?left:right,y,facing,
+    from:facing===1?left:right,to:facing===1?right:left,progress:0,clock:0,pause:0});
+   const reactions={jason:'Jason: That squirrel definitely has somewhere to be.',
+    connor:'Connor: Race you, squirrel!',coco:'Coco: Tiny fluffy dinosaur!',
+    peachy:'Peachy: Even the squirrel is getting its steps in.'};
+   toast(reactions[player.id]);return true;
+  }
+  return false;
+ }
+ function updateSquirrel(dt){
+  if(!squirrel.active){
+   squirrel.cooldown=Math.max(0,squirrel.cooldown-dt);
+   if(squirrel.cooldown===0&&player.moving&&dino.mode!=='chase'){
+    if(!beginSquirrel())squirrel.cooldown=3;
+   }
+   return;
+  }
+  squirrel.clock+=dt;
+  if(squirrel.pause>0){squirrel.pause=Math.max(0,squirrel.pause-dt);return;}
+  const before=squirrel.progress;
+  squirrel.progress=Math.min(1,before+dt*145/Math.abs(squirrel.to-squirrel.from));
+  if(before<.5&&squirrel.progress>=.5){squirrel.progress=.5;squirrel.pause=.55;}
+  squirrel.x=squirrel.from+(squirrel.to-squirrel.from)*squirrel.progress;
+  if(squirrel.progress===1){squirrel.active=false;squirrel.cooldown=45+Math.random()*35;}
+ }
+ function drawSquirrel(){
+  const sniff=squirrel.pause>0,bob=sniff?0:Math.floor(squirrel.clock*15)%2;
+  ctx.save();ctx.translate(Math.round(squirrel.x),Math.round(squirrel.y));
+  ctx.fillStyle='#182b3645';ctx.beginPath();ctx.ellipse(0,0,12,3,0,0,Math.PI*2);ctx.fill();
+  ctx.scale(squirrel.facing,1);ctx.translate(-14,-22-bob);
+  const rect=(color,x,y,w,h)=>{ctx.fillStyle=color;ctx.fillRect(x,y,w,h);};
+  const dark='#62402d',brown='#b97843',light='#e5b579';
+  // Curled tail, round body, pointed ears and alternating little feet.
+  rect(dark,0,0,9,18);rect(brown,2,0,8,14);rect(light,3,2,4,8);
+  rect(dark,6,11,17,10);rect(brown,8,11,13,8);rect(light,14,16,6,4);
+  rect(dark,17,5,10,10);rect(brown,18,7,8,7);rect(dark,18,3,3,5);
+  rect(light,20,8,3,3);rect('#162b2d',22,8,2,2);rect(dark,26,11,3,2);
+  const step=sniff?0:bob*3;
+  rect(dark,9+step,20,5,2);rect(dark,19-step,20,5,2);
+  ctx.restore();
+ }
+
  function updateNearby(){nearest=town.landmarks.filter(l=>Math.hypot(l.x-player.x,l.y-player.y)<l.radius).sort((a,b)=>Math.hypot(a.x-player.x,a.y-player.y)-Math.hypot(b.x-player.x,b.y-player.y))[0]||null;$('nearby').hidden=!nearest;if(nearest)$('nearby-text').textContent=nearest.name;$('interact').setAttribute('aria-label',nearest?'Look at '+nearest.name:'Look around');}
  function showDialog(title,body,tag='MARKET SQUARE'){resetInput();$('dialog-title').textContent=title;$('dialog-body').textContent=body;$('dialog-tag').textContent=tag;if(!$('dialog').open)$('dialog').showModal();}
  function interact(){if(!loaded||$('dialog').open)return;updateNearby();if(nearest)showDialog(nearest.name,nearest.text);else toast('Walk toward a gold diamond to look around.');}
@@ -144,7 +201,7 @@
   if(length>.01){player.direction=Math.abs(x)>Math.abs(y)?(x>0?'right':'left'):(y>0?'down':'up');const speed=player.running?c.runSpeed:c.speed;move(x*speed*dt,y*speed*dt);}
   player.moving=Math.hypot(player.x-oldX,player.y-oldY)>.01;
   if(player.moving){player.clock+=dt*(player.running?c.runFPS:c.walkFPS);player.frame=Math.floor(player.clock)%4;}else{player.clock=0;player.frame=1;}
-  updateDino(dt);
+  updateDino(dt);updateSquirrel(dt);
   updateCamera();updateNearby();$('status').textContent=c.name+' · '+(player.moving?(player.running?'Running':'Walking'):'Taking it all in');$('area-label').textContent=player.y<401?'CENTER POINT WAY':player.y<785?'THE GREEN':'THE PLAZA';
  }
  function sprite(actor,active){
@@ -156,7 +213,7 @@
  function draw(){
   if(!loaded)return;ctx.fillStyle='#17383b';ctx.fillRect(0,0,canvas.width,canvas.height);ctx.save();ctx.translate(-camera.x,-camera.y);ctx.drawImage(background,0,0);
   town.landmarks.forEach(l=>{ctx.fillStyle=nearest===l?'#ffeda6':'#eedba2';ctx.strokeStyle='#705b35';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(l.x,l.y-21);ctx.lineTo(l.x+5,l.y-15);ctx.lineTo(l.x,l.y-9);ctx.lineTo(l.x-5,l.y-15);ctx.closePath();ctx.fill();ctx.stroke();});
-  family.filter(a=>a.id!==player.id).concat(player,dino).sort((a,b)=>a.y-b.y).forEach(a=>a===dino?drawDino():sprite(a,a===player));ctx.restore();
+  family.filter(a=>a.id!==player.id).concat(player,dino,squirrel.active?squirrel:[]).sort((a,b)=>a.y-b.y).forEach(a=>a===dino?drawDino():a===squirrel?drawSquirrel():sprite(a,a===player));ctx.restore();
  }
  function frame(time){const dt=previous?Math.min((time-previous)/1000,.05):0;previous=time;update(dt);draw();requestAnimationFrame(frame);}
  function loadImage(path){return new Promise((resolve,reject)=>{const img=new Image();img.onload=()=>resolve(img);img.onerror=()=>reject(new Error('Could not load '+path));img.src=window.EMBEDDED_ASSETS?.[path]||path;});}
@@ -166,7 +223,7 @@
  }).catch(error=>{$('loading').innerHTML='';const message=document.createElement('b');message.textContent=error.message;const help=document.createElement('span');help.textContent='Extract the full ZIP, then open index.html or the standalone play.html.';$('loading').append(message,help);console.error(error);});
  resize();requestAnimationFrame(frame);
  // Read-only diagnostic state for repeatable browser checks.
- window.GAME={get ready(){return loaded;},get state(){return{player:{...player},dinosaur:{...dino},camera:{...camera},nearest:nearest?.id||null,viewport:{width:canvas.width,height:canvas.height},dialog:$('dialog').open,input:{joy:{...joy},touchRun,keys:[...keys]}};},select,blocked};
+ window.GAME={get ready(){return loaded;},get state(){return{player:{...player},dinosaur:{...dino},squirrel:{...squirrel},camera:{...camera},nearest:nearest?.id||null,viewport:{width:canvas.width,height:canvas.height},dialog:$('dialog').open,input:{joy:{...joy},touchRun,keys:[...keys]}};},select,blocked};
 })();
 
 
