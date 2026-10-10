@@ -93,3 +93,15 @@ This section takes precedence over the earlier resume order and connector fallba
 - Official Netlify docs confirm netlify.toml can specify a build command: https://docs.netlify.com/build/configure-builds/file-based-configuration/ . Candidate command: python3 tools/build_portable.py. This would generate the large file at build time without transmitting its contents through chat.
 - This is a deployment-build alternative, NOT a restored Git push route. It depends on the actual site using Netlify Git-based builds. No deployment config was added and no game deployment was changed.
 - Next: get/verify the exact game URL used on the iPhone and establish whether its host builds this GitHub repository. Then inspect source/bundle feature differences and determine whether the small build configuration is appropriate before applying it.
+
+### 2026-10-10, 14:25 America/New_York: baby step 4 — actual deployed URL checked
+- User supplied https://gburgvill.netlify.app/ . Downloaded responses locally with bounded summary output; no large source/bundle output.
+- Root / returns 200 with a 2,412-byte index.html matching the checkout; it loads src/game.js directly, with no mobile redirect in this HTML.
+- Live src/game.js is 10,762 bytes, SHA256 312c1f7307f3dfee2b607f40b207ad3dd97a33409699db56485649b89b447aec. It contains none of AudioContext, dinoHome, drawDino, or music.
+- Live play.html is 5,402,678 bytes, SHA256 846a78658d4f18fb191cab1cb73c8247cde25c3c933f2fb2de299e9febc9c7e4; those same feature markers are absent.
+- Repeated requests with a unique diagnostic query and Cache-Control: no-cache returned the same old feature-free code. Responses identify Netlify and public,max-age=0,must-revalidate.
+- Fresh GitHub read confirms current src/game.js blob ad90a8f07fbc7782a2858354495a947da1b27610 DOES contain AudioContext, dinoHome, drawDino, and music (19,101 characters).
+- Live /PROGRESS.md returns 404. GitHub combined status for checkpoint dd253b57aca54229ce41b0c85e78c16a4a90f9c6 has no statuses. These facts do not prove how Netlify is connected.
+- DIAGNOSIS: the supplied live site serves older source lacking both requested features. Stale play.html alone is not the explanation for this root URL. Current GitHub source has not reached this deployed response; no physical iPhone test yet.
+- No game changes or Netlify configuration changes were made. Do not add speculative caching fixes or assume iOS audio is the primary issue before deploying current source.
+- Next baby step: inspect Netlify's deployment source/latest deploy for gburgvill to determine whether GitHub continuous deployment is configured, failing, or absent (e.g. manual upload). User can provide a screenshot of its Deploys page. Once established, deploy current source and arrange portable rebuild as appropriate, then verify live features and ask for iPhone testing.
