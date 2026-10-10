@@ -80,3 +80,9 @@ This section takes precedence over the earlier resume order and connector fallba
 - No AGENTS.md appeared in the bounded tracked-file search. Mobile entry point, source/bundle parity, and deployment behavior remain unverified.
 - STOPPED per agreed guardrail: file-based Git write access is blocked by unavailable authentication. Small progress-log updates through the connector still work; no giant Update File request was attempted.
 - Next action: establish an authorized authenticated file-based push route, or agree on an alternative that transports the generated bundle without a giant connector request. Do not request that the user paste credentials into chat. Resume game diagnosis only after resolving the workflow checkpoint.
+
+### 2026-10-10, 13:12 America/New_York: baby step 3 — alternate upload strategy
+- Checking existing authentication found no gh CLI, no configured Git credential helper or URL rewrite, and no GitHub token variable among environment variable names. No secret values were printed.
+- Direct authenticated Git push remains unavailable. Do not attempt credential guessing or a large connector write.
+- Confirmed local play.html size: 5,402,535 bytes. Existing portable builder is a small Python script; no netlify.toml or root _redirects file exists in the checkout.
+- Next investigation: whether a small deployment build configuration can run the existing builder on the hosting service, avoiding upload of the generated HTML entirely. This is an alternative under investigation, not an implemented fix. Small connector writes are already verified through this log.
