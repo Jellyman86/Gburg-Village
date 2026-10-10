@@ -176,3 +176,7 @@ This section takes precedence over the earlier resume order and connector fallba
 - Checks passed: frame/sheet dimensions, binary transparency, no edge clipping, every foot baseline y=60, four distinct frames per direction. Visually reviewed both atlases and four consecutive movement-preview frames for all eight loops. GIF has 32 frames at nominal 8 FPS, translating sprites and foot-origin markers; panel movement restarts intentionally.
 - Saved Brie_Vito_Sprite_Pack.zip; file identity libfile_305e7a06d8788191bc17b8c30405c19c. Contains sources, frames, strips, atlases, configs, GIF, README, validation and preparation script. Session path: /workspace/scratch/db84f21c5f3d/output/Brie_Vito_Sprite_Pack.zip.
 - Asset preparation complete. No new character is integrated/deployed or physical-iPhone verified. Existing characters and play.html unchanged.
+
+### Sprite pack revision — in progress
+- User requested a revision to the latest sprite pack. The previous pack is superseded pending asset preparation and preview checks.
+- Next: finish revision, validate frame alignment and animation, update the existing deliverable. No game integration or deployment in this step.
