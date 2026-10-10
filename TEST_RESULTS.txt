@@ -1,0 +1,21 @@
+FAMILY WALK - VERIFICATION
+
+PASS: 64 unique 64x64 RGBA frames, binary transparency, sheet/PNG agreement, foot baseline60 and safe hair/hat padding
+PASS: Desktop local-file game loads all four characters and the town
+PASS: WASD and all four arrows move correctly; releasing keys stops movement
+PASS: Every character animates all four frames in every direction; number keys and portrait selection work
+PASS: Shift running is faster: walk 50.0px vs run 84.0px over 400ms
+PASS: Diagonal movement is normalized
+PASS: Losing focus clears held movement
+PASS: Walking into the restaurant stops at its collision boundary
+PASS: Central route is traversable; upper/lower bounds preserve the entire sprite including hair
+PASS: E interaction, changed landmark mouse interaction, dialog pause and Escape close work
+PASS: All six landmark interaction zones are reachable through the collision map
+PASS: Real browser touch events: joystick 48.4px; simultaneous joystick + Run 88.0px; release stops both
+PASS: Touch cancellation clears joystick and Run without stuck input
+PASS: Mobile Look interaction, dialog close and character taps work
+PASS: Portrait and landscape controls fit at 320x568, 390x844, 844x390 and 768x1024 without page overflow
+PASS: Standalone play.html loads and moves with the browser network disabled
+PASS: No JavaScript errors or failed asset requests in desktop or mobile tests
+
+Environment: headless installed Chrome, Playwright, Windows. Mobile checks use Chromium touch emulation, including real multi-touch events; no physical iPhone/Android or Safari device was tested.

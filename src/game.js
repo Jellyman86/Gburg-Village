@@ -1,0 +1,93 @@
+(() => {
+ 'use strict';
+ const $=id=>document.getElementById(id),canvas=$('game'),ctx=canvas.getContext('2d',{alpha:false});
+ const town=window.TOWN,characters=window.CHARACTERS,ids=Object.keys(characters);
+ const keys=new Set(),sheets={},portraits={},buttons={},camera={x:0,y:0};
+ const player={...town.spawn,id:'jason',direction:'down',frame:1,moving:false,running:false,clock:0};
+ const family=ids.map((id,i)=>({id,x:town.spawn.x+(i-1.5)*42,y:town.spawn.y+34,direction:'down',frame:1}));
+ let loaded=false,previous=0,toastTimer=0,nearest=null,joyId=null,runId=null,joy={x:0,y:0},touchRun=false,background;
+ const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+ function updateCamera(){camera.x=Math.round(clamp(player.x-canvas.width/2,0,Math.max(0,town.width-canvas.width)));camera.y=Math.round(clamp(player.y-canvas.height*.57,0,Math.max(0,town.height-canvas.height)));}
+ function resize(){
+  const r=canvas.getBoundingClientRect(),scale=r.width<600?1.35:r.height<350?1.5:1.8;
+  canvas.width=Math.max(200,Math.round(r.width/scale));canvas.height=Math.max(140,Math.round(r.height/scale));
+  ctx.imageSmoothingEnabled=false;updateCamera();
+ }
+ new ResizeObserver(resize).observe($('stage'));
+ const touch=()=>document.body.classList.add('touch');
+ if(navigator.maxTouchPoints>0||matchMedia('(pointer:coarse)').matches)touch();
+ window.addEventListener('pointerdown',e=>{if(e.pointerType==='touch')touch();},{passive:true});
+ function toast(message){$('toast').textContent=message;$('toast').classList.add('visible');clearTimeout(toastTimer);toastTimer=setTimeout(()=>$('toast').classList.remove('visible'),2400);}
+ function resetInput(){keys.clear();joy={x:0,y:0};joyId=null;runId=null;touchRun=false;$('stick').style.transform='';$('run').classList.remove('active');player.moving=false;player.running=false;player.clock=0;player.frame=1;}
+ window.addEventListener('blur',resetInput);document.addEventListener('visibilitychange',()=>{if(document.hidden)resetInput();previous=0;});
+ function select(id){if(!characters[id])return;player.id=id;player.frame=1;player.clock=0;for(const key of ids)buttons[key].setAttribute('aria-pressed',String(key===id));$('status').textContent=characters[id].name+' · Ready for a walk';canvas.focus({preventScroll:true});}
+ ids.forEach((id,i)=>{
+  const button=document.createElement('button');button.className='character-button';button.dataset.character=id;
+  button.setAttribute('aria-label','Play as '+characters[id].name);button.setAttribute('aria-pressed',String(i===0));
+  const portrait=document.createElement('canvas');portrait.width=48;portrait.height=56;portrait.setAttribute('aria-hidden','true');
+  const name=document.createElement('span');name.textContent=characters[id].name;
+  const shortcut=document.createElement('small');shortcut.textContent=i+1;
+  button.append(portrait,name,shortcut);button.addEventListener('click',()=>select(id));$('party').append(button);portraits[id]=portrait;buttons[id]=button;
+ });
+ function blocked(x,y){const b=town.bounds,rx=8,ry=4;if(x-rx<b.left||x+rx>b.right||y-ry<b.top||y+ry>b.bottom)return true;return town.obstacles.some(o=>x+rx>o.x&&x-rx<o.x+o.w&&y+ry>o.y&&y-ry<o.y+o.h);}
+ function move(dx,dy){
+  // Small steps prevent tunneling through scenery at run speed or on slow devices.
+  const steps=Math.max(1,Math.ceil(Math.max(Math.abs(dx),Math.abs(dy))/3));
+  for(let i=0;i<steps;i++){if(!blocked(player.x+dx/steps,player.y))player.x+=dx/steps;if(!blocked(player.x,player.y+dy/steps))player.y+=dy/steps;}
+ }
+ function updateNearby(){nearest=town.landmarks.filter(l=>Math.hypot(l.x-player.x,l.y-player.y)<l.radius).sort((a,b)=>Math.hypot(a.x-player.x,a.y-player.y)-Math.hypot(b.x-player.x,b.y-player.y))[0]||null;$('nearby').hidden=!nearest;if(nearest)$('nearby-text').textContent=nearest.name;$('interact').setAttribute('aria-label',nearest?'Look at '+nearest.name:'Look around');}
+ function showDialog(title,body,tag='MARKET SQUARE'){resetInput();$('dialog-title').textContent=title;$('dialog-body').textContent=body;$('dialog-tag').textContent=tag;if(!$('dialog').open)$('dialog').showModal();}
+ function interact(){if(!loaded||$('dialog').open)return;updateNearby();if(nearest)showDialog(nearest.name,nearest.text);else toast('Walk toward a gold diamond to look around.');}
+ $('help').addEventListener('click',()=>showDialog('A walk with the family','Move with WASD or the arrow keys. Hold Shift to run. Press E or Space near a gold diamond to look around. Choose a character above or use 1–4. On a phone, drag the left joystick and hold Run with your other thumb. Landscape gives you a wider view.','HOW TO PLAY'));
+ const close=()=>{$('dialog').close();resetInput();canvas.focus({preventScroll:true});};
+ $('close-dialog').addEventListener('click',close);$('continue').addEventListener('click',close);$('dialog').addEventListener('close',()=>{resetInput();canvas.focus({preventScroll:true});});
+ const movementKeys=['KeyW','KeyA','KeyS','KeyD','ArrowUp','ArrowLeft','ArrowDown','ArrowRight','ShiftLeft','ShiftRight'];
+ window.addEventListener('keydown',e=>{if(e.ctrlKey||e.altKey||e.metaKey||$('dialog').open)return;if(movementKeys.includes(e.code)){e.preventDefault();keys.add(e.code);}if(['KeyE','Space'].includes(e.code)){e.preventDefault();if(!e.repeat)interact();}if(/^Digit[1-4]$/.test(e.code)&&!e.repeat)select(ids[Number(e.code.slice(-1))-1]);});
+ window.addEventListener('keyup',e=>keys.delete(e.code));
+ const joyEl=$('joystick');
+ function setJoy(e){const r=joyEl.getBoundingClientRect(),max=r.width*.34,dx=e.clientX-r.left-r.width/2,dy=e.clientY-r.top-r.height/2,len=Math.hypot(dx,dy),ratio=len>max?max/len:1,x=dx*ratio,y=dy*ratio;$('stick').style.transform=`translate(${x}px,${y}px)`;joy=len<max*.18?{x:0,y:0}:{x:x/max,y:y/max};}
+ joyEl.addEventListener('pointerdown',e=>{if(joyId!==null)return;e.preventDefault();joyId=e.pointerId;joyEl.setPointerCapture(e.pointerId);setJoy(e);});
+ joyEl.addEventListener('pointermove',e=>{if(e.pointerId===joyId){e.preventDefault();setJoy(e);}});
+ function endJoy(e){if(e.pointerId!==joyId)return;joyId=null;joy={x:0,y:0};$('stick').style.transform='';}
+ ['pointerup','pointercancel','lostpointercapture'].forEach(type=>joyEl.addEventListener(type,endJoy));
+ $('run').addEventListener('pointerdown',e=>{if(runId!==null)return;e.preventDefault();runId=e.pointerId;$('run').setPointerCapture(e.pointerId);touchRun=true;$('run').classList.add('active');});
+ function endRun(e){if(e.pointerId!==runId)return;runId=null;touchRun=false;$('run').classList.remove('active');}
+ ['pointerup','pointercancel','lostpointercapture'].forEach(type=>$('run').addEventListener(type,endRun));
+ $('interact').addEventListener('click',interact);
+ canvas.addEventListener('pointerdown',e=>{
+  canvas.focus({preventScroll:true});if(!loaded||$('dialog').open)return;
+  const r=canvas.getBoundingClientRect(),x=(e.clientX-r.left)*canvas.width/r.width+camera.x,y=(e.clientY-r.top)*canvas.height/r.height+camera.y;
+  const target=town.landmarks.find(l=>Math.hypot(l.x-x,l.y-15-y)<23);
+  if(target){if(Math.hypot(target.x-player.x,target.y-player.y)<target.radius)showDialog(target.name,target.text);else toast('Walk closer to '+target.name+'.');}
+ });
+ function update(dt){
+  if(!loaded||$('dialog').open)return;
+  let x=joy.x+(keys.has('KeyD')||keys.has('ArrowRight')?1:0)-(keys.has('KeyA')||keys.has('ArrowLeft')?1:0),y=joy.y+(keys.has('KeyS')||keys.has('ArrowDown')?1:0)-(keys.has('KeyW')||keys.has('ArrowUp')?1:0);
+  const length=Math.hypot(x,y);if(length>1){x/=length;y/=length;}
+  const c=characters[player.id];player.running=touchRun||keys.has('ShiftLeft')||keys.has('ShiftRight');const oldX=player.x,oldY=player.y;
+  if(length>.01){player.direction=Math.abs(x)>Math.abs(y)?(x>0?'right':'left'):(y>0?'down':'up');const speed=player.running?c.runSpeed:c.speed;move(x*speed*dt,y*speed*dt);}
+  player.moving=Math.hypot(player.x-oldX,player.y-oldY)>.01;
+  if(player.moving){player.clock+=dt*(player.running?c.runFPS:c.walkFPS);player.frame=Math.floor(player.clock)%4;}else{player.clock=0;player.frame=1;}
+  updateCamera();updateNearby();$('status').textContent=c.name+' · '+(player.moving?(player.running?'Running':'Walking'):'Taking it all in');$('area-label').textContent=player.y<401?'CENTER POINT WAY':player.y<785?'THE GREEN':'THE PLAZA';
+ }
+ function sprite(actor,active){
+  const c=characters[actor.id],x=Math.round(actor.x),y=Math.round(actor.y);
+  ctx.fillStyle=active?'#182b365c':'#182b3645';ctx.beginPath();ctx.ellipse(x,y,actor.id==='coco'?10:13,4,0,0,Math.PI*2);ctx.fill();
+  if(active){ctx.strokeStyle='#f9df89';ctx.lineWidth=1;ctx.beginPath();ctx.ellipse(x,y+1,15,5,0,0,Math.PI*2);ctx.stroke();}
+  ctx.drawImage(sheets[actor.id],actor.frame*64,c.rows[actor.direction]*64,64,64,x-c.foot.x,y-c.foot.y,64,64);
+ }
+ function draw(){
+  if(!loaded)return;ctx.fillStyle='#17383b';ctx.fillRect(0,0,canvas.width,canvas.height);ctx.save();ctx.translate(-camera.x,-camera.y);ctx.drawImage(background,0,0);
+  town.landmarks.forEach(l=>{ctx.fillStyle=nearest===l?'#ffeda6':'#eedba2';ctx.strokeStyle='#705b35';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(l.x,l.y-21);ctx.lineTo(l.x+5,l.y-15);ctx.lineTo(l.x,l.y-9);ctx.lineTo(l.x-5,l.y-15);ctx.closePath();ctx.fill();ctx.stroke();});
+  family.filter(a=>a.id!==player.id).concat(player).sort((a,b)=>a.y-b.y).forEach(a=>sprite(a,a===player));ctx.restore();
+ }
+ function frame(time){const dt=previous?Math.min((time-previous)/1000,.05):0;previous=time;update(dt);draw();requestAnimationFrame(frame);}
+ function loadImage(path){return new Promise((resolve,reject)=>{const img=new Image();img.onload=()=>resolve(img);img.onerror=()=>reject(new Error('Could not load '+path));img.src=window.EMBEDDED_ASSETS?.[path]||path;});}
+ Promise.all([loadImage(town.image).then(img=>{background=img;}),...ids.map(id=>loadImage(characters[id].sheet).then(img=>{sheets[id]=img;}))]).then(()=>{
+  ids.forEach(id=>{const p=portraits[id].getContext('2d');p.imageSmoothingEnabled=false;p.drawImage(sheets[id],64,0,64,64,-8,-5,64,64);});
+  loaded=true;$('loading').hidden=true;resize();updateNearby();canvas.focus({preventScroll:true});
+ }).catch(error=>{$('loading').innerHTML='';const message=document.createElement('b');message.textContent=error.message;const help=document.createElement('span');help.textContent='Extract the full ZIP, then open index.html or the standalone play.html.';$('loading').append(message,help);console.error(error);});
+ resize();requestAnimationFrame(frame);
+ // Read-only diagnostic state for repeatable browser checks.
+ window.GAME={get ready(){return loaded;},get state(){return{player:{...player},camera:{...camera},nearest:nearest?.id||null,viewport:{width:canvas.width,height:canvas.height},dialog:$('dialog').open,input:{joy:{...joy},touchRun,keys:[...keys]}};},select,blocked};
+})();
