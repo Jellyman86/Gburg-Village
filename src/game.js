@@ -37,7 +37,8 @@
  }
 
  // A tiny pixel T-rex plays tag: short chases, long rests, no damage.
- const dino={x:town.spawn.x+105,y:town.spawn.y-30,facing:1,clock:0,
+ const dinoHome={x:910,y:370};
+ const dino={...dinoHome,facing:1,clock:0,
   mode:'wander',timer:7,target:null,turnTimer:0,moving:false};
  function dinoRest(message){
   dino.mode='wander';dino.timer=14+Math.random()*12;dino.target=null;
@@ -49,7 +50,7 @@
   if(dino.mode==='chase'){
    if(distance<23)dinoRest('Boop! Rex tagged you. Back to exploring!');
    else if(dino.timer<=0)dinoRest('Rex needs a breather. You escaped!');
-  }else if(dino.timer<=0&&distance<330){
+  }else if(dino.timer<=0&&distance<185){
    dino.mode='chase';dino.timer=5+Math.random()*2;dino.target=null;
    toast('Rex wants to play tag! Hold Run to escape!');
   }
@@ -59,7 +60,7 @@
    dino.target=null;
    for(let i=0;i<16;i++){
     const a=Math.random()*Math.PI*2,r=50+Math.random()*140;
-    const x=dino.x+Math.cos(a)*r,y=dino.y+Math.sin(a)*r;
+    const x=dinoHome.x+Math.cos(a)*r,y=clamp(dinoHome.y+Math.sin(a)*r,355,390);
     if(!blocked(x,y)){dino.target={x,y};break;}
    }
   }
@@ -219,7 +220,12 @@
   if(!Audio||!enabled||document.hidden||(source&&context.state==='running'))return;
   try{
    if(!context){context=new Audio();context.addEventListener('statechange',paint);}
-   await context.resume();
+   // Resume immediately inside the gesture; iOS may require a started buffer too.
+   const resuming=context.resume();
+   const unlock=context.createBufferSource();
+   unlock.buffer=context.createBuffer(1,1,context.sampleRate);
+   unlock.connect(context.destination);unlock.onended=()=>unlock.disconnect();unlock.start(0);
+   await resuming;
    if(!enabled||document.hidden||source){paint();return;}
    if(!buffer)buffer=compose();
    source=context.createBufferSource();source.buffer=buffer;source.loop=true;
@@ -233,7 +239,10 @@
   paint();
  });
  function gesture(event){if(!button.contains(event.target)&&!event.repeat)start();}
- document.addEventListener('pointerdown',gesture,{passive:true});
+ // Capture sees joystick touches even when their handlers prevent default.
+ document.addEventListener('pointerdown',gesture,{passive:true,capture:true});
+ document.addEventListener('touchend',gesture,{passive:true,capture:true});
+ document.addEventListener('click',gesture,{passive:true,capture:true});
  document.addEventListener('keydown',gesture);
  document.addEventListener('visibilitychange',()=>{
   if(document.hidden){stop();if(context)context.suspend().catch(()=>{});}
