@@ -169,3 +169,10 @@ This section takes precedence over the earlier resume order and connector fallba
 - User supplied four photo references and requested Vito in New York Knicks themed clothing. Inspected supplied local copies.
 - Brie: long brown hair, black sleeveless high-neck top and taupe trousers matching kitchen photo, gold bracelet, white sneakers. Vito: short dark hair, blue/orange Knicks jersey and shorts, white/orange sneakers; cap in reference is likeness-only, do not copy its different team logo.
 - Started separate transparent 4x4 sheet generations, matching existing Jason style. Next: 64x64 frame normalization, foot alignment and movement-preview checks, save reusable pack. No gameplay integration requested; existing characters unchanged.
+
+### Brie and Vito sprite pack completed
+- Generated separate sheets from photo references: Brie in black sleeveless top/taupe trousers; Vito in blue/orange New York Knicks basketball clothes, number 11. Sources retained.
+- Prepared 256x256 RGBA atlases with sixteen 64x64 frames each, rows down/left/right/up, foot origin (32,60). Corrected front/back lower-leg phase without mirroring jersey text or upper-body details; original side poses retained.
+- Checks passed: frame/sheet dimensions, binary transparency, no edge clipping, every foot baseline y=60, four distinct frames per direction. Visually reviewed both atlases and four consecutive movement-preview frames for all eight loops. GIF has 32 frames at nominal 8 FPS, translating sprites and foot-origin markers; panel movement restarts intentionally.
+- Saved Brie_Vito_Sprite_Pack.zip; file identity libfile_305e7a06d8788191bc17b8c30405c19c. Contains sources, frames, strips, atlases, configs, GIF, README, validation and preparation script. Session path: /workspace/scratch/db84f21c5f3d/output/Brie_Vito_Sprite_Pack.zip.
+- Asset preparation complete. No new character is integrated/deployed or physical-iPhone verified. Existing characters and play.html unchanged.
