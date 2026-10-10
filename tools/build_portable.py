@@ -10,7 +10,7 @@ html=re.sub(r'<link rel="stylesheet" href="style\.css(?:\?[^\"]*)?">',lambda _: 
 paths=['assets/maps/kentlands/scene.png']+[p.relative_to(root).as_posix() for p in sorted((root/'assets/characters').glob('*/sheets/walk_4dir.png'))]
 embedded={p:'data:image/png;base64,'+base64.b64encode((root/p).read_bytes()).decode() for p in paths}
 html=html.replace('</head>','<script>window.EMBEDDED_ASSETS='+json.dumps(embedded)+';</script></head>')
-for p in ['characters','map','powers','game']:
+for p in ['characters','map','powers','unicorn','game']:
  html=re.sub(r'<script src="src/'+p+r'\.js(?:\?[^\"]*)?"></script>',lambda _,p=p: '<script>'+(root/f'src/{p}.js').read_text(encoding='utf8')+'</script>',html)
 output=args.output or root/'play.html'
 output.write_text(html,encoding='utf8')

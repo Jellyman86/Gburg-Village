@@ -30,18 +30,20 @@
   const shortcut=document.createElement('small');shortcut.textContent=(i+1)%10;
   button.append(portrait,name,shortcut);button.addEventListener('click',()=>select(id));$('party').append(button);portraits[id]=portrait;buttons[id]=button;
  });
- function blocked(x,y){const b=town.bounds,rx=8,ry=4;if(x-rx<b.left||x+rx>b.right||y-ry<b.top||y+ry>b.bottom)return true;return town.obstacles.some(o=>x+rx>o.x&&x-rx<o.x+o.w&&y+ry>o.y&&y-ry<o.y+o.h);}
+ function blocked(x,y,rx=8,ry=4){const b=town.bounds;if(x-rx<b.left||x+rx>b.right||y-ry<b.top||y+ry>b.bottom)return true;return town.obstacles.some(o=>x+rx>o.x&&x-rx<o.x+o.w&&y+ry>o.y&&y-ry<o.y+o.h);}
+ const unicorn=window.FAMILY_UNICORN.create({blocked});
  function move(dx,dy){
   // Small steps prevent tunneling through scenery at run speed or on slow devices.
   const steps=Math.max(1,Math.ceil(Math.max(Math.abs(dx),Math.abs(dy))/3));
-  for(let i=0;i<steps;i++){if(!blocked(player.x+dx/steps,player.y))player.x+=dx/steps;if(!blocked(player.x,player.y+dy/steps))player.y+=dy/steps;}
+  const rx=unicorn.riding?14:8,ry=unicorn.riding?7:4;
+  for(let i=0;i<steps;i++){if(!blocked(player.x+dx/steps,player.y,rx,ry))player.x+=dx/steps;if(!blocked(player.x,player.y+dy/steps,rx,ry))player.y+=dy/steps;}
  }
 
  // A tiny pixel T-rex plays tag: short chases, long rests, no damage.
  const dinoHome={x:910,y:370};
  const dino={...dinoHome,facing:1,clock:0,
   mode:'wander',timer:7,target:null,turnTimer:0,moving:false,stunned:0};
- const powers=window.FAMILY_POWERS.create({blocked,getTarget:()=>dino,onHit:()=>{
+ const powers=window.FAMILY_POWERS.create({blocked,getTarget:()=>dino,getActor:()=>player,onHit:()=>{
   dino.stunned=2;dino.mode='wander';dino.timer=6;dino.target=null;dino.moving=false;toast('Rex is startled! A little time to get away.');
  }});
  const powerButton=$('power'),powerLabel=$('power-label'),powerHint=$('power-hint');
@@ -55,7 +57,7 @@
  }
  function activatePower(){
   if(!loaded||$('dialog').open)return false;
-  const used=powers.activate(player);
+  const used=powers.activate({...player,powerHeight:unicorn.riding?20:0});
   if(used){toast(window.FAMILY_POWERS.definitions[player.id].name+'!');paintPower();}
   return used;
  }
@@ -191,10 +193,24 @@
   ctx.restore();
  }
 
- function updateNearby(){nearest=town.landmarks.filter(l=>Math.hypot(l.x-player.x,l.y-player.y)<l.radius).sort((a,b)=>Math.hypot(a.x-player.x,a.y-player.y)-Math.hypot(b.x-player.x,b.y-player.y))[0]||null;$('nearby').hidden=!nearest;if(nearest)$('nearby-text').textContent=nearest.name;$('interact').setAttribute('aria-label',nearest?'Look at '+nearest.name:'Look around');}
+ function updateNearby(){
+  nearest=town.landmarks.filter(l=>Math.hypot(l.x-player.x,l.y-player.y)<l.radius).sort((a,b)=>Math.hypot(a.x-player.x,a.y-player.y)-Math.hypot(b.x-player.x,b.y-player.y))[0]||null;
+  const ride=unicorn.nearby(player),mounted=unicorn.riding;
+  $('nearby').hidden=!nearest&&!ride&&!mounted;
+  const phone=document.body.classList.contains('touch');
+  $('nearby-text').textContent=mounted?(phone?'Tap Off to hop down':'Unicorn ride · Hop off when you like'):ride?(phone?'A unicorn! Tap Ride':'A unicorn! Hop on for a ride'):nearest?.name||'';
+  $('interact').textContent=mounted?'Off':ride?'Ride':'Look';$('interact').setAttribute('aria-label',mounted?'Dismount unicorn':ride?'Ride unicorn':nearest?'Look at '+nearest.name:'Look around');
+ }
  function showDialog(title,body,tag='MARKET SQUARE'){resetInput();$('dialog-title').textContent=title;$('dialog-body').textContent=body;$('dialog-tag').textContent=tag;if(!$('dialog').open)$('dialog').showModal();paintPower();}
- function interact(){if(!loaded||$('dialog').open)return;updateNearby();if(nearest)showDialog(nearest.name,nearest.text);else toast('Walk toward a gold diamond to look around.');}
- $('help').addEventListener('click',()=>showDialog('A walk with the family','Move with WASD or the arrow keys. Hold Shift to run. Press E or Space near a gold diamond to look around. Swipe the character row to see everyone, or use 1–9 and 0 to switch. On a phone, drag the left joystick and hold Run with your other thumb. Landscape gives you a wider view. Select Connor to throw a football or Coco to send crying shockwaves: tap Throw/Cry or press X. The button shows the cooldown. Both can briefly startle Rex. Rex the dinosaur sometimes plays tag! Hold Run or Shift to outrun him. Getting tagged is harmless.','HOW TO PLAY'));
+ function interact(){
+  if(!loaded||$('dialog').open)return;updateNearby();
+  if(unicorn.riding||unicorn.nearby(player)){
+   if(unicorn.interact(player)){resetInput();updateCamera();updateNearby();toast(unicorn.riding?'Unicorn ride! Run to gallop.':'Back on your feet. The unicorn will wait here.');}
+   else toast('Find a little more space to hop on or off.');return;
+  }
+  if(nearest)showDialog(nearest.name,nearest.text);else toast('Walk toward a gold diamond to look around.');
+ }
+ $('help').addEventListener('click',()=>showDialog('A walk with the family','Move with WASD or the arrow keys. Hold Shift to run. Press E or Space near a gold diamond to look around. Swipe the character row to see everyone, or use 1–9 and 0 to switch. On a phone, drag the left joystick and hold Run with your other thumb. Landscape gives you a wider view. Everyone has a special power: tap the action button or press X. Short cooldowns let you use it often. Attacks can briefly startle Rex. Find the sparkling unicorn on a side path: walk close and tap Ride or press E to hop on. Run to gallop; tap Off or E to dismount. Powers work while riding too. Rex the dinosaur sometimes plays tag! Hold Run or Shift to outrun him. Getting tagged is harmless.','HOW TO PLAY'));
  const close=()=>{$('dialog').close();resetInput();canvas.focus({preventScroll:true});};
  $('close-dialog').addEventListener('click',close);$('continue').addEventListener('click',close);$('dialog').addEventListener('close',()=>{resetInput();canvas.focus({preventScroll:true});});
  const movementKeys=['KeyW','KeyA','KeyS','KeyD','ArrowUp','ArrowLeft','ArrowDown','ArrowRight','ShiftLeft','ShiftRight'];
@@ -221,24 +237,28 @@
   let x=joy.x+(keys.has('KeyD')||keys.has('ArrowRight')?1:0)-(keys.has('KeyA')||keys.has('ArrowLeft')?1:0),y=joy.y+(keys.has('KeyS')||keys.has('ArrowDown')?1:0)-(keys.has('KeyW')||keys.has('ArrowUp')?1:0);
   const length=Math.hypot(x,y);if(length>1){x/=length;y/=length;}
   const c=characters[player.id];player.running=touchRun||keys.has('ShiftLeft')||keys.has('ShiftRight');const oldX=player.x,oldY=player.y;
-  if(length>.01){player.direction=Math.abs(x)>Math.abs(y)?(x>0?'right':'left'):(y>0?'down':'up');const speed=player.running?c.runSpeed:c.speed;move(x*speed*dt,y*speed*dt);}
+  if(length>.01){player.direction=Math.abs(x)>Math.abs(y)?(x>0?'right':'left'):(y>0?'down':'up');const speed=unicorn.riding?(player.running?280:170):(player.running?c.runSpeed:c.speed);move(x*speed*dt,y*speed*dt);}
   player.moving=Math.hypot(player.x-oldX,player.y-oldY)>.01;
   if(player.moving){player.clock+=dt*(player.running?c.runFPS:c.walkFPS);player.frame=Math.floor(player.clock)%4;}else{player.clock=0;player.frame=1;}
-  powers.update(dt);updateDino(dt);updateSquirrel(dt);paintPower();
-  updateCamera();updateNearby();$('status').textContent=c.name+' · '+(player.moving?(player.running?'Running':'Walking'):'Taking it all in');$('area-label').textContent=player.y<401?'CENTER POINT WAY':player.y<785?'THE GREEN':'THE PLAZA';
+  unicorn.update(dt,player);powers.update(dt);updateDino(dt);updateSquirrel(dt);paintPower();
+  updateCamera();updateNearby();$('status').textContent=c.name+' · '+(unicorn.riding?(player.moving&&player.running?'Galloping':'Riding a unicorn'):player.moving?(player.running?'Running':'Walking'):'Taking it all in');$('area-label').textContent=player.y<401?'CENTER POINT WAY':player.y<785?'THE GREEN':'THE PLAZA';
  }
  function sprite(actor,active){
   const c=characters[actor.id],x=Math.round(actor.x),y=Math.round(actor.y);
   ctx.fillStyle=active?'#182b365c':'#182b3645';ctx.beginPath();ctx.ellipse(x,y,actor.id==='coco'?10:13,4,0,0,Math.PI*2);ctx.fill();
   if(active){ctx.strokeStyle='#f9df89';ctx.lineWidth=1;ctx.beginPath();ctx.ellipse(x,y+1,15,5,0,0,Math.PI*2);ctx.stroke();}
-  ctx.drawImage(sheets[actor.id],actor.frame*64,c.rows[actor.direction]*64,64,64,x-c.foot.x,y-c.foot.y,64,64);
-  if(active)powers.drawActor(ctx,actor);
+  const pose=active?powers.pose(actor):{lift:0,rotation:0},saddle=active&&unicorn.riding?20:0;
+  if(saddle)unicorn.draw(ctx,actor);
+  ctx.save();ctx.translate(x,y-30-saddle-pose.lift);ctx.rotate(pose.rotation);
+  ctx.drawImage(sheets[actor.id],(pose.frame??actor.frame)*64,c.rows[pose.direction||actor.direction]*64,64,64,-c.foot.x,30-c.foot.y,64,64);ctx.restore();
+  if(active)powers.drawActor(ctx,{...actor,y:actor.y-saddle});
  }
  function draw(){
   if(!loaded)return;ctx.fillStyle='#17383b';ctx.fillRect(0,0,canvas.width,canvas.height);ctx.save();ctx.translate(-camera.x,-camera.y);ctx.drawImage(background,0,0);
   town.landmarks.forEach(l=>{ctx.fillStyle=nearest===l?'#ffeda6':'#eedba2';ctx.strokeStyle='#705b35';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(l.x,l.y-21);ctx.lineTo(l.x+5,l.y-15);ctx.lineTo(l.x,l.y-9);ctx.lineTo(l.x-5,l.y-15);ctx.closePath();ctx.fill();ctx.stroke();});
   powers.drawGround(ctx);
-  family.filter(a=>a.id!==player.id).concat(player,dino,squirrel.active?squirrel:[]).sort((a,b)=>a.y-b.y).forEach(a=>a===dino?drawDino():a===squirrel?drawSquirrel():sprite(a,a===player));powers.drawAir(ctx);ctx.restore();
+  const unicornActor=unicorn.state;
+  family.filter(a=>a.id!==player.id).concat(player,dino,squirrel.active?squirrel:[],unicorn.riding?[]:unicornActor).sort((a,b)=>a.y-b.y).forEach(a=>a===dino?drawDino():a===squirrel?drawSquirrel():a===unicornActor?unicorn.draw(ctx):sprite(a,a===player));powers.drawAir(ctx);ctx.restore();
  }
  function frame(time){const dt=previous?Math.min((time-previous)/1000,.05):0;previous=time;update(dt);draw();requestAnimationFrame(frame);}
  function loadImage(path){return new Promise((resolve,reject)=>{const img=new Image();img.onload=()=>resolve(img);img.onerror=()=>reject(new Error('Could not load '+path));img.src=window.EMBEDDED_ASSETS?.[path]||path;});}
@@ -248,7 +268,7 @@
  }).catch(error=>{$('loading').innerHTML='';const message=document.createElement('b');message.textContent=error.message;const help=document.createElement('span');help.textContent='Extract the full ZIP, then open index.html or the standalone play.html.';$('loading').append(message,help);console.error(error);});
  resize();requestAnimationFrame(frame);
  // Read-only diagnostic state for repeatable browser checks.
- window.GAME={get ready(){return loaded;},get state(){return{player:{...player},actors:family.map(actor=>({...actor})),powers:powers.state,dinosaur:{...dino},squirrel:{...squirrel},camera:{...camera},nearest:nearest?.id||null,viewport:{width:canvas.width,height:canvas.height},dialog:$('dialog').open,input:{joy:{...joy},touchRun,keys:[...keys]}};},select,blocked};
+ window.GAME={get ready(){return loaded;},get state(){return{player:{...player},actors:family.map(actor=>({...actor})),powers:powers.state,unicorn:unicorn.state,dinosaur:{...dino},squirrel:{...squirrel},camera:{...camera},nearest:nearest?.id||null,viewport:{width:canvas.width,height:canvas.height},dialog:$('dialog').open,input:{joy:{...joy},touchRun,keys:[...keys]}};},select,blocked};
 })();
 
 

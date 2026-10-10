@@ -229,3 +229,20 @@ This section takes precedence over the earlier resume order and connector fallba
 - Live browser loaded all ten characters and selected Connor/Coco. Throw button activation and X-triggered Cry produced the expected action messages and cooldown states. Reviewed the live plaza layout with the smaller original family group and visitors elsewhere.
 - The character-only rollback branch remains at bced9a1. Repository walking atlases are byte-identical to that checkpoint. PROGRESS.md records tests and deployment; physical iPhone/Safari verification remains pending.
 - This first pass adds only Connor/Coco abilities. Other characters await the user's power list.
+
+### 2026-10-10: Full power roster and unicorn checkpoint
+- User confirmed the first powers work, requested shorter cooldowns, eight additional character actions and a discoverable rideable unicorn.
+- Saved checkpoints/first-powers-before-unicorn-2026-10-10 at 737c13a before changes. Earlier character-only checkpoint is retained.
+- Next small steps: extend the independent power module with distinct melee/projectile animations; add unicorn mount/dismount and collision-safe riding; check desktop/phone movement and interactions before publishing. Existing walking sheets and family/visitor spawn positions stay unchanged.
+
+### 2026-10-10: Full roster actions and unicorn — local implementation
+- Added all requested powers with distinct animations and objects. Cooldowns now range from 0.3 to 0.85 seconds; rapid separate taps can create overlapping effects, while held-key repeat remains guarded.
+- Added a pixel unicorn on a distant side path. Nearby Look becomes Ride; while mounted it becomes Off. E/Space also mounts/dismounts. Riding/galloping speeds are 170/280 versus walking/running 120/205, with larger collision bounds and safe dismount placement.
+- Powers remain available while mounted. Existing character atlases, original family homes and six scattered visitor homes are unchanged. Portable builder includes the new module; no large bundled HTML upload.
+- Next: power/collision/lifecycle tests, all-character browser checks, unicorn discovery/ride/touch checks and visual review before publishing.
+
+### 2026-10-10: Full roster and unicorn checks passed
+- Added reproducible Node tests for all ten power bindings/cooldowns, directional projectile motion, scenery collision, directional versus radial melee, shockwave timing, single reactions and bounded effect cleanup. Unicorn tests cover proximity gating, reachable walking/mounted paths, movement, safe dismount at boundaries/narrow paths and remounting.
+- Added tools/check_game_browser.cjs. Chromium desktop 1280x900, phone 390x844 and landscape 844x390 passed all-character action/rapid-tap/movement checks and real traversal to the unicorn. Mounted checks passed collision at Five Guys, faster galloping, character switching, all ten mounted powers and dismount/remount. Actual browser touch events passed joystick + power while riding and tap-to-dismount without stuck input. No page errors or horizontal page overflow.
+- Reviewed all ten action screenshots plus unicorn discovery and riding views. Shortened touch ride prompts so they fit beside the action button. Original sprites/spawn positions preserved.
+- Temporary portable build inlined every module successfully; play.html remains unchanged. Physical iPhone/Safari verification remains pending. Next: publish the modular update atomically and verify deployment/live controls.
