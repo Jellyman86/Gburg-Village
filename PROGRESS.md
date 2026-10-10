@@ -120,3 +120,11 @@ This section takes precedence over the earlier resume order and connector fallba
 - Plan: add a small pixel squirrel drawn in canvas, spawn only on a clear nearby route visible to the player, briefly pause/sniff, then dash away. Space encounters apart and avoid interrupting Rex chases. No additional asset downloads are needed.
 - Working in src/game.js only for gameplay; current root GitHub Pages loads this file directly. Small source updates through the connector are allowed; the 5.4 MB portable bundle will not be transmitted through chat. Portable bundle parity remains a separate unresolved limitation.
 - Next: implement locally, check movement/timing/collision and source syntax, save source through a bounded connector update, then verify deployment and record status.
+
+### Squirrel implementation checkpoint
+- Saved src/game.js in commit 44c3abe4e76f9c258b084824c56080edc0d1daed. Update was about 22 KB, sent programmatically from local disk; no full code or embedded assets printed into chat. No large portable HTML update attempted.
+- Adds pixel squirrel with curled tail and animated feet; nearby clear-route selection, brief sniff pause, selected-character reaction, and 45–80-second cooldown. First eligible encounter after 8 seconds while moving. Encounters wait during Rex chases; game/dialog timing remains governed by existing update loop.
+- Added read-only squirrel state to window.GAME.state for diagnostics.
+- Verification: node --check passed. VM exercised first encounter, Coco reaction, sniff pause, despawn, cooldown and movement/chase guards. Checked 1,170 eligible routes across actual map obstacles; sampled routes remained clear and within the viewport.
+- Limit: no physical iPhone or visual browser test yet. Standalone play.html remains older; active target is root GitHub Pages loading src/game.js. Checking Pages deployment next.
+- User asked whether a cheaper model can add sprite sheets later. Suggested next scope is integration from an exact sprite contract (dimensions, frame order, transparency, feet anchor, and existing examples); no sprite sheet assets were requested or created in this step.
