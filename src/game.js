@@ -35,10 +35,85 @@
   const steps=Math.max(1,Math.ceil(Math.max(Math.abs(dx),Math.abs(dy))/3));
   for(let i=0;i<steps;i++){if(!blocked(player.x+dx/steps,player.y))player.x+=dx/steps;if(!blocked(player.x,player.y+dy/steps))player.y+=dy/steps;}
  }
+
+ // A tiny pixel T-rex plays tag: short chases, long rests, no damage.
+ const dino={x:town.spawn.x+105,y:town.spawn.y-30,facing:1,clock:0,
+  mode:'wander',timer:7,target:null,turnTimer:0,moving:false};
+ function dinoRest(message){
+  dino.mode='wander';dino.timer=14+Math.random()*12;dino.target=null;
+  if(message)toast(message);
+ }
+ function updateDino(dt){
+  dino.timer-=dt;dino.turnTimer-=dt;
+  const distance=Math.hypot(player.x-dino.x,player.y-dino.y);
+  if(dino.mode==='chase'){
+   if(distance<23)dinoRest('Boop! Rex tagged you. Back to exploring!');
+   else if(dino.timer<=0)dinoRest('Rex needs a breather. You escaped!');
+  }else if(dino.timer<=0&&distance<330){
+   dino.mode='chase';dino.timer=5+Math.random()*2;dino.target=null;
+   toast('Rex wants to play tag! Hold Run to escape!');
+  }
+  if(dino.mode==='wander'&&(!dino.target||dino.turnTimer<=0||
+    Math.hypot(dino.target.x-dino.x,dino.target.y-dino.y)<12)){
+   dino.turnTimer=2+Math.random()*3;
+   dino.target=null;
+   for(let i=0;i<16;i++){
+    const a=Math.random()*Math.PI*2,r=50+Math.random()*140;
+    const x=dino.x+Math.cos(a)*r,y=dino.y+Math.sin(a)*r;
+    if(!blocked(x,y)){dino.target={x,y};break;}
+   }
+  }
+  const target=dino.mode==='chase'?player:dino.target;
+  dino.moving=false;
+  if(!target)return;
+  const angle=Math.atan2(target.y-dino.y,target.x-dino.x);
+  const speed=dino.mode==='chase'?158:68,step=speed*dt;
+  // Try nearby headings, checking small steps to respect all scenery.
+  for(const turn of [0,.45,-.45,.9,-.9,1.4,-1.4,2,-2]){
+   const dx=Math.cos(angle+turn)*step,dy=Math.sin(angle+turn)*step;
+   const steps=Math.max(1,Math.ceil(step/2));
+   let clear=true;
+   for(let i=1;i<=steps;i++)if(blocked(dino.x+dx*i/steps,dino.y+dy*i/steps)){clear=false;break;}
+   if(!clear)continue;
+   dino.x+=dx;dino.y+=dy;dino.moving=step>0;
+   if(Math.abs(dx)>.1)dino.facing=dx>0?1:-1;
+   break;
+  }
+  if(!dino.moving)dino.turnTimer=0;
+  if(dino.moving)dino.clock+=dt*(dino.mode==='chase'?13:7);
+ }
+ function drawDino(){
+  const stride=Math.floor(dino.clock)%4,bob=dino.moving&&stride%2?1:0;
+  ctx.save();ctx.translate(Math.round(dino.x),Math.round(dino.y));
+  ctx.fillStyle='#182b3655';ctx.beginPath();ctx.ellipse(0,0,17,5,0,0,Math.PI*2);ctx.fill();
+  if(dino.mode==='chase'){
+   ctx.fillStyle='#ffde87';ctx.font='bold 14px system-ui';ctx.textAlign='center';ctx.fillText('!',0,-48);
+  }
+  ctx.scale(dino.facing,1);ctx.translate(-24,-42-bob);
+  // Pixel blocks keep the silhouette crisp at the game's native resolution.
+  const rect=(color,x,y,w,h)=>{ctx.fillStyle=color;ctx.fillRect(x,y,w,h);};
+  const outline='#244b3b',green='#6fae52',light='#a6cf69',shade='#4b873f';
+  rect(outline,26,2,19,3);rect(outline,23,5,26,17);
+  rect(green,26,5,19,14);rect(light,29,5,16,4);
+  rect(green,45,10,6,9);rect(outline,48,10,3,12);
+  rect(outline,36,21,15,3);rect(light,36,18,12,3);
+  rect('#fff3cc',38,8,6,6);rect('#17383b',41,8,3,4);
+  rect(outline,17,17,19,20);rect(green,20,16,16,20);
+  rect(light,29,23,7,13);rect(shade,17,24,9,12);
+  rect(outline,5,28,15,9);rect(green,8,28,12,6);
+  rect(outline,2,24,6,9);rect(green,5,25,3,5);
+  rect(shade,14,20,5,6);rect(light,18,16,4,5);
+  rect(outline,33,26,9,4);rect(green,33,25,7,3);
+  const a=dino.moving?[0,3,0,-3][stride]:0;
+  rect(outline,19+a,34,6,8);rect(shade,20+a,34,4,6);rect(outline,19+a,40,10,3);
+  rect(outline,29-a,34,6,8);rect(green,30-a,34,4,6);rect(outline,29-a,40,10,3);
+  ctx.restore();
+ }
+
  function updateNearby(){nearest=town.landmarks.filter(l=>Math.hypot(l.x-player.x,l.y-player.y)<l.radius).sort((a,b)=>Math.hypot(a.x-player.x,a.y-player.y)-Math.hypot(b.x-player.x,b.y-player.y))[0]||null;$('nearby').hidden=!nearest;if(nearest)$('nearby-text').textContent=nearest.name;$('interact').setAttribute('aria-label',nearest?'Look at '+nearest.name:'Look around');}
  function showDialog(title,body,tag='MARKET SQUARE'){resetInput();$('dialog-title').textContent=title;$('dialog-body').textContent=body;$('dialog-tag').textContent=tag;if(!$('dialog').open)$('dialog').showModal();}
  function interact(){if(!loaded||$('dialog').open)return;updateNearby();if(nearest)showDialog(nearest.name,nearest.text);else toast('Walk toward a gold diamond to look around.');}
- $('help').addEventListener('click',()=>showDialog('A walk with the family','Move with WASD or the arrow keys. Hold Shift to run. Press E or Space near a gold diamond to look around. Choose a character above or use 1–4. On a phone, drag the left joystick and hold Run with your other thumb. Landscape gives you a wider view.','HOW TO PLAY'));
+ $('help').addEventListener('click',()=>showDialog('A walk with the family','Move with WASD or the arrow keys. Hold Shift to run. Press E or Space near a gold diamond to look around. Choose a character above or use 1–4. On a phone, drag the left joystick and hold Run with your other thumb. Landscape gives you a wider view. Rex the dinosaur sometimes plays tag! Hold Run or Shift to outrun him. Getting tagged is harmless.','HOW TO PLAY'));
  const close=()=>{$('dialog').close();resetInput();canvas.focus({preventScroll:true});};
  $('close-dialog').addEventListener('click',close);$('continue').addEventListener('click',close);$('dialog').addEventListener('close',()=>{resetInput();canvas.focus({preventScroll:true});});
  const movementKeys=['KeyW','KeyA','KeyS','KeyD','ArrowUp','ArrowLeft','ArrowDown','ArrowRight','ShiftLeft','ShiftRight'];
@@ -68,6 +143,7 @@
   if(length>.01){player.direction=Math.abs(x)>Math.abs(y)?(x>0?'right':'left'):(y>0?'down':'up');const speed=player.running?c.runSpeed:c.speed;move(x*speed*dt,y*speed*dt);}
   player.moving=Math.hypot(player.x-oldX,player.y-oldY)>.01;
   if(player.moving){player.clock+=dt*(player.running?c.runFPS:c.walkFPS);player.frame=Math.floor(player.clock)%4;}else{player.clock=0;player.frame=1;}
+  updateDino(dt);
   updateCamera();updateNearby();$('status').textContent=c.name+' · '+(player.moving?(player.running?'Running':'Walking'):'Taking it all in');$('area-label').textContent=player.y<401?'CENTER POINT WAY':player.y<785?'THE GREEN':'THE PLAZA';
  }
  function sprite(actor,active){
@@ -79,7 +155,7 @@
  function draw(){
   if(!loaded)return;ctx.fillStyle='#17383b';ctx.fillRect(0,0,canvas.width,canvas.height);ctx.save();ctx.translate(-camera.x,-camera.y);ctx.drawImage(background,0,0);
   town.landmarks.forEach(l=>{ctx.fillStyle=nearest===l?'#ffeda6':'#eedba2';ctx.strokeStyle='#705b35';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(l.x,l.y-21);ctx.lineTo(l.x+5,l.y-15);ctx.lineTo(l.x,l.y-9);ctx.lineTo(l.x-5,l.y-15);ctx.closePath();ctx.fill();ctx.stroke();});
-  family.filter(a=>a.id!==player.id).concat(player).sort((a,b)=>a.y-b.y).forEach(a=>sprite(a,a===player));ctx.restore();
+  family.filter(a=>a.id!==player.id).concat(player,dino).sort((a,b)=>a.y-b.y).forEach(a=>a===dino?drawDino():sprite(a,a===player));ctx.restore();
  }
  function frame(time){const dt=previous?Math.min((time-previous)/1000,.05):0;previous=time;update(dt);draw();requestAnimationFrame(frame);}
  function loadImage(path){return new Promise((resolve,reject)=>{const img=new Image();img.onload=()=>resolve(img);img.onerror=()=>reject(new Error('Could not load '+path));img.src=window.EMBEDDED_ASSETS?.[path]||path;});}
@@ -89,7 +165,7 @@
  }).catch(error=>{$('loading').innerHTML='';const message=document.createElement('b');message.textContent=error.message;const help=document.createElement('span');help.textContent='Extract the full ZIP, then open index.html or the standalone play.html.';$('loading').append(message,help);console.error(error);});
  resize();requestAnimationFrame(frame);
  // Read-only diagnostic state for repeatable browser checks.
- window.GAME={get ready(){return loaded;},get state(){return{player:{...player},camera:{...camera},nearest:nearest?.id||null,viewport:{width:canvas.width,height:canvas.height},dialog:$('dialog').open,input:{joy:{...joy},touchRun,keys:[...keys]}};},select,blocked};
+ window.GAME={get ready(){return loaded;},get state(){return{player:{...player},dinosaur:{...dino},camera:{...camera},nearest:nearest?.id||null,viewport:{width:canvas.width,height:canvas.height},dialog:$('dialog').open,input:{joy:{...joy},touchRun,keys:[...keys]}};},select,blocked};
 })();
 
 
