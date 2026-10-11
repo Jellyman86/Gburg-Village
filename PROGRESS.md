@@ -14,12 +14,14 @@ Updated: 2026-10-11. This is a lightweight handoff, not a detailed activity log.
   - Isolated V3-based game; FFVI-inspired Party/Stats/Items/Equip/Abilities menu, safe world pause, complete ten-character roster plus playable Jaime and Chris Tappis.
   - Level/HP/XP and deterministic core stats, shared hamburger inventory, placeholder sword (+4 strength), weapon/accessory slots, and one selectable original power per character.
   - Six supplied portraits processed to transparent 128x128 derivatives. Originals in `art inbox/` remain untouched and untracked; other portraits are clearly labeled placeholders.
+  - Display update: old-version banner removed; Help now houses replay/return-to-plaza/route guidance. Fullscreen uses the native API where available; Expand fills the browser viewport otherwise. Exit view stays reachable. V4-only Home Screen metadata and iPhone Safari installation guidance are included.
 - V3 — Meteor Night: https://jellyman86.github.io/Gburg-Village/v3/
 - V2: https://jellyman86.github.io/Gburg-Village/v2/
 - Original: https://jellyman86.github.io/Gburg-Village/
 - As of the last recorded V3 deployment, the meteor intro and northern roundabout map were published; V1 and V2 remained intact.
 - Automated V3 desktop and mobile-*viewport* checks had passed. Physical iPhone/Safari verification must not be inferred from those tests.
 - V4 checks passed at desktop 1280x900, phone 390x844 and landscape 844x390, including actual emulated touch events. Small-phone 320x568 menu bounds were also checked.
+- Display checks passed native fullscreen, unsupported/denied API fallback, browser/button exit restoration, menus/help/replay/reset, and standalone metadata in all three layouts. Phone-portrait canvas height increased from 633px to 777px in fullscreen emulation. Safari browser bars cannot be removed by the Expand fallback; Home Screen launch is the iPhone standalone path and still requires physical-device verification.
 - Verified full intro playback, roster switching, pause/focus/input resets, healing limits, equipment conservation, ability ownership/cooldowns, all six scenes, original power hits, actual north portal roundtrip, collisions and unicorn riding. No browser exceptions or failed asset requests in the full local suite.
 - Live V4 loaded its portraits, switched to Jaime and used an equipped Flip. V1-V3 source/configuration is unchanged; all three older public routes serve identical HTML after normalizing Windows line endings.
 

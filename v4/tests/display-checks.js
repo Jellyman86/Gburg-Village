@@ -1,0 +1,81 @@
+return async function checkDisplay(page,{width=1280,height=900,touch=false}={}){
+ const assert=(value,message)=>{if(!value)throw new Error(message);};
+ const activateScreen=()=>touch?page.locator('#screen-mode').tap():page.locator('#screen-mode').click();
+ const errors=[],onError=error=>errors.push(error.message),results=[];
+ page.on('pageerror',onError);
+ try{
+  await page.setViewportSize({width,height});
+  await page.goto(page.url().split('/v4/')[0]+'/v4/');
+  await page.waitForFunction(()=>GAME.ready&&V3_INTRO.state.ready);
+  await page.locator('#intro-skip').click();
+  assert(await page.locator('.preview-nav').count()===0,'Old version banner removed, not merely hidden');
+  const normal=await page.locator('#game').boundingBox();
+  await activateScreen();
+  await page.waitForFunction(()=>document.fullscreenElement===document.documentElement&&document.body.classList.contains('expanded-view'));
+  const fullscreen=await page.locator('#game').boundingBox();
+  assert(fullscreen.height>normal.height,'Fullscreen must increase playable height');
+  assert(await page.locator('#screen-mode').getAttribute('aria-pressed')==='true','Fullscreen control state');
+  await page.locator('#open-menu').click();
+  assert(await page.locator('#rpg-menu').isVisible(),'Menu works in native fullscreen');
+  const before=await page.evaluate(()=>GAME.state.player);
+  await page.keyboard.press('ArrowRight');await page.waitForTimeout(100);
+  assert(await page.evaluate(before=>GAME.state.player.x===before.x,before),'Menu still pauses native fullscreen');
+  await page.locator('#close-menu').click();
+  await page.locator('#help').click();
+  assert(await page.locator('#world-actions').isVisible(),'Help and world controls reachable fullscreen');
+  await page.locator('#continue').click();
+  await page.evaluate(()=>document.exitFullscreen());
+  await page.waitForFunction(()=>!document.body.classList.contains('expanded-view'));
+  assert(await page.locator('#screen-mode').getAttribute('aria-pressed')==='false','Browser-initiated fullscreen exit syncs UI');
+  const restored=await page.locator('#game').boundingBox();
+  assert(Math.abs(restored.height-normal.height)<2,'Restore normal canvas size after exit');
+  await activateScreen();
+  await page.waitForFunction(()=>!!document.fullscreenElement);
+  await activateScreen();
+  await page.waitForFunction(()=>!document.fullscreenElement&&!document.body.classList.contains('expanded-view'));
+  results.push('Native fullscreen expands canvas; menus/help work; button/browser exits restore layout');
+
+  await page.evaluate(()=>Object.defineProperty(document,'fullscreenEnabled',{configurable:true,value:false}));
+  await activateScreen();
+  assert(await page.evaluate(()=>!document.fullscreenElement&&document.body.classList.contains('expanded-view')),'Unsupported API uses honest expanded-view fallback');
+  assert(await page.locator('#toast').textContent()!=='' ,'Fallback explanation is surfaced');
+  const viewport=await page.evaluate(()=>({width:innerWidth,height:innerHeight}));
+  const shell=await page.locator('.game-shell').boundingBox();
+  assert(shell.x===0&&shell.y===0&&Math.abs(shell.width-viewport.width)<2&&Math.abs(shell.height-viewport.height)<2,'Fallback fills browser viewport');
+  assert((await page.locator('#game').boundingBox()).height>normal.height,'Fallback increases playable height');
+  await page.locator('#open-menu').click();
+  await page.locator('[data-member="connor"]').click();await page.locator('#menu-play').click();
+  assert(await page.evaluate(()=>GAME.state.player.id==='connor'),'Fallback roster switch');
+  await page.locator('#help').click();
+  assert((await page.locator('#world-actions').textContent()).includes('Add to Home Screen'),'Persistent iPhone Home Screen guidance');
+  await page.locator('#replay-intro').click();
+  assert(await page.evaluate(()=>V3_INTRO.active&&!document.getElementById('dialog').open),'Replay closes modal before cinematic');
+  await page.locator('#intro-skip').click();
+  assert(await page.evaluate(()=>document.body.classList.contains('expanded-view')),'Expanded view survives replay');
+  await page.locator('#help').click();await page.locator('#return-plaza').click();
+  await page.waitForFunction(()=>GAME.ready&&GAME.state.scene==='plaza'&&!GAME.state.dialog);
+  await activateScreen();
+  assert(await page.evaluate(()=>!document.body.classList.contains('expanded-view')),'Fallback exit');
+  assert(Math.abs((await page.locator('#game').boundingBox()).height-normal.height)<2,'Fallback restores normal height');
+  results.push('Unsupported fullscreen fallback fills viewport, keeps roster/replay/reset accessible, and restores layout');
+
+  await page.evaluate(()=>{
+   Object.defineProperty(document,'fullscreenEnabled',{configurable:true,value:true});
+   Object.defineProperty(document.documentElement,'requestFullscreen',{configurable:true,value:()=>Promise.reject(new Error('Test fullscreen denial'))});
+  });
+  await activateScreen();
+  await page.waitForFunction(()=>document.body.classList.contains('expanded-view'));
+  assert(await page.locator('#screen-mode').isEnabled(),'Failed request leaves working exit control');
+  await activateScreen();
+  assert(await page.evaluate(()=>!document.body.classList.contains('expanded-view')),'Exit after denied native request');
+  const install=await page.evaluate(async()=>{
+   const response=await fetch('manifest.webmanifest');
+   return {status:response.status,manifest:await response.json(),apple:document.querySelector('meta[name="apple-mobile-web-app-capable"]').content};
+  });
+  assert(install.status===200&&install.apple==='yes'&&install.manifest.start_url==='./'&&install.manifest.scope==='./'&&install.manifest.display==='standalone','V4-scoped Home Screen metadata');
+  assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'No horizontal overflow');
+  assert(errors.length===0,'Display errors: '+errors.join('; '));
+  results.push('Denied request fallback, V4-only standalone manifest and Home Screen metadata');
+  return {viewport:{width,height},results,errors,normalHeight:normal.height,fullscreenHeight:fullscreen.height};
+ }finally{page.off('pageerror',onError);}
+};

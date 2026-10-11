@@ -148,7 +148,7 @@ return async function checkV4(page,{width=1280,height=900,touch=false,cinema=fal
   await page.keyboard.press('m');await page.locator('[data-member="connor"]').click();await page.locator('#menu-play').click();
   assert(await page.evaluate(()=>GAME.state.unicorn.riding&&GAME.state.player.id==='connor'),'Menu switch preserves mount');
   await page.keyboard.press('e');assert(await page.evaluate(()=>!GAME.state.unicorn.riding),'Safe dismount');
-  await page.locator('#return-plaza').click();await page.waitForFunction(()=>GAME.ready);
+  await page.locator('#help').click();await page.locator('#return-plaza').click();await page.waitForFunction(()=>GAME.ready);
   results.push('Six scenes load, original powers hit dinosaurs, actual north portal roundtrip, collisions, unicorn');
 
   if(touch){
@@ -178,7 +178,7 @@ return async function checkV4(page,{width=1280,height=900,touch=false,cinema=fal
    await page.locator('#close-menu').tap();
    results.push('Real touch events: simultaneous joystick/run, menu input reset, roster/equip/ability/power taps; responsive bounds');
   }
-  await page.locator('#replay-intro').click();
+  await page.locator('#help').click();await page.locator('#replay-intro').click();
   assert(await page.evaluate(()=>V3_INTRO.active),'Intro replay');
   await page.keyboard.press('Escape');
   assert(await page.evaluate(()=>!V3_INTRO.active&&GAME.state.input.keys.length===0),'Intro Escape clears input');

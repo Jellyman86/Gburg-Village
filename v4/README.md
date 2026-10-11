@@ -10,6 +10,9 @@ Isolated feature preview based on V3. V1–V3 are unchanged; V4 reuses their art
 - Equip: one shared placeholder Japanese sword, weapon/accessory slots, Strength +4 shown separately from base stats. Unequipping returns the item to inventory.
 - Abilities: one relic-style equipped power per character, selected from the ten original powers. Original characters start with their existing powers; new characters can select a power. Cooldowns belong to the caster, not the selected relic.
 - Existing intro, portals, unicorn, joystick, music and harmless dinosaur tag remain. Equipment affects the RPG stat display, not combat damage yet.
+- The old-version navigation banner is removed. **Help** in the toolbar keeps route guidance, Replay intro and Back to plaza accessible.
+- **Fullscreen** uses the browser Fullscreen API where supported. **Expand** is the fallback: it hides the game header/footer and fills the available browser viewport, but cannot hide browser address bars. Exit view remains available next to Menu; menus and Help still work in either mode.
+- On iPhone, open V4 in Safari, choose **Share > Add to Home Screen**, enable **Open as Web App** if offered, then launch the icon for a standalone view without browser chrome. V4-only standalone metadata is included; this does not add offline support. Safe-area padding protects notch/home-indicator controls. Physical iPhone behavior still needs device verification.
 
 **Preview limitation:** HP, XP, equipment and inventory are session-only. Reload starts a fresh preview; local persistence, XP rewards, combat damage and rescue/unlock quests are not implemented in this increment.
 
@@ -34,4 +37,4 @@ Run `node v4/tests/run.cjs` from the repository root using the existing Playwrig
 
 The repeatable checks are in [tests/checks.js](tests/checks.js); the file returns an async test function accepting a Playwright `page`. Test-only placement hooks are injected into HTTP responses by Playwright routing, never added to the shipped game.
 
-Checks cover deterministic stats, roster switching, pause/input resets, keyboard navigation, equipment conservation, healing boundaries, equipped ability ownership/cooldown, all six scenes and original powers, intro playback, portals, unicorn and mobile touch/layout. Desktop touch emulation is not physical iPhone verification.
+Checks cover deterministic stats, roster switching, pause/input resets, keyboard navigation, equipment conservation, healing boundaries, equipped ability ownership/cooldown, all six scenes and original powers, intro playback, portals, unicorn and mobile touch/layout. [Display checks](tests/display-checks.js) additionally cover native fullscreen, browser/button exits, unsupported/denied API fallbacks, increased canvas height, menu/help/replay/reset access, and V4-scoped Home Screen metadata. Desktop touch emulation is not physical iPhone verification.

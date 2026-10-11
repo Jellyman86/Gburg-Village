@@ -23,6 +23,8 @@
  function resetInput(){keys.clear();joy={x:0,y:0};joyId=null;runId=null;touchRun=false;$('stick').style.transform='';$('run').classList.remove('active');player.moving=false;player.running=false;player.clock=0;player.frame=1;}
  document.addEventListener('v3-intro-start',resetInput);document.addEventListener('v3-intro-end',resetInput);
  document.addEventListener('v4-menu-open',resetInput);document.addEventListener('v4-menu-close',resetInput);
+ document.addEventListener('v4-display-change',resetInput);
+ document.addEventListener('v4-display-message',event=>toast(event.detail));
  window.addEventListener('blur',resetInput);document.addEventListener('visibilitychange',()=>{if(document.hidden)resetInput();previous=0;});
  function select(id){if(!characters[id])return;player.id=id;player.frame=1;player.clock=0;for(const key of ids)buttons[key].setAttribute('aria-pressed',String(key===id));buttons[id].scrollIntoView({block:'nearest',inline:'nearest'});paintPower();$('status').textContent=characters[id].name+' · Ready for a walk';canvas.focus({preventScroll:true});}
  ids.forEach((id,i)=>{
@@ -205,7 +207,7 @@
   $('nearby-text').textContent=mounted?(phone?'Tap Off to hop down':'Unicorn ride · Hop off when you like'):ride?(phone?'A unicorn! Tap Ride':'A unicorn! Hop on for a ride'):nearest?.name||'';
   $('interact').textContent=mounted?'Off':ride?'Ride':nearest?.to?'Go':'Look';$('interact').setAttribute('aria-label',mounted?'Dismount unicorn':ride?'Ride unicorn':nearest?'Look at '+nearest.name:'Look around');
  }
- function showDialog(title,body,tag='MARKET SQUARE'){resetInput();$('dialog-title').textContent=title;$('dialog-body').textContent=body;$('dialog-tag').textContent=tag;if(!$('dialog').open)$('dialog').showModal();paintPower();}
+ function showDialog(title,body,tag='MARKET SQUARE'){resetInput();$('dialog-title').textContent=title;$('dialog-body').textContent=body;$('dialog-tag').textContent=tag;$('world-actions').hidden=tag!=='HOW TO PLAY';if(!$('dialog').open)$('dialog').showModal();paintPower();}
  function interact(){
   if(!loaded||changing||window.V3_INTRO?.active||$('dialog').open||window.V4_MENU.active)return;updateNearby();
   if(nearest?.to){if(unicorn.riding){toast('Hop off the unicorn before entering another area.');unicorn.interact(player);return;} enterScene(nearest.to,nearest.arrival);return;}
@@ -218,6 +220,7 @@
  $('help').addEventListener('click',()=>showDialog('A walk with the family','Move with WASD or the arrow keys. Hold Shift to run. Press E or Space near a gold diamond to look around. Open Menu or press M / Escape to pause, view the full roster and stats, use items, equip a weapon or select one special ability. Choose Play as to switch characters; 1–9 and 0 switch the first ten directly. On a phone, drag the left joystick and hold Run with your other thumb. Landscape gives you a wider view. Use your equipped power with X or the action button. Short cooldowns let you use it often. Powers can briefly startle Rex. Find the sparkling unicorn on a side path: walk close and tap Ride or press E to hop on. Run to gallop; tap Off or E to dismount. Powers work while riding too. Rex sometimes plays tag! Getting tagged is harmless. This preview is session-only; reloading starts fresh.','HOW TO PLAY'));
  const close=()=>{$('dialog').close();resetInput();canvas.focus({preventScroll:true});};
  $('close-dialog').addEventListener('click',close);$('continue').addEventListener('click',close);$('dialog').addEventListener('close',()=>{resetInput();canvas.focus({preventScroll:true});});
+ $('replay-intro').addEventListener('click',close);
  const movementKeys=['KeyW','KeyA','KeyS','KeyD','ArrowUp','ArrowLeft','ArrowDown','ArrowRight','ShiftLeft','ShiftRight'];
  window.addEventListener('keydown',e=>{if(e.ctrlKey||e.altKey||e.metaKey||$('dialog').open||window.V4_MENU.active||window.V3_INTRO?.active)return;if(movementKeys.includes(e.code)){e.preventDefault();keys.add(e.code);}if(['KeyE','Space'].includes(e.code)){e.preventDefault();if(!e.repeat)interact();}if(e.code==='KeyX'){e.preventDefault();if(!e.repeat)activatePower();}if(/^Digit[0-9]$/.test(e.code)&&!e.repeat){const digit=Number(e.code.slice(-1));select(ids[digit===0?9:digit-1]);}});
  window.addEventListener('keyup',e=>keys.delete(e.code));

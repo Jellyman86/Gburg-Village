@@ -6,7 +6,7 @@ const server=http.createServer((req,res)=>{
   let url=decodeURIComponent(req.url.split('?')[0]);if(url.endsWith('/'))url+='index.html';
   const file=path.resolve(root,'.'+url);
   if(!file.startsWith(root+path.sep))throw new Error('Invalid path');
-  const types={'.js':'text/javascript','.css':'text/css','.png':'image/png','.webp':'image/webp','.html':'text/html'};
+  const types={'.js':'text/javascript','.css':'text/css','.png':'image/png','.webp':'image/webp','.html':'text/html','.webmanifest':'application/manifest+json'};
   res.setHeader('Content-Type',types[path.extname(file)]||'application/octet-stream');
   res.end(fs.readFileSync(file));
  }catch(error){res.statusCode=404;res.end(error.message);}
@@ -17,6 +17,7 @@ const server=http.createServer((req,res)=>{
  try{
   browser=await chromium.launch({headless:true,...(process.env.BROWSER_PATH?{executablePath:process.env.BROWSER_PATH}:{})});
   const check=new Function(fs.readFileSync(path.join(__dirname,'checks.js'),'utf8'))();
+  const displayCheck=new Function(fs.readFileSync(path.join(__dirname,'display-checks.js'),'utf8'))();
   for(const options of [
    {width:1280,height:900,cinema:true},
    {width:390,height:844,touch:true},
@@ -26,6 +27,7 @@ const server=http.createServer((req,res)=>{
    try{
     const page=await context.newPage();await page.goto(`http://127.0.0.1:${server.address().port}/v4/`);
     console.log(JSON.stringify(await check(page,options)));
+    console.log(JSON.stringify(await displayCheck(page,options)));
    }finally{await context.close();}
   }
  }finally{if(browser)await browser.close();await new Promise(resolve=>server.close(resolve));}

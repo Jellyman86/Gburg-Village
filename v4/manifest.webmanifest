@@ -1,0 +1,9 @@
+{
+ "name": "Gburg Village - Meteor Night",
+ "short_name": "Gburg Village",
+ "start_url": "./",
+ "scope": "./",
+ "display": "standalone",
+ "background_color": "#10282d",
+ "theme_color": "#17245e"
+}
