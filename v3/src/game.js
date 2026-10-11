@@ -2,7 +2,7 @@
  'use strict';
  const $=id=>document.getElementById(id),canvas=$('game'),ctx=canvas.getContext('2d',{alpha:false});
  let town=window.TOWN; const characters=window.CHARACTERS,ids=Object.keys(characters);
- const sceneImages={},scenes=window.SCENES; let changing=false;
+ const sceneImages={},sceneOverlays={},scenes=window.SCENES; let changing=false;
  const keys=new Set(),sheets={},portraits={},buttons={},camera={x:0,y:0};
  const player={...town.spawn,id:'jason',direction:'down',frame:1,moving:false,running:false,clock:0};
  const visitorSpawns={stephanie:{x:304,y:375},mark:{x:906,y:375},adam:{x:568,y:555},kate:{x:768,y:562},brie:{x:465,y:825},vito:{x:1167,y:780}};
@@ -32,7 +32,7 @@
   const shortcut=document.createElement('small');shortcut.textContent=(i+1)%10;
   button.append(portrait,name,shortcut);button.addEventListener('click',()=>select(id));$('party').append(button);portraits[id]=portrait;buttons[id]=button;
  });
- function blocked(x,y,rx=8,ry=4){const b=town.bounds;if(x-rx<b.left||x+rx>b.right||y-ry<b.top||y+ry>b.bottom)return true;if(town.walkable){for(const [px,py] of [[x-rx,y-ry],[x+rx,y-ry],[x-rx,y+ry],[x+rx,y+ry]])if(!town.walkable.some(o=>px>=o.x&&px<=o.x+o.w&&py>=o.y&&py<=o.y+o.h))return true;}return town.obstacles.some(o=>x+rx>o.x&&x-rx<o.x+o.w&&y+ry>o.y&&y-ry<o.y+o.h);}
+ function blocked(x,y,rx=8,ry=4){const b=town.bounds;if(x-rx<b.left||x+rx>b.right||y-ry<b.top||y+ry>b.bottom)return true;if(town.walkable){for(const [px,py] of [[x-rx,y-ry],[x+rx,y-ry],[x-rx,y+ry],[x+rx,y+ry]])if(!town.walkable.some(o=>px>=o.x&&px<=o.x+o.w&&py>=o.y&&py<=o.y+o.h)&&!(town.walkableEllipses||[]).some(o=>((px-o.x)/o.rx)**2+((py-o.y)/o.ry)**2<=1))return true;}if((town.blockedEllipses||[]).some(o=>((x-o.x)/(o.rx+rx))**2+((y-o.y)/(o.ry+ry))**2<1))return true;return town.obstacles.some(o=>x+rx>o.x&&x-rx<o.x+o.w&&y+ry>o.y&&y-ry<o.y+o.h);}
  let unicorn=window.FAMILY_UNICORN.create({blocked});
  function move(dx,dy){
   // Small steps prevent tunneling through scenery at run speed or on slow devices.
@@ -42,7 +42,7 @@
  }
 
  // A tiny pixel T-rex plays tag: short chases, long rests, no damage.
- const dinoHomes={plaza:{x:910,y:370},district:{x:1850,y:1050},neighborhood:{x:305,y:700},recreation:{x:680,y:460},house:{x:780,y:720}};
+ const dinoHomes={north:{x:923,y:408},plaza:{x:910,y:370},district:{x:1850,y:1050},neighborhood:{x:305,y:700},recreation:{x:680,y:460},house:{x:780,y:720}};
  const dinosaurs=Object.fromEntries(Object.entries(dinoHomes).map(([id,h])=>[id,{...h,facing:1,clock:0,stars:0,mode:'wander',timer:7,target:null,turnTimer:0,moving:false,stunned:0}]));
  let dinoHome=dinoHomes.plaza,dino=dinosaurs.plaza;
  let powers; function makePowers(){return window.FAMILY_POWERS.create({blocked,getTarget:()=>dino,getActor:()=>player,onHit:()=>{
@@ -259,6 +259,7 @@
  }
  function draw(){
   if(!loaded)return;ctx.fillStyle='#17383b';ctx.fillRect(0,0,canvas.width,canvas.height);ctx.save();ctx.translate(-camera.x,-camera.y);ctx.drawImage(background,0,0,town.width,town.height);
+  if(town.overlay&&sceneOverlays[town.id]){const o=town.overlay;ctx.drawImage(sceneOverlays[town.id],...o.source,o.x,o.y,o.w,o.h);}
   town.landmarks.forEach(l=>{ctx.fillStyle=nearest===l?'#ffeda6':'#eedba2';ctx.strokeStyle='#705b35';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(l.x,l.y-21);ctx.lineTo(l.x+5,l.y-15);ctx.lineTo(l.x,l.y-9);ctx.lineTo(l.x-5,l.y-15);ctx.closePath();ctx.fill();ctx.stroke();});
   powers.drawGround(ctx);
   const unicornActor=unicorn.state;
@@ -271,6 +272,7 @@
   const next=scenes[id];
   try{
    const img=sceneImages[id]||await loadImage(next.image);sceneImages[id]=img;
+   if(next.overlay&&!sceneOverlays[id])sceneOverlays[id]=await loadImage(next.overlay.image);
    const old=town;town=next;
    const x=arrival[0]*town.width/1000,y=arrival[1]*town.height/1000;
    if(blocked(x,y)){town=old;throw new Error('The entrance needs more space.');}

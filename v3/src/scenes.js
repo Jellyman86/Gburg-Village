@@ -1,10 +1,15 @@
-// V2-only scenes. Coordinates are native image proportions; images remain separate.
+// V3 scenes. Separate maps keep artwork detailed without a giant world texture.
 (() => {
  const rects=(list,w,h)=>list.map(([x,y,rw,rh])=>({x:x*w/1000,y:y*h/1000,w:rw*w/1000,h:rh*h/1000}));
  const make=(id,name,w,h,paths,ports,hint)=>({id,name,width:w,height:h,image:`../v2/assets/${id}.webp`,bounds:{left:0,top:0,right:w,bottom:h},spawn:{x:w/2,y:h/2},obstacles:[],walkable:rects(paths,w,h),landmarks:ports.map(([id,name,x,y,to,tx,ty])=>({id,name,x:x*w/1000,y:y*h/1000,radius:55,to,arrival:[tx,ty]})),hint});
- const plaza=window.TOWN;plaza.id='plaza';plaza.hint='Walk east across the plaza. Use Go near the gold route marker.';
+ const plaza=window.TOWN;plaza.id='plaza';plaza.hint='Go north to the roundabout, or east to Main Street. Use Go at a gold marker.';
  plaza.landmarks.push({id:'to-district',name:'Shops & Main Street →',x:1415,y:780,radius:58,to:'district',arrival:[435,630]});
+ plaza.landmarks.push({id:'to-north',name:'North street · Market & roundabout ↑',x:620,y:300,radius:48,to:'north',arrival:[499,954]});
  window.SCENES={plaza,
+ north:make('north','North Market · Meteor Roundabout',1536,1536,
+ [[458,0,81,1000],[0,181,1000,70],[20,641,440,29],[534,650,84,34],[614,686,205,32],[610,659,39,64],[804,674,29,54]],
+ [['to-plaza','↓ Starting town',499,954,'plaza',620/1536*1000,310/1024*1000]],
+ 'Head north to the meteor crater. Follow the road around it, or explore the café alley to the east.'),
  district:make('district','Shops & Main Street',3256,1086,
  [[20,246,620,75],[415,275,38,725],[25,615,450,65],[20,945,960,48],[625,0,25,375],[430,313,550,63],[950,305,35,665],[640,315,30,675],[430,665,540,65]],
  [['to-plaza','← Family meeting spot',435,630,'plaza',1415/1536*1000,780/1024*1000],['to-neighborhood','Main Street → Home',895,966,'neighborhood',120,870],['to-recreation','Walk to the courts & pool',535,966,'recreation',80,870]],
@@ -21,4 +26,10 @@
  [[200,825,615,65],[198,548,88,330],[260,790,280,99],[505,524,58,328],[515,360,68,210],[510,291,130,90],[519,127,36,232],[215,330,303,35],[387,125,31,238],[162,299,257,61],[199,339,38,213],[540,826,420,49],[537,686,46,183]],
  [['to-neighborhood','Front door · Go outside',285,863,'neighborhood',713,276]],
  'Home! Walk through the living floor. The front door returns to the neighborhood.')};
+ const north=SCENES.north;
+ north.image='assets/north-market.png';
+ north.walkableEllipses=[{x:499/1000*1536,y:203/1000*1536,rx:168/1000*1536,ry:101/1000*1536}];
+ north.blockedEllipses=[{x:499/1000*1536,y:203/1000*1536,rx:96/1000*1536,ry:67/1000*1536}];
+ north.overlay={image:'assets/meteor-crater.png',x:587,y:200,w:360,h:205,source:[130,180,1300,670]};
+ north.landmarks.push({id:'meteor',name:'The meteor crater',x:767,y:437,radius:55,text:'It landed right in the roundabout! Something prehistoric crawled out. Keep to the road around the broken island.'});
 })();
