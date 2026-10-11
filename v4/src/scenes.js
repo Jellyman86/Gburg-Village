@@ -16,7 +16,7 @@
  'Follow Main Street along the bottom toward Home, or the courts and pool.'),
  neighborhood:make('neighborhood','Main Street · Home',1254,1254,
  [[85,705,72,280],[88,925,817,54],[837,682,67,293],[199,255,590,48],[196,265,82,360],[218,610,555,61],[729,266,66,405],[112,649,140,70],[772,647,96,80],[682,229,55,63]],
- [['to-district','← Main Street shops',120,870,'district',895,966],['to-house','Dinosaur house · Enter',713,276,'house',285,863],['to-recreation','Courts & pool →',865,880,'recreation',895,880]],
+ [['to-district','← Main Street shops',120,870,'district',895,966],['to-house','Dinosaur house · Enter',713,276,'house',120,900],['to-recreation','Courts & pool →',865,880,'recreation',895,880]],
  'Follow the loop to the green dinosaur. Go at its front steps enters the house.'),
  recreation:make('recreation','Lakelands · Courts & Pool',1254,1254,
  [[48,125,61,848],[72,945,865,39],[888,570,42,405],[845,150,90,430],[105,125,775,44],[528,154,41,240],[207,344,657,43],[207,353,34,207],[230,515,578,45],[231,547,24,205],[405,545,30,208],[231,736,200,26],[614,543,26,44],[825,548,36,184],[224,905,660,69]],
@@ -24,7 +24,7 @@
  'Explore the paths beside the courts and pools. Main Street leads back to the shops.'),
  house:make('house','Home · Living floor',1448,1086,
  [[200,825,615,65],[198,548,88,330],[260,790,280,99],[505,524,58,328],[515,360,68,210],[510,291,130,90],[519,127,36,232],[215,330,303,35],[387,125,31,238],[162,299,257,61],[199,339,38,213],[540,826,420,49],[537,686,46,183]],
- [['to-neighborhood','Front door · Go outside',285,863,'neighborhood',713,276]],
+ [['to-neighborhood','Front door · Go outside',120,940,'neighborhood',713,276]],
  'Home! Walk through the living floor. The front door returns to the neighborhood.')};
  const north=SCENES.north;
  north.image='../v3/assets/north-market.png';
@@ -43,7 +43,7 @@
  house.walkable=house.walkable.map(o=>({x:o.x/2,y:o.y/2,w:o.w/2,h:o.h/2}));
  house.landmarks=house.landmarks.map(o=>({...o,x:o.x/2,y:o.y/2,radius:42}));
  house.walkable.push(...[
-  [55,395,85,95],[42,190,70,235],[140,300,545,185],[375,140,255,77],
+  [55,395,85,130],[42,190,70,235],[140,300,545,185],[375,140,255,77],
   [375,200,38,200],[140,168,240,30],[140,115,148,77]
  ].map(([x,y,w,h])=>({x,y,w,h})));
  house.obstacles=[{x:245,y:308,w:65,h:78},{x:475,y:346,w:68,h:45}];

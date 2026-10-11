@@ -47,6 +47,10 @@ return async function checkNavigation(page,{touch=false,artifactDir,width=1280,h
    return edges;
   });
   assert(topology.length===20,'All 20 zone transitions have reciprocal connections');
+  const frontDoor=topology.find(edge=>edge.from==='house'&&edge.to==='neighborhood');
+  const homeEntry=topology.find(edge=>edge.from==='neighborhood'&&edge.to==='house');
+  assert(Math.abs(frontDoor.x-86.88)<.01&&Math.abs(frontDoor.y-510.42)<.01,'Front-door diamond sits on the threshold between the artwork plants');
+  assert(Math.abs(homeEntry.destination.x-86.88)<.01&&Math.abs(homeEntry.destination.y-488.7)<.01,'Entering home arrives on the indoor front-door mat');
   const arrivalsByScene={};
   for(const edge of topology)(arrivalsByScene[edge.to]||(arrivalsByScene[edge.to]=[])).push(edge.arrival);
   for(const [scene,arrivals] of Object.entries(arrivalsByScene)){
@@ -103,6 +107,8 @@ return async function checkNavigation(page,{touch=false,artifactDir,width=1280,h
   assert(await page.evaluate(()=>GAME.state.scene==='upstairs'),'Leaving an arrival diamond stays in the destination');
   await start('d');
   try{await page.waitForFunction(()=>GAME.ready&&GAME.state.scene==='cocoRoom',null,{timeout:4000});}finally{await stop();}
+  await page.evaluate(()=>GAME.test.enterScene('house',[120,900]));
+  if(artifactDir)await page.screenshot({path:artifactDir+'\\front-door-'+width+'x'+height+'.png'});
   // Click/tap every visible zone diamond from outside its old interaction radius.
   for(const edge of topology){
    await page.evaluate(async({edge,arrival})=>GAME.test.enterScene(edge.from,arrival),{edge,arrival:arrivalsByScene[edge.from][0]});
