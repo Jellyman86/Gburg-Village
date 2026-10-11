@@ -9,7 +9,7 @@ assert(await page.evaluate(()=>V3_INTRO.active&&document.querySelector('.app').i
 if(label==='desktop'){
  await page.locator('#intro-start').click();await page.waitForTimeout(6600);await page.screenshot({path:root+'/v3-town-check.png'});await page.waitForTimeout(8600);await page.screenshot({path:root+'/v3-mirror-check.png'});await page.waitForTimeout(6500);await page.screenshot({path:root+'/v3-crater-check.png'});await page.waitForFunction(()=>!V3_INTRO.active,null,{timeout:15000});assert.equal(await page.evaluate(()=>document.querySelector('.app').inert),false);
 }else{await page.screenshot({path:root+`/v3-${label}-check.png`});await page.locator('#intro-skip').tap();assert.equal(await page.evaluate(()=>V3_INTRO.active),false);}
-const scenes={plaza:[592.45,361.33],district:[568.18,966.85],neighborhood:[243.22,558.21],recreation:[542.26,366.83],house:[538.67,662.98]};
+const scenes={north:[499,954],plaza:[592.45,361.33],district:[568.18,966.85],neighborhood:[243.22,558.21],recreation:[542.26,366.83],house:[538.67,662.98]};
 for(const [scene,arrival] of Object.entries(scenes)){
  await page.evaluate(async({scene,arrival})=>GAME.test.enterScene(scene,arrival),{scene,arrival});assert.equal(await page.evaluate(()=>GAME.state.scene),scene);assert.equal(await page.evaluate(()=>GAME.blocked(GAME.state.dinosaur.x,GAME.state.dinosaur.y)),false,scene+' spawn walkable');
  for(const id of (label==='desktop'?['jason','connor','coco','peachy','stephanie','mark','adam','kate','brie','vito']:['coco'])){
@@ -20,7 +20,7 @@ for(const [scene,arrival] of Object.entries(scenes)){
 }
 await page.locator('#replay-intro').click();assert(await page.evaluate(()=>V3_INTRO.active));await page.locator('#intro-start').click();await page.waitForTimeout(120);await page.keyboard.down('ArrowRight');await page.locator('#intro-skip').click();assert.deepEqual(await page.evaluate(()=>GAME.state.input.keys),[]);await page.keyboard.up('ArrowRight');assert.equal(await page.evaluate(()=>V3_INTRO.active),false);
 if(options.hasTouch){const cdp=await page.context().newCDPSession(page),j=await page.locator('#joystick').boundingBox(),a=await page.locator('#power').boundingBox();await page.evaluate(()=>GAME.test.place('coco'));const joy={id:1,x:j.x+j.width*.75,y:j.y+j.height/2};await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[joy]});await page.waitForTimeout(100);await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[joy,{id:2,x:a.x+a.width/2,y:a.y+a.height/2}]});await page.waitForTimeout(200);assert(await page.evaluate(()=>GAME.state.powers.casts.length>0));await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});await page.waitForTimeout(80);assert.equal(await page.evaluate(()=>GAME.state.player.moving),false);}
-assert.deepEqual(errors,[]);console.log(label+': intro/skip/replay, five scene dinosaurs, real power hits, two-second freeze/recovery and controls PASS');
+assert.deepEqual(errors,[]);console.log(label+': intro/skip/replay, six scene dinosaurs, real power hits, two-second freeze/recovery and controls PASS');
 }finally{await browser.close();}}
 }finally{server.close();}
 })().catch(e=>{console.error(e);process.exitCode=1;});
