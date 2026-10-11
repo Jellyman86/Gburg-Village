@@ -1,0 +1,66 @@
+#open-menu,#close-menu{flex-shrink:0;min-height:44px;padding:8px 12px;border:2px solid #e2d6ab;border-radius:5px;background:linear-gradient(#2b438d,#17245e);font:16px Georgia,serif}
+#open-menu small,#close-menu small{display:block;font:10px system-ui;color:#c9d7ff}
+#rpg-menu{width:min(920px,calc(100vw - 24px));max-width:none;height:min(680px,calc(100dvh - 24px));max-height:calc(100dvh - 24px);padding:16px;border:3px double #eee4c3;border-radius:6px;background:linear-gradient(135deg,#263d83,#0b123b);color:#fff5df;box-shadow:0 20px 90px #000b;overflow:hidden}
+#rpg-menu[open]{display:flex;flex-direction:column;gap:12px}
+#rpg-menu::backdrop{background:#070d29b8}
+.menu-header{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-shrink:0}
+#rpg-menu h2{font-size:26px;margin:4px 0}
+#rpg-menu h3{margin:0 0 12px;font-size:20px;font-weight:normal}
+#menu-tabs{display:flex;gap:6px;flex-shrink:0}
+#menu-tabs button{flex:1;min-height:44px;padding:8px 4px;background:#111d50;border:1px solid #8291ba;border-radius:3px}
+#menu-tabs [aria-selected=true]{background:#425bb0;border-color:#ffe7a1;color:#ffe7a1}
+.menu-layout{display:grid;grid-template-columns:minmax(190px,1fr) minmax(0,1.7fr);gap:14px;flex:1;min-height:0}
+.roster-panel,#menu-detail{padding:14px;border:2px double #8392bd;border-radius:4px;overflow:auto;min-width:0;background:#0d194950;overscroll-behavior:contain}
+#roster-count{font:12px system-ui;color:#c9d7ff}
+#menu-roster{display:flex;flex-direction:column;gap:7px}
+#menu-roster button{display:flex;align-items:center;gap:9px;text-align:left;padding:6px;min-height:66px;background:#122052;border:1px solid #6277a3;border-radius:4px}
+#menu-roster [aria-pressed=true]{border-color:#ffe7a1;background:#38539a}
+#menu-roster strong{display:block;font-size:15px;font-weight:normal}
+#menu-roster small{display:block;font:10px/1.6 system-ui;color:#d9e5ff}
+.portrait-slot{width:128px;height:128px;flex-shrink:0;display:flex;flex-direction:column;align-items:center;justify-content:center;border:1px solid #97a6cb;border-radius:3px;background:#12204c}
+.portrait-slot img{display:block;width:100%;height:100%;object-fit:contain;image-rendering:pixelated}
+.portrait-slot b{font:48px Georgia;color:#ffe7a1}
+.portrait-slot small{font:10px system-ui;text-align:center;color:#d9e5ff}
+#menu-roster .portrait-slot{width:48px;height:48px}
+#menu-roster .portrait-slot b{font-size:20px}
+#menu-roster .portrait-slot small{font-size:8px;line-height:1}
+.member-summary{display:flex;align-items:center;gap:16px;margin-bottom:20px}
+#rpg-menu p{font:13px/1.6 system-ui;margin:6px 0;color:#e1e8ff}
+.member-summary small{display:block;font:11px/1.4 system-ui;color:#e1e8ff}
+.stat-grid{display:grid;grid-template-columns:1fr auto;gap:10px 20px;font:15px system-ui;margin:20px 0}
+.stat-grid dd{margin:0;color:#ffe7a1;font-variant-numeric:tabular-nums}
+#rpg-menu .primary{min-height:44px}
+#rpg-menu .menu-note{margin-top:16px;font-size:12px}
+.item-row{padding:12px 0;border-top:1px solid #7184ae}
+.item-row button,.ability-list button{min-height:44px;padding:8px 12px;background:#253d7d;border:1px solid #97a6cb;border-radius:3px}
+.item-row small{display:block;font:11px/1.5 system-ui;color:#d9e5ff;margin-top:6px}
+.ability-list{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.ability-list [aria-pressed=true]{border-color:#ffe7a1;background:#425bb0;color:#ffe7a1}
+#rpg-menu button:disabled{opacity:.5;cursor:default}
+#menu-message{min-height:20px;flex-shrink:0}
+#rpg-menu .menu-footer{padding:0;background:none;height:auto;flex-shrink:0;font:11px/1.4 system-ui;color:#c9d7ff}
+#rpg-menu button:focus-visible,#menu-detail:focus-visible{outline:2px solid #ffe7a1;outline-offset:2px}
+@media(max-width:600px){
+ #rpg-menu{padding:10px;gap:8px}
+ #rpg-menu h2{font-size:22px}
+ .menu-layout{grid-template-columns:1fr;grid-template-rows:minmax(92px,28%) minmax(0,1fr);gap:8px}
+ .roster-panel{padding:8px;display:flex;flex-direction:column}
+ .roster-panel h3{font-size:14px!important;margin-bottom:6px!important}
+ #menu-roster{flex-direction:row;overflow-x:auto;min-height:0;padding-bottom:4px}
+ #menu-roster button{min-width:154px;flex-shrink:0}
+ .member-summary{gap:12px;margin-bottom:12px}
+ .member-summary>.portrait-slot{width:96px;height:96px}
+ #menu-detail{padding:12px}
+ #menu-tabs{gap:3px}
+ #menu-tabs button{font-size:13px}
+ .stat-grid{font-size:14px;margin:14px 0;gap:7px}
+}
+@media(orientation:landscape) and (max-height:540px){
+ #rpg-menu{padding:8px;gap:6px!important}
+ #rpg-menu h2{font-size:18px;margin:0}
+ #rpg-menu .eyebrow,#rpg-menu .menu-footer{display:none}
+ .menu-layout{grid-template-columns:minmax(180px,1fr) minmax(0,2fr);grid-template-rows:1fr;gap:8px}
+ .member-summary>.portrait-slot{width:64px;height:64px}
+ .member-summary{margin-bottom:8px}
+ #menu-message{min-height:16px;margin:0!important;font-size:11px!important}
+}

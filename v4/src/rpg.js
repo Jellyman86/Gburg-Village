@@ -1,0 +1,52 @@
+(() => {
+ 'use strict';
+ const profiles={
+  jason:[120,14,10,10,12],connor:[90,10,15,14,8],coco:[80,8,12,13,9],
+  peachy:[110,12,14,12,10],stephanie:[95,9,12,15,9],mark:[115,13,10,11,11],
+  adam:[105,12,13,14,10],kate:[100,10,12,14,11],brie:[95,10,13,12,10],
+  vito:[105,12,15,12,9],jaime:[100,10,17,13,9],chris:[115,13,14,11,11]
+ };
+ const members=Object.fromEntries(Object.keys(window.CHARACTERS).map(id=>{
+  const [maxHP,strength,quickness,dexterity,defense]=profiles[id];
+  return [id,{id,level:1,hp:maxHP,maxHP,xp:0,nextLevelXP:100,strength,quickness,dexterity,defense,
+   equipment:{weapon:null,accessory:null},ability:window.FAMILY_POWERS.definitions[id]?id:null}];
+ }));
+ const items=Object.freeze({
+  sword:Object.freeze({id:'sword',name:'Japanese sword',slot:'weapon',strength:4,description:'Placeholder weapon · Strength +4. Accurate artwork is coming later.'}),
+  hamburger:Object.freeze({id:'hamburger',name:'Five Guys hamburger',heal:50,description:'Restore up to 50 HP to the selected character.'})
+ });
+ const inventory={sword:1,hamburger:3};
+ function member(id){if(!members[id])throw new Error('Unknown character: '+id);return members[id];}
+ function stats(id){
+  const value=member(id),weapon=items[value.equipment.weapon];
+  return {...value,equipment:{...value.equipment},strength:value.strength+(weapon?.strength||0)};
+ }
+ function equip(id,slot,itemId){
+  const value=member(id);
+  if(!['weapon','accessory'].includes(slot))throw new Error('Unknown equipment slot: '+slot);
+  if(itemId!==null&&(!items[itemId]||items[itemId].slot!==slot))throw new Error('Item does not fit this slot.');
+  const old=value.equipment[slot];
+  if(old===itemId)return {ok:false,message:'Already equipped.'};
+  if(itemId!==null&&inventory[itemId]<1)return {ok:false,message:'That item is already equipped by another character.'};
+  if(old)inventory[old]++;
+  if(itemId)inventory[itemId]--;
+  value.equipment[slot]=itemId;
+  return {ok:true,message:itemId?items[itemId].name+' equipped.':'Item returned to inventory.'};
+ }
+ function useItem(id,itemId){
+  const value=member(id),item=items[itemId];
+  if(!item?.heal)throw new Error('Item is not consumable.');
+  if(inventory[itemId]<1)return {ok:false,message:'No '+item.name+' left.'};
+  if(value.hp>=stats(id).maxHP)return {ok:false,message:window.CHARACTERS[id].name+' already has full HP. No item used.'};
+  const restored=Math.min(item.heal,stats(id).maxHP-value.hp);
+  value.hp+=restored;inventory[itemId]--;
+  return {ok:true,message:window.CHARACTERS[id].name+' recovered '+restored+' HP.'};
+ }
+ function equipAbility(id,ability){
+  const value=member(id);
+  if(ability!==null&&!window.FAMILY_POWERS.definitions[ability])throw new Error('Unknown ability: '+ability);
+  value.ability=ability;
+  return {ok:true,message:ability?window.FAMILY_POWERS.definitions[ability].name+' equipped.':'Special ability unequipped.'};
+ }
+ window.V4_RPG={members,items,inventory,stats,equip,useItem,equipAbility};
+})();
