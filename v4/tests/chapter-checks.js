@@ -5,7 +5,7 @@ return async function checkChapter(page,{width=1280,height=900,touch=false,artif
  page.on('pageerror',onError);page.on('response',onResponse);
  await page.route(pattern,async route=>{
   const response=await route.fetch(),source=await response.text();
-  const hook='window.GAME={test:{enterScene,walkPath(path){for(const point of path){move(point.x-player.x,point.y-player.y);}resetInput();updateCamera();updateNearby();},tick(dt){update(dt);draw();},flightStep(dt,allowed=false){flight.update(dt,player,town,allowed);updateCamera();draw();},grab(){return flight.grab(player,town.id);}},';
+  const hook='window.GAME={test:{enterScene,face(direction){player.direction=direction;},walkPath(path){for(const point of path){move(point.x-player.x,point.y-player.y);}resetInput();updateCamera();updateNearby();},tick(dt){update(dt);draw();},flightStep(dt,allowed=false){flight.update(dt,player,town,allowed);updateCamera();draw();},grab(){return flight.grab(player,town.id);}},';
   await route.fulfill({response,body:source.replace('window.GAME={',hook).replace('flight.update(dt,player,town,!unicorn.riding)','flight.update(dt,player,town,false)')});
  });
  await page.route(sfxPattern,async route=>{
@@ -122,7 +122,7 @@ return async function checkChapter(page,{width=1280,height=900,touch=false,artif
   await activate('#open-menu');await activate('[data-member="mark"]');await activate('#menu-play');
   assert(await page.evaluate(()=>GAME.state.player.id==='mark'),'Rescued friend playable through UI');
   const flightResult=await page.evaluate(()=>{
-   for(let i=0;i<250;i++)GAME.test.flightStep(.05);
+   for(let i=0;i<410;i++)GAME.test.flightStep(.05);
    const before=GAME.state.player,hp=V4_RPG.members[before.id].hp;
    if(!GAME.test.grab())throw new Error('Eligible outdoor grab rejected');
    const origin=GAME.state.flight.origin;
@@ -134,6 +134,12 @@ return async function checkChapter(page,{width=1280,height=900,touch=false,artif
   await activate('#open-menu');const frozen=await page.evaluate(()=>GAME.state.flight.age);await page.waitForTimeout(180);
   assert(await page.evaluate(age=>GAME.state.flight.age===age,frozen),'Menu freezes flight safely');
   assert(await page.locator('#menu-play').isDisabled(),'No midair character swap');await activate('#close-menu');
+  const dropped=await page.evaluate(()=>{
+   GAME.test.flightStep(Math.max(0,2.5-GAME.state.flight.age));
+   return GAME.state.flight;
+  });
+  assert(dropped.released&&dropped.fleeing&&dropped.visible&&dropped.lift<220&&dropped.bird.x>dropped.origin.x&&dropped.bird.y<dropped.origin.y-255,'Bird releases the hero, flies independently up and away while the hero drops');
+  await screenshot('flight-drop');
   const landed=await page.evaluate(()=>{
    GAME.test.flightStep(Math.max(0,3.125-GAME.state.flight.age));
    const bounce={scale:GAME.state.camera.scale,lift:GAME.state.flight.lift};
@@ -143,25 +149,74 @@ return async function checkChapter(page,{width=1280,height=900,touch=false,artif
   assert(landed.bounce.scale===1&&landed.bounce.lift>0,'Camera cuts back for a small landing bounce: '+JSON.stringify(landed.bounce));
   assert(!landed.state.flight.active&&landed.state.player.x===flightResult.origin.x&&landed.state.player.y===flightResult.origin.y&&landed.hp===flightResult.hp&&!landed.again,'Exact harmless return; second grab blocked by cooldown');
   const cooldown=await page.evaluate(()=>{
-   for(let i=0;i<180;i++)GAME.test.flightStep(.05);
+   for(let i=0;i<380;i++)GAME.test.flightStep(.05);
    const early=GAME.test.grab();for(let i=0;i<25;i++)GAME.test.flightStep(.05);return {early,ready:GAME.test.grab()};
   });
-  assert(!cooldown.early&&cooldown.ready,'At least ten seconds between completed flights');
+  assert(!cooldown.early&&cooldown.ready,'At least twenty seconds between completed flights');
   await page.evaluate(()=>{for(let i=0;i<72;i++)GAME.test.flightStep(.05);});
   const flightGuards=await page.evaluate(()=>{
    let grabs=0,drops=0;const actor={id:'coco',x:1125,y:360},f=V4_FLIGHT.create({onGrab:()=>grabs++,onDrop:()=>drops++});
-   f.enter('house',actor);f.update(11,actor,SCENES.house);
+   f.enter('house',actor);f.update(21,actor,SCENES.house);
    const indoor=f.grab(actor,'house');
    f.enter('recreation',actor);const bird=f.state.bird;
    f.update(1,actor,SCENES.recreation,false);const suppressed=f.state.bird.x===bird.x&&f.state.bird.y===bird.y&&grabs===0;
    for(let i=0;i<80&&!f.state.active;i++)f.update(.05,actor,SCENES.recreation);
    const approached=f.state.active&&grabs===1;
    f.update(3.5,actor,SCENES.recreation);f.enter('house',actor);
-   const preserved=f.state.cooldown===10;f.update(9.9,actor,SCENES.house);f.enter('recreation',actor);
+   const preserved=f.state.cooldown===20;f.update(19.9,actor,SCENES.house);f.enter('recreation',actor);
    const early=f.grab(actor,'recreation');f.update(.2,actor,SCENES.recreation,false);const ready=f.grab(actor,'recreation');
    return {indoor,suppressed,approached,preserved,early,ready,drops};
   });
   assert(!flightGuards.indoor&&flightGuards.suppressed&&flightGuards.approached&&flightGuards.preserved&&!flightGuards.early&&flightGuards.ready&&flightGuards.drops===1,'Natural outdoor approach; no indoor/unicorn approach; cooldown survives scene changes');
+  const retreatChecks=await page.evaluate(()=>{
+   const check=(value,message)=>{if(!value)throw new Error(message);};
+   const actor={id:'coco',x:600,y:600},town=SCENES.plaza;
+   const f=V4_FLIGHT.create({onGrab:()=>{},onDrop:()=>{}});
+   f.enter('plaza',actor);
+   check(!f.scare({x:f.state.bird.x+151,y:f.state.bird.y}),'Far attacks do not frighten the bird');
+   check(f.scare({x:f.state.bird.x+150,y:f.state.bird.y}),'Attacks within 150px scare the bird');
+   const before=f.state.bird;f.update(.5,actor,town);
+   check(f.state.visible&&f.state.fleeing&&f.state.bird.x>before.x&&f.state.bird.y<before.y,'Scared bird visibly flies away');
+   check(!f.scare(actor)&&!f.grab(actor,'plaza'),'Retreat cannot be restarted or interrupted by a grab');
+   f.update(.5,actor,town);
+   check(!f.state.visible&&f.state.hiddenFor===10,'Hidden timer starts after departure, not before');
+   f.enter('recreation',actor);f.update(9.99,actor,SCENES.recreation);
+   check(!f.state.visible&&!f.grab(actor,'recreation'),'Hidden bird stays absent for full ten seconds across portals');
+   f.update(.02,actor,SCENES.recreation,false);
+   check(f.state.visible&&!f.state.fleeing,'Bird returns after ten hidden seconds');
+   f.update(20,actor,town,false);check(f.grab(actor,'plaza'),'Bird can eventually lift again');
+   f.update(2.5,actor,town);
+   check(f.state.released&&f.state.fleeing&&f.state.lift<220,'Hero drops while bird retreats');
+   f.update(.8,actor,town);
+   check(!f.state.visible&&Math.abs(f.state.hiddenFor-10)<.0001,'Post-drop departure hides the bird for ten seconds');
+   f.update(.2,actor,town);
+   check(!f.state.active&&f.state.cooldown===20,'Landing doubles the old pickup cooldown');
+   f.update(9.79,actor,town,false);check(!f.state.visible,'Post-drop absence lasts ten seconds');
+   f.update(.02,actor,town,false);check(f.state.visible&&f.state.cooldown>9,'Visibility does not bypass pickup cooldown');
+   return true;
+  });
+  assert(retreatChecks,'Exact scare radius, independent departure, ten-second disappearance and doubled pickup cooldown');
+  await page.evaluate(async()=>{
+   for(let i=0;i<230;i++)GAME.test.flightStep(.05);
+   await GAME.test.enterScene('plaza',[500,844.7265625]);GAME.select('coco');
+  });
+  if(touch)await activate('#power');else await page.keyboard.press('x');
+  assert(await page.evaluate(()=>GAME.state.flight.fleeing),'Real keyboard/touch attack scares nearby flying dinosaur');
+  await activate('#open-menu');const retreatPaused=await page.evaluate(()=>GAME.state.flight);await page.waitForTimeout(180);
+  assert(await page.evaluate(before=>JSON.stringify(GAME.state.flight)===JSON.stringify(before),retreatPaused),'Menu safely pauses escape and disappearance timers');await activate('#close-menu');
+  await page.evaluate(()=>{for(let i=0;i<21;i++)GAME.test.tick(.05);});
+  assert(await page.evaluate(()=>!GAME.state.flight.visible&&GAME.state.flight.hiddenFor>9),'Attack makes the flying dinosaur disappear, not just stop chasing');
+  await page.evaluate(async()=>{
+   for(let i=0;i<230;i++)GAME.test.flightStep(.05);
+   await GAME.test.enterScene('plaza',[500,844.7265625]);GAME.select('connor');
+   V4_RPG.equipAbility('connor','connor');
+   const bird=GAME.state.flight.bird;
+   GAME.test.walkPath([{x:bird.x-200,y:bird.y}]);
+   GAME.test.face('right');
+  });
+  await page.keyboard.press('x');
+  await page.waitForFunction(()=>GAME.state.flight.fleeing,null,{timeout:2000});
+  assert(await page.evaluate(()=>GAME.state.powers.casts.some(c=>c.owner==='connor')),'A projectile reaching the bird also scares it');
   assert(await page.evaluate(async()=>await V4_SFX.play('pickup')&&V4_SFX.test.voices>0),'Sound effects actually schedule original Web Audio voices');
   await activate('#help');await activate('#sfx-toggle');
   assert(await page.evaluate(()=>!V4_SFX.enabled&&V4_SFX.test.voices===0),'Separate SFX mute cancels current and scheduled effects');await activate('#continue');
@@ -174,6 +229,6 @@ return async function checkChapter(page,{width=1280,height=900,touch=false,artif
   });
   assert(dimensions.every(d=>d.w===512&&d.h===1024),'Four supplied dinosaur atlases integrated, with consistent directional frames');
   assert(errors.length===0&&failed.length===0,'Chapter errors/failed assets: '+errors.concat(failed).join('; '));
-  return {recruited:14,dinosaurs:dimensions,errors,failed,results:['Coco start; all rescue locks, dialogues, absorption animations and playability','Actual collision-respecting routes through bedrooms/hall/stairs, scaled house, pool gate and Rock Band entrance','All 13 friends found across connected scenes; dogs follow with spacing and safe transitions','Pterodactyl overview, paused flight, exact no-damage return/bounce and >=10s cooldown; separate SFX mute']};
+  return {recruited:14,dinosaurs:dimensions,errors,failed,results:['Coco start; all rescue locks, dialogues, absorption animations and playability','Actual collision-respecting routes through bedrooms/hall/stairs, scaled house, pool gate and Rock Band entrance','All 13 friends found across connected scenes; dogs follow with spacing and safe transitions','Pterodactyl drop/independent escape, 10s disappearance, nearby keyboard/touch/projectile scare and >=20s pickup cooldown; separate SFX mute']};
  }finally{await page.unroute(pattern);await page.unroute(sfxPattern);page.off('pageerror',onError);page.off('response',onResponse);}
 };

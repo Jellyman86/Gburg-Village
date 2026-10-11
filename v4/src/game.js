@@ -86,7 +86,7 @@
    toast('Equip the Japanese sword to use Sword slash.');return false;
   }
   const used=powers.activate({...player,powerHeight:unicorn.riding?20:0});
-  if(used){V4_SFX.play('power');toast(window.FAMILY_POWERS.definitions[window.V4_RPG.members[player.id].ability].name+'!');paintPower();}
+  if(used){const scared=flight.scare(player);V4_SFX.play('power');toast(scared?'The pterodactyl got scared and flew away!':window.FAMILY_POWERS.definitions[window.V4_RPG.members[player.id].ability].name+'!');paintPower();}
   return used;
  }
  powerButton.addEventListener('pointerdown',e=>{e.preventDefault();activatePower();canvas.focus({preventScroll:true});});
@@ -238,7 +238,7 @@
   }
   if(nearest)showDialog(nearest.name,nearest.text);else toast('Walk toward a gold diamond to look around.');
  }
- $('help').addEventListener('click',()=>showDialog('A walk with the family','Start as Coco and find Connor next door. Follow the objective hint and talk to friends at gold diamonds to recruit them. Party shows missing friends and their locations. Move with WASD or arrows; hold Shift to run. E or Space interacts. Menu or M / Escape pauses the world for stats, items, equipment and one equipped ability. Play as switches to a rescued friend; 1–9 and 0 select the first ten once found. On a phone, drag the left joystick and hold Run with your other thumb. Landscape gives a wider view. Use X or the power button; short cooldowns let you use powers often. Find Barney and Rosie on the northeast recreation street and they will follow at a comfortable distance. The pool gate is open, but water stays blocked. A pterodactyl may lift you for a map view, then return you safely to the same spot. Dinosaur tag is harmless. Find the sparkling unicorn in the plaza: E / Ride mounts, Run gallops, and E / Off dismounts. Powers work while riding. Sound effects have a separate mute below. This preview is session-only; reloading starts fresh.','HOW TO PLAY'));
+ $('help').addEventListener('click',()=>showDialog('A walk with the family','Start as Coco and find Connor next door. Follow the objective hint and talk to friends at gold diamonds to recruit them. Party shows missing friends and their locations. Move with WASD or arrows; hold Shift to run. E or Space interacts. Menu or M / Escape pauses the world for stats, items, equipment and one equipped ability. Play as switches to a rescued friend; 1–9 and 0 select the first ten once found. On a phone, drag the left joystick and hold Run with your other thumb. Landscape gives a wider view. Use X or the power button; short cooldowns let you use powers often. Find Barney and Rosie on the northeast recreation street and they will follow at a comfortable distance. The pool gate is open, but water stays blocked. A pterodactyl may lift you for a map view, then drop you safely at the same spot and fly away. Pickups are at least 20 seconds apart; he disappears for 10 seconds after flying away. Attack near him to scare him off for 10 seconds, too! Dinosaur tag is harmless. Find the sparkling unicorn in the plaza: E / Ride mounts, Run gallops, and E / Off dismounts. Powers work while riding. Sound effects have a separate mute below. This preview is session-only; reloading starts fresh.','HOW TO PLAY'));
  const close=()=>{$('dialog').close();resetInput();canvas.focus({preventScroll:true});};
  $('close-dialog').addEventListener('click',close);$('continue').addEventListener('click',close);
  $('dialog').addEventListener('close',()=>{
@@ -287,7 +287,9 @@
   if(player.moving){player.clock+=dt*(player.running?c.runFPS:c.walkFPS);player.frame=Math.floor(player.clock)%4;}else{player.clock=0;player.frame=1;}
   unicorn.update(dt,player);powers.update(dt);if(dino)updateDino(dt);if(town.id==='plaza')updateSquirrel(dt);paintPower();
   if(town.id==='recreation')recreation.update(dt,player);
-  companions.update(dt,player);flight.update(dt,player,town,!unicorn.riding);refreshParty();
+  companions.update(dt,player);
+  for(const cast of powers.state.casts)flight.scare(cast);
+  flight.update(dt,player,town,!unicorn.riding);refreshParty();
   updateCamera();updateNearby();$('status').textContent=c.name+' · '+(unicorn.riding?(player.moving&&player.running?'Galloping':'Riding a unicorn'):player.moving?(player.running?'Running':'Walking'):'Taking it all in');$('area-label').textContent=town.id!=='plaza'?town.name:player.y<401?'CENTER POINT WAY':player.y<785?'THE GREEN':'THE PLAZA';
  }
  function sprite(actor,active){
@@ -325,9 +327,9 @@
    }else{ctx.save();if(a===joining)ctx.globalAlpha=1-Math.max(0,(a.age-.6)/.2);sprite(a,a===player);ctx.restore();}
   });
   if(town.id==='recreation'&&(!V4_RPG.members.jeff.joined||!V4_RPG.members.ari.joined))recreation.drawBall(ctx);
-  if(!town.indoor){
-   const bird=flight.state.bird,row={down:0,left:1,right:2,up:3}[bird.direction]+4,lift=flight.state.active?flight.view().lift:0;
-   ctx.drawImage(extraSheets.pterodactyl,bird.frame*128,row*128,128,128,Math.round(bird.x)-64,Math.round(bird.y)-124-lift,128,128);
+  if(!town.indoor&&flight.state.visible){
+   const bird=flight.state.bird,row={down:0,left:1,right:2,up:3}[bird.direction]+4;
+   ctx.drawImage(extraSheets.pterodactyl,bird.frame*128,row*128,128,128,Math.round(bird.x)-64,Math.round(bird.y)-124,128,128);
   }
   powers.drawAir(ctx);ctx.restore();
  }
