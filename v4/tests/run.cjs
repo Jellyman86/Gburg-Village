@@ -20,6 +20,7 @@ const server=http.createServer((req,res)=>{
   const displayCheck=new Function(fs.readFileSync(path.join(__dirname,'display-checks.js'),'utf8'))();
   const recreationCheck=new Function(fs.readFileSync(path.join(__dirname,'recreation-checks.js'),'utf8'))();
   const contentCheck=new Function(fs.readFileSync(path.join(__dirname,'content-checks.js'),'utf8'))();
+  const introCheck=new Function(fs.readFileSync(path.join(__dirname,'intro-checks.js'),'utf8'))();
   for(const options of [
    {width:1280,height:900,cinema:true},
    {width:390,height:844,touch:true},
@@ -32,6 +33,7 @@ const server=http.createServer((req,res)=>{
     console.log(JSON.stringify(await displayCheck(page,options)));
     console.log(JSON.stringify(await recreationCheck(page,{screenshotPath:process.env.V4_ARTIFACT_DIR?path.join(process.env.V4_ARTIFACT_DIR,`recreation-${options.width}x${options.height}.png`):undefined})));
     console.log(JSON.stringify(await contentCheck(page,{touch:options.touch,artifactDir:process.env.V4_ARTIFACT_DIR})));
+    console.log(JSON.stringify(await introCheck(page,{...options,artifactDir:process.env.V4_ARTIFACT_DIR})));
    }finally{await context.close();}
   }
  }finally{if(browser)await browser.close();await new Promise(resolve=>server.close(resolve));}

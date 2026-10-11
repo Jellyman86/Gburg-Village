@@ -1,17 +1,18 @@
-// V3 cinematic: local canvas animation, shared art, no video download.
+// Local canvas animation and original synthesized audio, no video download.
 (() => {
  'use strict';
  const app=document.querySelector('.app'),overlay=document.createElement('section');
  overlay.id='meteor-intro';overlay.setAttribute('role','dialog');overlay.setAttribute('aria-modal','true');overlay.setAttribute('aria-label','Meteor Night opening movie');
- overlay.innerHTML='<div class="intro-top"><span>FAMILY WALK / CHAPTER ONE</span><button id="intro-skip">Skip to game</button></div><div class="intro-screen"><canvas id="intro-film" width="960" height="540" aria-label="Animated story: a happy town, Coco spots a meteor through her window, and dinosaurs emerge from its crater."></canvas><div id="intro-curtain"><p class="intro-kicker">A PERFECT DAY. AN IMPOSSIBLE NIGHT.</p><h2>METEOR<br><em>NIGHT</em></h2><p>A Family Walk adventure</p><button id="intro-start">Play the opening</button><small>Animated story · 29 seconds · sound optional</small></div></div><div class="intro-bottom"><p id="intro-caption" aria-live="polite">Something extraordinary is on its way.</p><button id="intro-sound" aria-pressed="true">Sound on</button><div class="intro-track"><i id="intro-progress"></i></div></div>';
+ overlay.innerHTML='<div class="intro-top"><span>FAMILY WALK / CHAPTER ONE</span><button id="intro-skip">Skip to game</button></div><div class="intro-screen"><canvas id="intro-film" width="960" height="540" aria-label="Animated story: a happy town, the family sings and dances at Rock Band, Coco spots a meteor through her window, and dinosaurs emerge from its crater."></canvas><div id="intro-curtain"><p class="intro-kicker">A PERFECT DAY. AN IMPOSSIBLE NIGHT.</p><h2>METEOR<br><em>NIGHT</em></h2><p>A Family Walk adventure</p><button id="intro-start">Play the opening</button><small>Animated story · 32 seconds · sound optional</small></div></div><div class="intro-bottom"><p id="intro-caption" aria-live="polite">Something extraordinary is on its way.</p><button id="intro-sound" aria-pressed="true">Sound on</button><div class="intro-track"><i id="intro-progress"></i></div></div>';
  document.body.append(overlay);
  const $=id=>document.getElementById(id),c=$('intro-film').getContext('2d'),images={},sheets={};
  let active=true,playing=false,elapsed=0,last=0,raf=0,audio=null,sound=true,cue=-1,caption='',ready=false;
+ const voices=new Set(),rockVoices=new Set();
  $('intro-start').disabled=true;$('intro-start').textContent='Getting the town ready…';
  const reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;
- const assets={plaza:'../assets/scene/neighborhood.png',district:'../v2/assets/district.webp',recreation:'../v2/assets/recreation.webp',north:'../v3/assets/north-market.png',room:'../v3/assets/window-room.png',crater:'../v3/assets/meteor-crater.png'};
+ const assets={plaza:'../assets/scene/neighborhood.png',district:'../v2/assets/district.webp',recreation:'../v2/assets/recreation.webp',north:'../v3/assets/north-market.png',room:'../v3/assets/window-room.png',crater:'../v3/assets/meteor-crater.png',rockband:'assets/scenes/rockband.png'};
  assets.plaza=window.TOWN.image;
- const load=src=>new Promise(resolve=>{const img=new Image();img.onload=()=>resolve(img);img.onerror=()=>resolve(null);img.src=src;});
+ const load=src=>new Promise(resolve=>{const img=new Image();img.onload=()=>resolve(img);img.onerror=()=>{console.error('Opening artwork failed to load: '+src);resolve(null);};img.src=src;});
  Promise.all([...Object.entries(assets).map(async([id,url])=>images[id]=await load(url)),...Object.entries(CHARACTERS).map(async([id,v])=>sheets[id]=await load(v.sheet))]).then(()=>{ready=true;$('intro-start').disabled=false;$('intro-start').textContent='Play the opening';draw(0);});
  const clamp=(v,a=0,b=1)=>Math.max(a,Math.min(b,v));
  const smooth=v=>{v=clamp(v);return v*v*(3-2*v);};
@@ -39,9 +40,42 @@
    oval('#e78e37',...basketball,7,7);c.strokeStyle='#704420';c.lineWidth=1;c.beginPath();c.arc(...basketball,7,0,Math.PI*2);c.moveTo(basketball[0]-7,basketball[1]);c.lineTo(basketball[0]+7,basketball[1]);c.stroke();
    text('TENNIS FOR TWO. BASKETBALL WITH THE GIRLS.',480,72,19);
   }
-  else{background('north',287,55,.98);for(const [i,id] of ['stephanie','mark','brie','vito','connor'].entries())actor(id,150+i*150+Math.sin(t+i)*12,370+i%2*25,1.4,i%2?'left':'right');text('HOME BEFORE THE STARS COME OUT.',480,100,22);}
   // Warm sunlight and gently floating motes.
   c.fillStyle='#ffe5a30e';c.fillRect(0,0,960,540);for(let i=0;i<18;i++){c.globalAlpha=.3;oval('#fff5c2',(i*73+t*9)%960,(i*41+t*4)%470,1.5,1.5);}c.globalAlpha=1;
+ }
+ function rockband(t){
+  if(images.rockband)c.drawImage(images.rockband,0,0,960,540);else{rect('#322e39',0,0,960,540);text('Rock Band artwork unavailable',480,100,20);}
+  const band=[
+   ['peachy',282,278,1.75,'sing'],['coco',372,292,1.55,'sing'],
+   ['connor',482,282,1.7,'guitar'],['jason',592,298,1.8,'bass'],
+   ['adam',751,280,1.75,'drums'],['brie',172,326,1.75,'dance'],
+   ['vito',318,408,1.8,'dance'],['kate',706,434,1.75,'dance']
+  ];
+  for(const [i,[id,x,y,scale,role]] of band.entries()){
+   const beat=t*Math.PI*4+i*.8,sway=reduced?0:Math.sin(beat)*.07,bob=reduced?0:Math.abs(Math.sin(beat))*5;
+   const dir=role==='dance'?(Math.floor(t*2+i)%4===0?'left':Math.floor(t*2+i)%4===2?'right':'down'):'down';
+   c.save();c.translate(x,y-bob);c.rotate(sway);
+   actor(id,0,0,scale,dir,!reduced,t+i*.21);
+   c.scale(scale,scale);
+   if(role==='sing'){
+    const mouth=id==='coco'?-18:-35;
+    rect('#292c41',8,mouth+1,3,15);oval('#d5e7ef',9,mouth-1,4,5);
+    if(Math.sin(beat)>0){rect('#512d32',-2,mouth,4,3);rect('#f0c1ab',-1,mouth,2,1);}
+   }else if(role==='guitar'||role==='bass'){
+    c.save();c.translate(0,id==='connor'?-12:-24);c.rotate(-.5);
+    rect('#252b40',-17,-9,26,18);oval(role==='bass'?'#679bd3':'#df7659',-7,0,12,9);
+    rect('#d7b884',-4,-3,34,5);rect('#ece9c6',-5,-1,36,1);rect('#f3d1ad',-7+Math.sin(beat)*3,-5,5,6);c.restore();
+   }else if(role==='drums'){
+    c.strokeStyle='#ead0a2';c.lineWidth=3;c.beginPath();c.moveTo(-15,-22);c.lineTo(-27,-32-Math.sin(beat)*9);c.moveTo(12,-22);c.lineTo(24,-32+Math.sin(beat)*9);c.stroke();
+   }else{
+    c.strokeStyle='#eec4a1';c.lineWidth=4;c.beginPath();c.moveTo(-12,-25);c.lineTo(-23,-33-Math.sin(beat)*8);c.moveTo(12,-25);c.lineTo(22,-33+Math.sin(beat)*8);c.stroke();
+   }
+   c.restore();
+   if(role==='drums'&&images.rockband)c.drawImage(images.rockband,697,234,111,104,697,234,111,104);
+   const noteY=y-scale*62-12+(reduced?0:Math.sin(beat)*4);
+   text(i%2?'♪':'♫',x+32,noteY,16,i%2?'#fae4a0':'#b3e6ef');
+  }
+  text('ONE MORE SONG BEFORE BED!',480,63,22);
  }
  function room(t){
   const z=1+(reduced?0:.035*smooth(t/8));c.save();c.translate(480,270);c.scale(z,z);c.translate(-480,-270);
@@ -74,33 +108,51 @@
  }
  function draw(t){
   c.clearRect(0,0,960,540);c.imageSmoothingEnabled=false;
-  if(t<9)happy(t);else if(t<17)room(t-9);else if(t<18){room(7.95);c.globalAlpha=reduced?.25:Math.sin((t-17)*Math.PI)*.9;rect('#fff2d3',0,0,960,540);c.globalAlpha=1;}else crater(t-18);
+  if(t<6)happy(t);else if(t<12)rockband(t-6);else if(t<20)room(t-12);else if(t<21){room(7.95);c.globalAlpha=reduced?.25:Math.sin((t-20)*Math.PI)*.9;rect('#fff2d3',0,0,960,540);c.globalAlpha=1;}else crater(t-21);
   const vignette=c.createRadialGradient(480,270,180,480,270,570);vignette.addColorStop(0,'#0000');vignette.addColorStop(1,'#0715229c');c.fillStyle=vignette;c.fillRect(0,0,960,540);
   rect('#071019',0,0,960,34);rect('#071019',0,506,960,34);
-  if(t>=25){c.globalAlpha=smooth((t-25)/1.4);rect('#08131bb8',0,0,960,540);text('FAMILY WALK',480,186,25,'#e7c789');text('METEOR NIGHT',480,273,70);text('Small town. Big prehistoric problem.',480,326,24);c.globalAlpha=1;}
+  if(t>=28){c.globalAlpha=smooth((t-28)/1.4);rect('#08131bb8',0,0,960,540);text('FAMILY WALK',480,186,25,'#e7c789');text('METEOR NIGHT',480,273,70);text('Small town. Big prehistoric problem.',480,326,24);c.globalAlpha=1;}
  }
  function say(s){if(s===caption)return;caption=s;$('intro-caption').textContent=s;}
+ function trackVoice(source,gain,rock=false){
+  voices.add(source);if(rock)rockVoices.add(source);
+  source.onended=()=>{voices.delete(source);rockVoices.delete(source);source.disconnect();gain.disconnect();};
+ }
+ function stopVoices(set=voices){for(const source of set){source.stop();source.disconnect();voices.delete(source);rockVoices.delete(source);}}
  function soundCue(kind){if(!sound||!audio||audio.state!=='running')return;const at=audio.currentTime;
-  function tone(hz,duration,volume,type='sine',delay=0,end=hz){const osc=audio.createOscillator(),g=audio.createGain();osc.type=type;osc.frequency.setValueAtTime(hz,at+delay);osc.frequency.exponentialRampToValueAtTime(Math.max(20,end),at+delay+duration);g.gain.setValueAtTime(.001,at+delay);g.gain.linearRampToValueAtTime(volume,at+delay+.03);g.gain.exponentialRampToValueAtTime(.001,at+delay+duration);osc.connect(g);g.connect(audio.destination);osc.start(at+delay);osc.stop(at+delay+duration+.01);osc.onended=()=>{osc.disconnect();g.disconnect();};}
+  function tone(hz,duration,volume,type='sine',delay=0,end=hz){const osc=audio.createOscillator(),g=audio.createGain();osc.type=type;osc.frequency.setValueAtTime(hz,at+delay);osc.frequency.exponentialRampToValueAtTime(Math.max(20,end),at+delay+duration);g.gain.setValueAtTime(.001,at+delay);g.gain.linearRampToValueAtTime(volume,at+delay+.01);g.gain.exponentialRampToValueAtTime(.001,at+delay+duration);osc.connect(g);g.connect(audio.destination);trackVoice(osc,g,kind===6);osc.start(at+delay);osc.stop(at+delay+duration);}
+  if(kind===6){
+   // Original three-bar power-chord riff; no commercial Rock Band recording.
+   const offset=Math.max(0,elapsed-6),roots=[164.81,146.83,130.81],riff=[1,1,1.5,1,2,1.5,1,1.5];
+   for(let step=0;step<24;step++){
+    const beat=step*.25,delay=beat-offset;if(delay<0)continue;
+    const root=roots[Math.floor(step/8)],note=root*riff[step%8];
+    tone(note,.18,.012,'square',delay);tone(note*1.5,.16,.007,'triangle',delay);tone(root/2,.2,.016,'triangle',delay);
+    if(step%2===0)tone(120,.11,.025,'sine',delay,42);
+    if(step%4===2)tone(180,.09,.008,'triangle',delay,60);
+    tone(6200,.035,.003,'square',delay,3200);
+   }
+  }
   if(kind===0)[261.6,329.6,392,523.2,392,329.6,440,523.2].forEach((n,i)=>tone(n,.75,.035,'sine',i*.38));
   if(kind===1){tone(110,3,.07);tone(165,3,.035);}
-  if(kind===2){const buf=audio.createBuffer(1,Math.floor(audio.sampleRate*.32),audio.sampleRate),d=buf.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=(Math.random()*2-1)*Math.sin(i/d.length*Math.PI)*.11;const src=audio.createBufferSource(),filter=audio.createBiquadFilter();filter.type='bandpass';filter.frequency.value=1250;filter.Q.value=.7;src.buffer=buf;src.connect(filter);filter.connect(audio.destination);src.start();src.onended=()=>{src.disconnect();filter.disconnect();};tone(400,.22,.012,'triangle',0,1100);tone(130,1.7,.04,'sine',.15,60);}
+  if(kind===2){const buf=audio.createBuffer(1,Math.floor(audio.sampleRate*.32),audio.sampleRate),d=buf.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=(Math.random()*2-1)*Math.sin(i/d.length*Math.PI)*.11;const src=audio.createBufferSource(),filter=audio.createBiquadFilter();filter.type='bandpass';filter.frequency.value=1250;filter.Q.value=.7;src.buffer=buf;src.connect(filter);filter.connect(audio.destination);trackVoice(src,filter);src.start();tone(400,.22,.012,'triangle',0,1100);tone(130,1.7,.04,'sine',.15,60);}
   if(kind===3){tone(65,1.8,.13,'triangle',0,24);tone(100,1.2,.045,'sawtooth',0,25);}
   if(kind===4){tone(100,.7,.04,'triangle',0,50);tone(75,.7,.045,'triangle',.8,42);}
   if(kind===5)[130.8,196,261.6,329.6].forEach(n=>tone(n,2.5,.028));
  }
  function frame(now){if(!playing)return;if(last&&!document.hidden)elapsed+=Math.min((now-last)/1000,.1);last=now;
-  draw(elapsed);const phase=elapsed<9?0:elapsed<14.3?1:elapsed<17?2:elapsed<18?3:elapsed<25?4:5;
-  if(phase!==cue){cue=phase;soundCue(phase);}
-  say(['Everyone had plans for an ordinary, wonderful day.','Upstairs, Coco catches something in the window…','Coco: “Gasp! What IS that?!”','A streak of light. A distant impact.','That is definitely not an ordinary meteor.','The neighborhood needs its heroes.'][phase]);
-  $('intro-progress').style.width=clamp(elapsed/29)*100+'%';if(elapsed>=29)finish();else raf=requestAnimationFrame(frame);
+  draw(elapsed);const phase=elapsed<6?0:elapsed<12?6:elapsed<17.3?1:elapsed<20?2:elapsed<21?3:elapsed<28?4:5;
+  if(phase!==cue){if(cue===6)stopVoices(rockVoices);cue=phase;soundCue(phase);}
+  say(['Everyone had plans for an ordinary, wonderful day.','Upstairs, Coco catches something in the window…','Coco: “Gasp! What IS that?!”','A streak of light. A distant impact.','That is definitely not an ordinary meteor.','The neighborhood needs its heroes.','Connor, Coco, Peachy, Jason, Vito, Brie, Adam and Kate rock the living room!'][phase]);
+  $('intro-progress').style.width=clamp(elapsed/32)*100+'%';if(elapsed>=32)finish();else raf=requestAnimationFrame(frame);
  }
- function open(){active=true;playing=false;elapsed=0;last=0;cue=-1;overlay.hidden=false;app.inert=true;$('intro-curtain').hidden=false;$('intro-progress').style.width='0%';say('Something extraordinary is on its way.');document.dispatchEvent(new Event('v3-intro-start'));draw(0);$('intro-start').focus();}
- async function start(){if(playing||!ready)return;playing=true;$('intro-curtain').hidden=true;last=0;try{if(sound){const A=window.AudioContext||window.webkitAudioContext;if(A){audio=audio||new A();await audio.resume();}}}catch{}if(playing){raf=requestAnimationFrame(frame);$('intro-skip').focus();}}
- function finish(){playing=false;active=false;cancelAnimationFrame(raf);if(audio)audio.suspend().catch(()=>{});overlay.hidden=true;app.inert=false;document.dispatchEvent(new Event('v3-intro-end'));document.getElementById('game').focus({preventScroll:true});}
+ function audioError(error){console.warn('Opening audio unavailable:',error);$('intro-sound').textContent='Sound unavailable';}
+ function open(){stopVoices();active=true;playing=false;elapsed=0;last=0;cue=-1;overlay.hidden=false;app.inert=true;$('intro-curtain').hidden=false;$('intro-progress').style.width='0%';say('Something extraordinary is on its way.');document.dispatchEvent(new Event('v3-intro-start'));draw(0);$('intro-start').focus();}
+ async function start(){if(playing||!ready)return;playing=true;$('intro-curtain').hidden=true;last=0;try{if(sound){const A=window.AudioContext||window.webkitAudioContext;if(!A)throw new Error('Web Audio is not supported');audio=audio||new A();await audio.resume();}}catch(error){audioError(error);}if(playing){raf=requestAnimationFrame(frame);$('intro-skip').focus();}}
+ function finish(){playing=false;active=false;cancelAnimationFrame(raf);stopVoices();if(audio)audio.suspend().catch(audioError);overlay.hidden=true;app.inert=false;document.dispatchEvent(new Event('v3-intro-end'));document.getElementById('game').focus({preventScroll:true});}
  $('intro-start').onclick=start;$('intro-skip').onclick=finish;$('replay-intro').onclick=open;
- $('intro-sound').onclick=()=>{sound=!sound;$('intro-sound').textContent=sound?'Sound on':'Sound off';$('intro-sound').setAttribute('aria-pressed',String(sound));if(audio)(sound?audio.resume():audio.suspend()).catch(()=>{});};
+ $('intro-sound').onclick=async()=>{sound=!sound;$('intro-sound').textContent=sound?'Sound on':'Sound off';$('intro-sound').setAttribute('aria-pressed',String(sound));if(!sound)stopVoices();if(sound&&active&&playing){try{const A=window.AudioContext||window.webkitAudioContext;if(!A)throw new Error('Web Audio is not supported');audio=audio||new A();await audio.resume();if(sound&&active&&playing&&cue===6){stopVoices(rockVoices);soundCue(6);}}catch(error){audioError(error);}}else if(audio)audio.suspend().catch(audioError);};
  overlay.addEventListener('keydown',e=>{if(e.key==='Escape'){e.preventDefault();finish();}if(e.key==='Tab'){const buttons=[...overlay.querySelectorAll('button')].filter(b=>b.offsetParent!==null);const i=buttons.indexOf(document.activeElement),next=(i+(e.shiftKey?-1:1)+buttons.length)%buttons.length;e.preventDefault();buttons[next].focus();}});
- document.addEventListener('visibilitychange',()=>{last=0;if(audio){if(document.hidden)audio.suspend().catch(()=>{});else if(active&&playing&&sound)audio.resume().catch(()=>{});}});
+ document.addEventListener('visibilitychange',()=>{last=0;if(audio){if(document.hidden)audio.suspend().catch(audioError);else if(active&&playing&&sound)audio.resume().catch(audioError);}});
  window.V3_INTRO={get active(){return active;},get state(){return{active,playing,elapsed,ready,caption};}};open();
 })();

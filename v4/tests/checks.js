@@ -41,7 +41,7 @@ return async function checkV4(page,{width=1280,height=900,touch=false,cinema=fal
    assert(actor.id===id&&actor.x===origin.x&&actor.y===origin.y,'Safe character switch: '+id);
    await page.keyboard.press('m');
   }
-  assert(await page.locator('.portrait-slot small').first().textContent()==='Portrait pending','Placeholder label must survive roster render');
+  assert(await page.locator('#menu-roster .portrait-slot img').count()===ids.length,'All fourteen supplied portraits appear in the roster');
   assert(await page.evaluate(()=>[...document.querySelectorAll('#rpg-menu img')].every(img=>img.complete&&img.naturalWidth===128&&img.naturalHeight===128)),'Prepared portraits loaded');
   await page.keyboard.press('Escape');
   await page.keyboard.down('d');await page.waitForTimeout(100);

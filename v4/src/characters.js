@@ -9,6 +9,6 @@ for(const [id,name] of [['jaime','Jaime'],['chris','Chris'],['jeff','Jeff'],['ar
   rows:{down:0,left:1,right:2,up:3},walkRowOffset:4};
 }
 window.CHARACTERS.jaime.speed=155;window.CHARACTERS.jaime.runSpeed=245;
-for(const id of ['jason','connor','coco','peachy','jaime','chris','jeff','ari']){
+for(const id of Object.keys(window.CHARACTERS)){
  window.CHARACTERS[id].portrait=`assets/portraits/${id}.png`;
 }

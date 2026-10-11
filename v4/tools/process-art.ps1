@@ -54,6 +54,12 @@ public static class VillageArt {
    g.DrawImage(image,0,0,128,128);result.Save(destination,ImageFormat.Png);
   }
  }
+ public static void Scene(string source,string destination) {
+  using(var image=new Bitmap(source))using(var result=new Bitmap(960,540,PixelFormat.Format32bppArgb))using(var g=Graphics.FromImage(result)){
+   g.InterpolationMode=InterpolationMode.NearestNeighbor;g.PixelOffsetMode=PixelOffsetMode.Half;
+   g.DrawImage(image,0,0,960,540);result.Save(destination,ImageFormat.Png);
+  }
+ }
  public static void Icon(string source,string destination,Rectangle cell) {
   using(var image=new Bitmap(source))using(var result=new Bitmap(64,64,PixelFormat.Format32bppArgb))using(var g=Graphics.FromImage(result)){
    var box=Bounds(image,cell);double scale=Math.Min(56.0/box.Width,56.0/box.Height);
@@ -86,7 +92,7 @@ function Cells($rows) {
  return ,$result
 }
 $assets=Join-Path $root 'v4\assets'
-foreach($folder in @('characters','companions','items','portraits')){
+foreach($folder in @('characters','companions','items','portraits','scenes')){
  New-Item -ItemType Directory -Path (Join-Path $assets $folder) -Force | Out-Null
 }
 # Recipes use measured alpha row gaps and visually verified down/up/left/right poses.
@@ -114,9 +120,11 @@ foreach($id in @('barney','rosie')){
  }
  [VillageArt]::Atlas((Join-Path $inbox ($id.Substring(0,1).ToUpper()+$id.Substring(1)+' Sprites.png')),(Join-Path $assets "companions\$id.png"),(Cells $rows),64,64,8,40,30)
 }
-foreach($id in @('ari','jeff')){
- [VillageArt]::Portrait((Join-Path $inbox ($id.Substring(0,1).ToUpper()+$id.Substring(1)+' Portrait.png')),(Join-Path $assets "portraits\$id.png"))
+foreach($id in @('ari','jeff','adam','kate','brie','vito','mark','stephanie')){
+ $name=if($id -eq 'stephanie'){'Steph'}else{$id.Substring(0,1).ToUpper()+$id.Substring(1)}
+ [VillageArt]::Portrait((Join-Path $inbox ($name+' Portrait.png')),(Join-Path $assets "portraits\$id.png"))
 }
+[VillageArt]::Scene((Join-Path $inbox 'Scene - Rockband Area.png'),(Join-Path $assets 'scenes\rockband.png'))
 [VillageArt]::Icon((Join-Path $inbox 'Sword Sprite.png'),(Join-Path $assets 'items\sword.png'),[System.Drawing.Rectangle]::new(630,10,200,200))
 [VillageArt]::Atlas((Join-Path $inbox 'Sword Action shots (I think).png'),(Join-Path $assets 'items\sword-slash.png'),(Cells (,@(0,0,418,160))),64,64,1,56,38)
 [VillageArt]::Atlas((Join-Path $inbox 'Chris Sprites.png'),(Join-Path $assets 'characters\chris-swim.png'),(Cells @(@(0,1510,240,140),@(0,1650,240,169),@(0,1819,240,154),@(0,1973,240,179))),64,64,4,56,36)
