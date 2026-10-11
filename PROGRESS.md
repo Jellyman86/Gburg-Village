@@ -299,3 +299,9 @@ This section takes precedence over the earlier resume order and connector fallba
 
 ### 2026-10-11: V3 publication checkpoint
 - Gameplay commit 8028c0860f19b7b2fd8fca8b63e6a2aeabd25f90 is saved on work/meteor-v3 ONLY. All ten new V3/test files byte-match their tested local copies; no V1/V2 changes. Automatic approval review REJECTED the main fast-forward because publication approval was interpreted as V2-only. V3 is NOT published. Await explicit user approval to publish V3, then fetch fresh main/branch heads, verify only v3/, tools/check_v3.cjs and PROGRESS.md changed, fast-forward with expected head, and verify Pages/live V3. Do not bypass this rejection with browser publication.
+
+### 2026-10-11: V3 published with explicit user approval
+- User replied yes to publishing V3 at /v3/. Guarded main fast-forward succeeded from bcc049d to 31e2ebcb77c4d605e5cbd72d192e983df7bd2417. Earlier publication block is resolved.
+- GitHub Pages workflow 38138139190 build and deploy succeeded. All nine V3 runtime/page/style files byte-match the tested local files. Live V1/V2 entry points and game scripts also match their unchanged originals.
+- Live https://jellyman86.github.io/Gburg-Village/v3/ displays Meteor Night. Play opening, Skip to game and selecting Coco worked in the live browser. Desktop, portrait and landscape automated tests are recorded above; physical iPhone/Safari is still a device-level check.
+- V3 publication complete. Keep V1 and V2 intact for future work. Current game source is v3/; shared artwork remains in v2/assets and original assets. Local working snapshot: /workspace/scratch/aeb64aab09f7/v3-work.
