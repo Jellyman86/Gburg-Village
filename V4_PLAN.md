@@ -1,87 +1,61 @@
-# Gburg Village — V4 development plan
+# Gburg Village — V4 feature-first development plan
 
-Status: planning only. V4 has not been implemented or deployed.
-Owner goal: family-friendly top-down action/adventure around a fictionalized Kentlands neighborhood, with family sprites, meteor, dinosaurs, friend rescues, real-time movement/combat, and hand-editable levels.
-Last planning update: 2026-10-11.
+Updated: 2026-10-11. Planning document only; this edit does NOT create or publish V4.
 
-## Existing system (inspect before implementation)
-- Live V3 is under `v3/`; older versions at repo root and `v2/` are preserved.
-- V3 uses HTML Canvas and JavaScript; `v3/src/game.js` handles renderer, player, collisions, dinosaurs and interactions.
-- `v3/src/map.js` defines plaza bounds, image, rectangular obstacles, landmarks.
-- `v3/src/scenes.js` defines other scenes with scaled normalized walkable rectangles, landmarks/portals and some ellipse geometry for the north meteor roundabout.
-- V3 art is distributed across `v3/assets/`, `v2/assets/`, and root `assets/` (verify references before any migration).
-- Read `PROGRESS.md` and applicable existing instructions for current checkpoints; this plan does not supersede the verified deployed state.
+## Vision
+A humorous family/neighborhood 2D HTML/JavaScript adventure inspired by Final Fantasy IV–VI presentation and Zelda-style REAL-TIME exploration/combat. A meteor unleashes dinosaurs; the player explores, rescues friends and recruits them as playable characters. All characters created for the game should ultimately be playable, not permanently NPC-only.
 
-## Roles
-- ChatGPT/image generation: character sprite sheets, backgrounds, props, visual concepts and cutscene artwork.
-- Tiled Map Editor: human editing of map geometry, collisions, walkable areas, interactive objects, portal/spawn locations, eventually tiles.
-- GitHub Copilot in VS Code: bounded code edits, loader/validation tools, bug fixes, testing.
-- GitHub: version control and safe review; GitHub Pages is the deployed website.
+## Current system and guardrails
+- V3 is the current working reference, located in `v3/`. Prior versions: root (V1), `v2/`. Do not modify them for V4.
+- V3 uses HTML Canvas and JavaScript. `v3/src/game.js` coordinates rendering, player, collision, interaction, powers, dinosaurs; `v3/src/map.js` defines plaza geometry, and `v3/src/scenes.js` defines multiple scenes, images, walkable regions, portals and special north-roundabout ellipses.
+- Read `PROGRESS.md` and the live repo before touching code. Other development may have advanced since these notes.
+- Create isolated `work/v4-features` branch (or compatible fresh feature branch) and `v4/` sandbox using verified V3 code. Reuse shared art without unnecessary duplication. No publication without explicit approval.
+- Small coherent commits, automated desktop/mobile checks, and bounded chat responses. Never paste huge HTML or base64 art in chat or through giant connector requests.
 
-## Target folder organization (proposed, not mandatory to migrate immediately)
-```
-v4/
-  index.html
-  style.css
-  assets/
-    backgrounds/
-    sprites/
-    props/
-    ui/
-  maps/
-    tiled/          # editable Tiled .tmj source files
-    exported/       # machine-readable, validated JSON or generated scene data
-  src/
-    game.js
-    scenes.js
-    tiled-loader.js
-  tools/
-    validate-maps.* # choose an existing project runtime if practical
-```
-Keep original source art and its provenance separately if useful; do not duplicate multi-MB images needlessly. Reuse existing shared images via relative paths initially.
+## Tool responsibilities
+- ChatGPT image-generation chats: character sprites, consistent 128x128 menu portraits, dinosaur/companion art, map backgrounds, item art.
+- GitHub Copilot in VS Code: ALL implementation, integration, collision fixes, rendering, UI, tests, persistence, audio.
+- GitHub: single version-controlled source of truth.
+- Tiled: OPTIONAL future visual editing/polish utility. DO NOT introduce Tiled, a Tiled loader, Tiled file formats or conversion work in the current phase without a new user request. Copilot can fix collision/pathing directly in code in the meantime.
 
-## Implementation milestones
-### 0. Safe V4 sandbox
-- Create a dedicated `work/v4-tiled` branch from current main; ensure it is fresh.
-- Add `v4/` as a COPY of the necessary V3 files, with functioning relative image/script paths; leave root/`v2/`/`v3/` untouched.
-- Verify V4 baseline on desktop and mobile viewport before changing geometry.
-- Avoid premature broad refactoring or mass asset relocation.
+## Priorities
+### Milestone 0 — Isolated V4 foundation
+1. Verify latest working V3 and its assets; create isolated V4 copy/entry point without affecting old versions.
+2. Establish lightweight boundaries between UI, character data, equipment/inventory, audio and map logic; avoid broad rewrites of `game.js` just for architecture.
+3. Verify existing intro, character movement, powers, dinosaur logic, scene transitions and phone controls still work.
 
-### 1. First vertical slice: Market Square collisions only
-- Use the actual plaza `1536 x 1024` pixel coordinate system, not screen/view coordinates.
-- Build `v4/maps/tiled/plaza.tmj` with a background image layer referring to the *existing* scene image and a named object layer `Collision` of rectangles corresponding to the current `TOWN.obstacles`.
-- Preserve every initial rectangle's x/y/width/height and the original world bounds. In Tiled, object layer visibility is for editing only; do not render collision shapes to the player by default.
-- Define whether the game loads TMJ directly at runtime or converts it to a compact generated JSON file. Prefer a small adapter and validated JSON rather than embedding image bytes or manually copying coordinates each edit.
-- Implement deterministic import of `Collision` rectangle objects into the existing blocked() logic without changing the core gameplay.
-- Clear error/fallback when map JSON fails to load; no silent unwalkable map.
-- Add a developer-only debug overlay (toggle) displaying collision rectangles, and a simple reproducible movement/collision test.
-- Demonstrate: user drags one collision rectangle in Tiled, saves, refreshes V4 and observes the new boundary. No AI code edits required for subsequent rectangle tweaks.
+### Milestone 1 — Playable Final Fantasy-style menu (TOP PRIORITY)
+- Pause game movement and offer an accessible keyboard/mouse/touch menu, appropriately scaled for iPhone.
+- Full playable-character roster, not a four-character cap; selection switches active controllable character safely.
+- Each character: name, unique ID, portrait, level, HP/max HP, XP/next level, strength, quickness, dexterity and defense.
+- Accept standardized 128x128 transparent portrait PNGs as they arrive; use clearly labeled placeholders now. Do not fabricate or overwrite completed assets.
+- Menu sections: Party/Roster, Stats, Items, Equip, Abilities (relic-like). Show data consistently across views.
+- Deterministic initial stat defaults; model data separately from rendering.
 
-### 2. Expand geometry carefully
-- Support `Walkable` rectangles for scenes currently using allowlisted paths; clarify intersection/union semantics first.
-- Handle V3's north roundabout walkable/blocked ellipses without dropping or silently converting them to inaccurate rectangles. Either preserve existing JS ellipses as fallback or implement tested ellipse/polygon support.
-- Convert scenes incrementally (one at a time), validating spawn locations and portal access after each.
+### Milestone 2 — Real item and progression foundation
+- Inventory with counts and equipped items per character; slots for weapon/accessory.
+- Select ONE equipped special ability per character in the relic-like ability menu; preserve current power definitions and existing active abilities.
+- Japanese sword as a placeholder equipable weapon; user will later provide a photo for accurate art. Hamburger from Five Guys as consumable HP restoration; no need to implement restaurant shop interactions in first pass.
+- XP gain/level progression with sensible configurable values; do not invent a huge balance system. Show impact of stat modifiers.
+- Save character/inventory/equipment/progression locally with versioned localStorage and safe migration/fallback; do not reset progress accidentally.
 
-### 3. Objects and gameplay
-- Add named object groups/properties for `Spawn`, `Portal`, `DinosaurSpawn`, `NPC`, `Trigger` and `Pickup`, with stable IDs, required property checks, and coordinates.
-- Never replace existing working portal transitions without route tests; reject missing destination scenes/spawns.
-- Keep game logic (AI, battles, rescue quests, powers, save state) in JS; maps supply data rather than executable code.
+### Milestone 3 — Quests and characters
+- Rescue friends and unlock them as playable choices; do not enforce an arbitrary party size limit on the roster.
+- Dog companion follows the active character and occasionally bites dinosaurs; future upgraded sprites to be provided.
+- Jaime on scary T-Rex; Jeff Bigs playing soccer with Ari; Chris Tappis swimming at the lap pool; Mark and Steph playing Rock Band at their house.
+- Outfit changing at Big Finds; optional gym strength progression at Lakelands clubhouse.
+- Keep event logic modular and preserve existing content.
 
-### 4. Optional true tilemap support
-- Add reusable tilesets and tile layers to new areas only when justified; hand-painted/AI-produced PNG/WebP scenes may continue as image layers.
-- Avoid generating huge single-file HTML bundles or uploading base64 assets through chat.
+### Milestone 4 — Content and polish
+- Improve lower-resolution map backgrounds, dinosaur art, pathing/collision reliability, and oversized dinosaur-house interior/stair transitions.
+- Dynamic original/licensed combat music on dinosaur approach, transition back to exploration; cinematic intro expansion including Mark and Steph's Rock Band scene (avoid distributing copyrighted music without rights).
+- Tiled can be revisited IF user explicitly wants manual geometry editing. It is not a current prerequisite.
 
-## Definition of done (first slice)
-1. V1/V2/V3 bytes unchanged, existing published routes still accessible.
-2. V4 playable with intact family sprites, dinosaurs, powers, intro and scene routing.
-3. Market Square Tiled JSON loads correctly, using exact world coordinates.
-4. Changed Tiled collision rectangles affect V4 after save and refresh (or documented, one-command conversion).
-5. Tests for wall blocking, doorway access, off-map bounds, errors, keyboard and touch.
-6. Updated progress log records commits, tests, deployment state, and limitations.
-7. Explicit approval before publishing V4 or changing GitHub Pages routing.
+## Parallel development rules
+- Art generation and Copilot programming may run independently.
+- Multiple code tasks must use separate feature branches or clearly disjoint files; avoid simultaneous edits to `game.js` or to main.
+- First deliver one working menu vertical slice before expanding into every gameplay system.
+- After testing, share changed files/commits and request explicit approval before merging/publishing.
 
-## Efficient collaboration
-- Do not paste full HTML, large JS files, base64, images, or ZIP contents into chat. Summarize small diffs and link files.
-- Make small coherent commits and pause on blockers rather than overwriting successful work.
-- Work on one milestone at a time; request confirmation before expanding scope.
-- Tiled source is authoritative for migrated geometry; avoid parallel hard-coded edits that drift.
+## Immediate Copilot request
+Build Milestone 0 and the first vertical slice of Milestone 1 ONLY: isolated V4 based on latest V3; accessible FFVI-style party menu with placeholder portraits, roster, stats and navigation. No Tiled, no map rewrite, no publication. Leave hooks for equipment, items and abilities, then incrementally implement those features in following commits.
