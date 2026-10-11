@@ -24,7 +24,21 @@
  function happy(t){
   const shot=Math.floor(t/3),u=t%3;
   if(shot===0){background('plaza',405+u*22,490,1.23);for(const [i,id] of ['jason','peachy','connor','coco'].entries())actor(id,220+i*125+u*24,350+i%2*22,1.45,'right',true,t+i);text('JUST ANOTHER PERFECT DAY',480,104,22);}
-  else if(shot===1){background('recreation',150,250+u*14,.98);actor('adam',155+Math.sin(t)*25,260,1.3,'right');actor('kate',365,263+Math.sin(t)*10,1.3,'left');actor('coco',590+Math.sin(t*2)*22,220,1.25);actor('peachy',700,235,1.3,'left',false);oval('#f5f084',270+Math.sin(u*3)*90,200-Math.abs(Math.sin(u*3))*60,5,5);text('A LITTLE PLAY. A LOT OF LAUGHTER.',480,105,22);}
+  else if(shot===1){
+   const zoom=1.35,ox=280,oy=420+u*4;
+   const point=(x,y)=>[(x-ox)*zoom,(y-oy)*zoom];
+   background('recreation',ox,oy,zoom);
+   const adam=point(667+Math.sin(t*2)*12,550),kate=point(711+Math.sin(t*2+Math.PI)*12,638);
+   const coco=point(405+Math.sin(t*2)*10,570),peachy=point(495,610);
+   actor('adam',...adam,1.15,'down',true);actor('kate',...kate,1.15,'up',true);
+   actor('coco',...coco,1.05,'right',true);actor('peachy',...peachy,1.15,'left',false);
+   const ball=point(690+Math.sin(u*4)*18,594+Math.sin(u*4)*37);
+   oval('#f5f084',...ball,4,4);
+   for(const [x,y] of [adam,kate]){c.strokeStyle='#b6eeff';c.lineWidth=2;c.beginPath();c.ellipse(x+20,y-20,7,11,-.5,0,Math.PI*2);c.stroke();rect('#f2e5ce',x+12,y-11,3,12);}
+   const basketball=point(450+Math.sin(u*2)*35,590-Math.abs(Math.sin(u*4))*12);
+   oval('#e78e37',...basketball,7,7);c.strokeStyle='#704420';c.lineWidth=1;c.beginPath();c.arc(...basketball,7,0,Math.PI*2);c.moveTo(basketball[0]-7,basketball[1]);c.lineTo(basketball[0]+7,basketball[1]);c.stroke();
+   text('TENNIS FOR TWO. BASKETBALL WITH THE GIRLS.',480,72,19);
+  }
   else{background('north',287,55,.98);for(const [i,id] of ['stephanie','mark','brie','vito','connor'].entries())actor(id,150+i*150+Math.sin(t+i)*12,370+i%2*25,1.4,i%2?'left':'right');text('HOME BEFORE THE STARS COME OUT.',480,100,22);}
   // Warm sunlight and gently floating motes.
   c.fillStyle='#ffe5a30e';c.fillRect(0,0,960,540);for(let i=0;i<18;i++){c.globalAlpha=.3;oval('#fff5c2',(i*73+t*9)%960,(i*41+t*4)%470,1.5,1.5);}c.globalAlpha=1;

@@ -12,9 +12,9 @@
   kate:{name:'Turtle shot',label:'Turtle',kind:'turtle',cooldown:.6,duration:1.5,speed:230},
   brie:{name:'Salad toss',label:'Salad',kind:'salad',cooldown:.5,duration:1.4,speed:250},
   vito:{name:'Flip',label:'Flip',kind:'flip',cooldown:.65,duration:.65,range:48},
-  jaime:{name:'Rollerblade spin',label:'Spin',kind:'flip',cooldown:.65,duration:.65,range:48},
-  chris:{name:'Pool splash',label:'Splash',kind:'wave',cooldown:.85,duration:1.25,range:125},
-  jeff:{name:'Soccer shot',label:'Shoot',kind:'soccer',cooldown:.6,duration:1.4,speed:265},
+  jaime:{name:'Skate tornado',label:'Tornado',kind:'tornado',cooldown:1.1,duration:.9,range:72},
+  chris:{name:'Water beam',label:'Water',kind:'water-beam',cooldown:.9,duration:.75,range:220,width:9,extendSpeed:700},
+  jeff:{name:'Throw baseball',label:'Baseball',kind:'baseball',cooldown:.6,duration:1.4,speed:285},
   ari:{name:'Soccer volley',label:'Volley',kind:'soccer',cooldown:.6,duration:1.4,speed:265},
   sword:{name:'Sword slash',label:'Slash',kind:'sword',cooldown:.6,duration:.45,range:55}
  }).map(([id,power])=>[id,Object.freeze(power)])));
@@ -35,7 +35,16 @@
    for(const cast of casts){
     const power=definitions[cast.id],previous=cast.age;cast.age+=dt;
     if(!projectile(power)&&cast.kind!=='wave'&&actor?.id===cast.owner){cast.x=actor.x;cast.y=actor.y;}
-    if(projectile(power)&&!cast.landed){
+    if(cast.kind==='water-beam'){
+     const reach=Math.min(power.range,Math.max(0,cast.age-.08)*power.extendSpeed);
+     cast.length=0;
+     for(let distance=2;distance<=reach;distance+=2){
+      const x=cast.x+cast.dx*distance,y=cast.y+cast.dy*distance;
+      if(blocked(x,y,2,2))break;
+      cast.length=distance;
+      if(target&&(target.x-cast.x)*cast.dx+(target.y-cast.y)*cast.dy>=0&&Math.hypot(x-target.x,y-target.y)<=power.width+16)hit(cast);
+     }
+    }else if(projectile(power)&&!cast.landed){
      const travel=Math.max(0,cast.age-.1)-Math.max(0,previous-.1),distance=travel*power.speed,steps=Math.max(1,Math.ceil(distance/3));
      for(let i=0;i<steps&&distance>0;i++){
       const x=cast.x+cast.dx*distance/steps,y=cast.y+cast.dy*distance/steps;
@@ -47,7 +56,12 @@
      const dx=target.x-cast.x,dy=(target.y-cast.y)/.58,distance=Math.hypot(dx,dy);
      const range=cast.kind==='wave'?Math.min(power.range,Math.max(0,cast.age-.08)*150):power.range;
      const facing=!['punch','racket','sword'].includes(cast.kind)||dx*cast.dx+dy*cast.dy>=distance*.25;
-     if(distance<=range+16&&facing)hit(cast);
+     let clear=true;
+     if(cast.kind==='tornado'&&distance<=range+16){
+      const span=Math.hypot(target.x-cast.x,target.y-cast.y),steps=Math.max(1,Math.ceil(span/3));
+      for(let i=1;i<=steps;i++)if(blocked(cast.x+(target.x-cast.x)*i/steps,cast.y+(target.y-cast.y)*i/steps,2,2)){clear=false;break;}
+     }
+     if(distance<=range+16&&facing&&clear)hit(cast);
     }
    }
    for(let i=casts.length-1;i>=0;i--)if(casts[i].age>definitions[casts[i].id].duration)casts.splice(i,1);
@@ -57,6 +71,10 @@
    const cast=activeCast(actor);if(!cast)return {lift:0,rotation:0};
    const phase=Math.min(1,cast.age/definitions[cast.id].duration);
    if(cast.kind==='flip')return {lift:Math.sin(phase*Math.PI)*30,rotation:phase*Math.PI*2*(cast.dx<0?-1:1),frame:1};
+   if(cast.kind==='tornado'){
+    const rows=['down','left','up','right'],start=Math.max(0,rows.indexOf(cast.direction));
+    return {lift:Math.sin(phase*Math.PI)*5,rotation:0,direction:rows[(start+Math.floor(phase*12))%4],frame:Math.floor(phase*12)%4};
+   }
    if(cast.kind==='kick'){const rows=['down','left','up','right'],start=Math.max(0,rows.indexOf(cast.direction));return {lift:Math.sin(phase*Math.PI)*3,rotation:0,direction:rows[(start+Math.floor(phase*4))%4],frame:2};}
    return {lift:0,rotation:0};
   }
@@ -70,6 +88,10 @@
       ctx.globalAlpha=Math.max(0,1-t/.84);ctx.strokeStyle='#72d6fa';ctx.beginPath();ctx.ellipse(cast.x,cast.y,radius,radius*.58,0,0,Math.PI*2);ctx.stroke();
       ctx.strokeStyle='#d9f5ff';ctx.lineWidth=1;ctx.beginPath();ctx.ellipse(cast.x,cast.y,Math.max(0,radius-3),Math.max(0,radius*.58-2),0,0,Math.PI*2);ctx.stroke();ctx.lineWidth=2;
      }ctx.restore();
+    }else if(cast.kind==='tornado'){
+     const phase=cast.age/definitions[cast.id].duration;
+     ctx.save();ctx.globalAlpha=Math.min(1,phase*6,1-phase);ctx.strokeStyle='#bce9f2';ctx.lineWidth=2;
+     ctx.beginPath();ctx.ellipse(cast.x,cast.y,30+phase*35,12+phase*14,0,cast.age*18,cast.age*18+Math.PI*1.6);ctx.stroke();ctx.restore();
     }else if(cast.kind==='kick'||cast.kind==='flip'){
      const phase=cast.age/definitions[cast.id].duration;ctx.save();ctx.globalAlpha=1-phase;ctx.strokeStyle=cast.kind==='kick'?'#ffe8a8':'#9ddfff';ctx.lineWidth=2;
      ctx.beginPath();ctx.ellipse(cast.x,cast.y,20+phase*22,8+phase*12,phase*Math.PI,0,Math.PI*1.6);ctx.stroke();ctx.restore();
@@ -79,7 +101,16 @@
   function drawActor(ctx,actor){
    const cast=activeCast(actor);if(!cast)return;
    const power=definitions[cast.id],phase=cast.age/power.duration;ctx.save();
-   if(cast.kind==='sword'){
+   if(cast.kind==='tornado'){
+    ctx.translate(Math.round(actor.x),Math.round(actor.y));
+    ctx.globalAlpha=Math.min(1,phase*8,(1-phase)*5);ctx.lineWidth=2;
+    for(let i=0;i<5;i++){
+     const radius=14+i*5,angle=cast.age*20+i*1.3;
+     ctx.strokeStyle=i%2?'#d5f5fb':'#8fc7db';ctx.beginPath();ctx.ellipse(0,-8-i*10,radius,4+i,0,angle,angle+Math.PI*1.6);ctx.stroke();
+     spark(ctx,Math.cos(angle)*radius,-8-i*10+Math.sin(angle)*(4+i),'#eefaff',2);
+    }
+    ctx.fillStyle='#ace7ff';ctx.fillRect(-14,-2,10,3);ctx.fillRect(5,-2,10,3);
+   }else if(cast.kind==='sword'){
     const image=getSwordImage();
     if(image){
      ctx.translate(Math.round(actor.x),Math.round(actor.y)-24);ctx.rotate(Math.atan2(cast.dy,cast.dx)+.65);
@@ -106,7 +137,11 @@
   }
   function drawProjectile(ctx,cast){
    const rect=(color,x,y,w,h)=>{ctx.fillStyle=color;ctx.fillRect(x,y,w,h);};
-   if(cast.kind==='soccer'){
+   if(cast.kind==='baseball'){
+    ctx.fillStyle='#f9f2dc';ctx.beginPath();ctx.arc(0,0,5,0,Math.PI*2);ctx.fill();
+    ctx.strokeStyle='#33424b';ctx.lineWidth=1;ctx.stroke();
+    ctx.strokeStyle='#d45447';ctx.beginPath();ctx.arc(-4,0,4,-1.2,1.2);ctx.stroke();ctx.beginPath();ctx.arc(4,0,4,Math.PI-1.2,Math.PI+1.2);ctx.stroke();
+   }else if(cast.kind==='soccer'){
     ctx.fillStyle='#eef2ea';ctx.beginPath();ctx.arc(0,0,6,0,Math.PI*2);ctx.fill();
     ctx.strokeStyle='#253447';ctx.lineWidth=1;ctx.stroke();rect('#253447',-2,-2,4,4);rect('#253447',-5,-4,2,2);rect('#253447',3,3,2,2);
    }else if(cast.kind==='football'){
@@ -123,10 +158,20 @@
   }
   function drawAir(ctx){
    for(const cast of casts){
-    const power=definitions[cast.id];if(!projectile(power))continue;
+    const power=definitions[cast.id];
+    if(cast.kind==='water-beam'){
+     const length=cast.length||0;if(length===0)continue;
+     ctx.save();ctx.globalAlpha=Math.min(1,(power.duration-cast.age)/.2);
+     ctx.translate(Math.round(cast.x),Math.round(cast.y)-24-cast.lift);ctx.rotate(Math.atan2(cast.dy,cast.dx));
+     ctx.fillStyle='#368cd7';ctx.fillRect(0,-power.width,length,power.width*2);
+     ctx.fillStyle='#74d6f2';ctx.fillRect(0,-5,length,10);ctx.fillStyle='#d2f9ff';ctx.fillRect(0,-2,length,3);
+     for(let x=10;x<length-3;x+=16){const offset=Math.sin(cast.age*24+x)*4;ctx.fillStyle='#eafcff';ctx.fillRect(x,offset,4,2);}
+     spark(ctx,length-3,0,'#baf5ff',5);ctx.restore();continue;
+    }
+    if(!projectile(power))continue;
     const t=Math.max(0,cast.age-.1),flight=power.duration-.32,height=cast.landed?2:22+cast.lift+Math.sin(Math.min(1,t/flight)*Math.PI)*18;
     ctx.save();ctx.globalAlpha=Math.max(0,Math.min(1,(power.duration-cast.age)/.18));ctx.fillStyle='#16343944';ctx.beginPath();ctx.ellipse(Math.round(cast.x),Math.round(cast.y),5,2,0,0,Math.PI*2);ctx.fill();
-    ctx.translate(Math.round(cast.x),Math.round(cast.y-height));const spin=['football','salad','martini'].includes(cast.kind)?t*8:0;ctx.rotate(Math.atan2(cast.dy,cast.dx)+spin);drawProjectile(ctx,cast);if(cast.landed)spark(ctx,0,0,'#ffe9a8',7);ctx.restore();
+    ctx.translate(Math.round(cast.x),Math.round(cast.y-height));const spin=['football','baseball','salad','martini'].includes(cast.kind)?t*8:0;ctx.rotate(Math.atan2(cast.dy,cast.dx)+spin);drawProjectile(ctx,cast);if(cast.landed)spark(ctx,0,0,'#ffe9a8',7);ctx.restore();
    }
   }
   return {activate,update,drawGround,drawActor,drawAir,pose,cooldown:id=>cooldowns[id]||0,

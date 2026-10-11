@@ -35,6 +35,9 @@
  const recreation=SCENES.recreation;
  recreation.walkable.push({x:320,y:280,w:310,h:125},{x:615,y:290,w:80,h:87});
  recreation.obstacles.push({x:409,y:414,w:44,h:25},{x:647,y:320,w:21,h:63});
- recreation.landmarks.push({id:'soccer',name:'Jeff & Ari · Soccer field',x:490,y:385,radius:65,text:'Jeff Bigs and Ari are passing a soccer ball on the lawn beside the playground. Barney and Rosie are sniffing around nearby! Open Party to play as either friend.'});
- recreation.hint='Jeff and Ari are playing soccer on the bench-lined lawn left of the playground. Follow the north path; Main Street leads back to the shops.';
+ recreation.landmarks.push({id:'soccer',name:'Jeff & Ari · Soccer field',x:490,y:385,radius:65,text:'Jeff and Ari are passing a soccer ball on the lawn beside the playground. Open Party to play as either friend.'});
+ recreation.landmarks.push({id:'dogs',name:'Barney & Rosie · Northeast street',x:1125,y:360,radius:80,text:'You found Barney and Rosie on the northeast street! They are sniffing around and happy to see you.'});
+ recreation.hint='Jeff and Ari play soccer left of the playground. Find Barney and Rosie on the northeast street; Main Street leads back to the shops.';
+ SCENES.house.landmarks.push({id:'sword',name:'Japanese sword · Pick up',x:780,y:615,radius:42,pickup:'sword'});
+ SCENES.house.hint='Explore the Dino house. A Japanese sword lies in the central hallway. Look nearby to pick it up; the front door leads outside.';
 })();

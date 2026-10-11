@@ -44,16 +44,16 @@ return async function checkRecreation(page,{screenshotPath}={}){
      seen[b*w+a]=1;queue.push([a,b]);
     }
    }
-   return [[385,345],[575,345],[490,385]].map(([x,y])=>!!seen[Math.round(y/step)*w+Math.round(x/step)]);
+   return [[385,345],[575,345],[490,385],[1110,320],[1135,400],[1125,360]].map(([x,y])=>!!seen[Math.round(y/step)*w+Math.round(x/step)]);
   });
-  assert(connected.every(Boolean),'Field and soccer landmark reachable from actual recreation entrance');
+  assert(connected.every(Boolean),'Field and northeast dogs reachable from actual recreation entrance');
   assert(await page.evaluate(()=>GAME.blocked(430,425)&&GAME.blocked(657,350)&&GAME.blocked(358,810)),'Benches and pool remain blocked for player');
   const initial=await page.evaluate(()=>GAME.state.recreation);
   await page.waitForTimeout(2700);
   const later=await page.evaluate(()=>GAME.state.recreation);
   assert(later.passes>initial.passes&&later.ball.x!==initial.ball.x,'Jeff and Ari actually pass a moving ball');
   assert(later.swimmer.y!==initial.swimmer.y&&later.skater.y!==initial.skater.y&&later.dogs[0].x!==initial.dogs[0].x,'Chris swims, Jaime skates, both dogs animate');
-  assert(await page.evaluate(()=>GAME.state.recreation.friends.concat(GAME.state.recreation.dogs).every(actor=>!GAME.blocked(actor.x,actor.y))),'Soccer friends/dogs remain on walkable grass');
+  assert(await page.evaluate(()=>GAME.state.recreation.friends.concat(GAME.state.recreation.dogs).every(actor=>!GAME.blocked(actor.x,actor.y))),'Soccer friends/dogs remain on their walkable grass/street');
   if(screenshotPath){
    const position=await page.evaluate(()=>GAME.state.player);
    await page.evaluate(()=>GAME.test.position(490,400));await page.screenshot({path:screenshotPath});
@@ -73,8 +73,13 @@ return async function checkRecreation(page,{screenshotPath}={}){
   assert(await page.evaluate(()=>GAME.state.powers.casts.some(c=>c.id==='ari'&&c.kind==='soccer')),'Ari soccer power in real game');
   await page.waitForTimeout(1500);
   await page.evaluate(()=>GAME.test.position(490,385));await page.keyboard.press('e');
-  assert((await page.locator('#dialog-body').textContent()).includes('Jeff Bigs and Ari'),'Soccer field interaction');
+  assert((await page.locator('#dialog-body').textContent()).includes('Jeff and Ari'),'Soccer field interaction');
   await page.locator('#continue').click();
+  await page.evaluate(()=>GAME.test.enterScene('house',[285,863]));
+  await page.evaluate(()=>GAME.test.position(780,615));await page.keyboard.press('e');
+  assert(await page.evaluate(()=>V4_RPG.discoveries.sword&&V4_RPG.inventory.sword===1),'Sword picked up in actual Dino house');
+  await page.locator('#continue').click();
+  await page.evaluate(()=>GAME.test.enterScene('recreation',[490/1254*1000,385/1254*1000]));
   await page.locator('#open-menu').click();await page.locator('#tab-equip').click();
   await page.locator('[data-equip="sword"]').click();await page.locator('#tab-abilities').click();
   await page.locator('[data-ability="sword"]').click();await page.locator('#close-menu').click();

@@ -204,17 +204,22 @@
  }
 
  function updateNearby(){
-  nearest=town.landmarks.filter(l=>Math.hypot(l.x-player.x,l.y-player.y)<l.radius).sort((a,b)=>Math.hypot(a.x-player.x,a.y-player.y)-Math.hypot(b.x-player.x,b.y-player.y))[0]||null;
+  nearest=town.landmarks.filter(l=>(!l.pickup||!window.V4_RPG.discoveries[l.pickup])&&Math.hypot(l.x-player.x,l.y-player.y)<l.radius).sort((a,b)=>Math.hypot(a.x-player.x,a.y-player.y)-Math.hypot(b.x-player.x,b.y-player.y))[0]||null;
   const ride=town.id==='plaza'&&unicorn.nearby(player),mounted=unicorn.riding;
   $('nearby').hidden=!nearest&&!ride&&!mounted;
   const phone=document.body.classList.contains('touch');
   $('nearby-text').textContent=mounted?(phone?'Tap Off to hop down':'Unicorn ride · Hop off when you like'):ride?(phone?'A unicorn! Tap Ride':'A unicorn! Hop on for a ride'):nearest?.name||'';
-  $('interact').textContent=mounted?'Off':ride?'Ride':nearest?.to?'Go':'Look';$('interact').setAttribute('aria-label',mounted?'Dismount unicorn':ride?'Ride unicorn':nearest?'Look at '+nearest.name:'Look around');
+  $('interact').textContent=mounted?'Off':ride?'Ride':nearest?.to?'Go':nearest?.pickup?'Take':'Look';$('interact').setAttribute('aria-label',mounted?'Dismount unicorn':ride?'Ride unicorn':nearest?.pickup?'Pick up '+window.V4_RPG.items[nearest.pickup].name:nearest?'Look at '+nearest.name:'Look around');
  }
  function showDialog(title,body,tag='MARKET SQUARE'){resetInput();$('dialog-title').textContent=title;$('dialog-body').textContent=body;$('dialog-tag').textContent=tag;$('world-actions').hidden=tag!=='HOW TO PLAY';if(!$('dialog').open)$('dialog').showModal();paintPower();}
  function interact(){
   if(!loaded||changing||window.V3_INTRO?.active||$('dialog').open||window.V4_MENU.active)return;updateNearby();
   if(nearest?.to){if(unicorn.riding){toast('Hop off the unicorn before entering another area.');unicorn.interact(player);return;} enterScene(nearest.to,nearest.arrival);return;}
+  if(nearest?.pickup){
+   const result=window.V4_RPG.collectSword();
+   if(result.ok)showDialog('Japanese sword found!',result.message,'DINO HOUSE');else toast(result.message);
+   updateNearby();return;
+  }
   if(town.id==='plaza'&&(unicorn.riding||unicorn.nearby(player))){
    if(unicorn.interact(player)){resetInput();updateCamera();updateNearby();toast(unicorn.riding?'Unicorn ride! Run to gallop.':'Back on your feet. The unicorn will wait here.');}
    else toast('Find a little more space to hop on or off.');return;
@@ -241,8 +246,8 @@
  canvas.addEventListener('pointerdown',e=>{
   canvas.focus({preventScroll:true});if(!loaded||$('dialog').open||window.V4_MENU.active||window.V3_INTRO?.active)return;
   const r=canvas.getBoundingClientRect(),x=(e.clientX-r.left)*canvas.width/r.width+camera.x,y=(e.clientY-r.top)*canvas.height/r.height+camera.y;
-  const target=town.landmarks.find(l=>Math.hypot(l.x-x,l.y-15-y)<23);
-  if(target){if(Math.hypot(target.x-player.x,target.y-player.y)<target.radius){if(target.to)interact();else showDialog(target.name,target.text);}else toast('Walk closer to '+target.name+'.');}
+  const target=town.landmarks.find(l=>(!l.pickup||!window.V4_RPG.discoveries[l.pickup])&&Math.hypot(l.x-x,l.y-15-y)<23);
+  if(target){if(Math.hypot(target.x-player.x,target.y-player.y)<target.radius){if(target.to||target.pickup)interact();else showDialog(target.name,target.text);}else toast('Walk closer to '+target.name+'.');}
  });
  function update(dt){
   if(!loaded||changing||window.V3_INTRO?.active||$('dialog').open||window.V4_MENU.active)return;
@@ -270,7 +275,13 @@
  function draw(){
   if(!loaded)return;ctx.fillStyle='#17383b';ctx.fillRect(0,0,canvas.width,canvas.height);ctx.save();ctx.translate(-camera.x,-camera.y);ctx.drawImage(background,0,0,town.width,town.height);
   if(town.overlay&&sceneOverlays[town.id]){const o=town.overlay;ctx.drawImage(sceneOverlays[town.id],...o.source,o.x,o.y,o.w,o.h);}
-  town.landmarks.forEach(l=>{ctx.fillStyle=nearest===l?'#ffeda6':'#eedba2';ctx.strokeStyle='#705b35';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(l.x,l.y-21);ctx.lineTo(l.x+5,l.y-15);ctx.lineTo(l.x,l.y-9);ctx.lineTo(l.x-5,l.y-15);ctx.closePath();ctx.fill();ctx.stroke();});
+  town.landmarks.forEach(l=>{
+   if(l.pickup){
+    if(!window.V4_RPG.discoveries[l.pickup])ctx.drawImage(extraSheets.swordIcon,l.x-16,l.y-34,32,32);
+    return;
+   }
+   ctx.fillStyle=nearest===l?'#ffeda6':'#eedba2';ctx.strokeStyle='#705b35';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(l.x,l.y-21);ctx.lineTo(l.x+5,l.y-15);ctx.lineTo(l.x,l.y-9);ctx.lineTo(l.x-5,l.y-15);ctx.closePath();ctx.fill();ctx.stroke();
+  });
   powers.drawGround(ctx);
   const unicornActor=unicorn.state;
   const ambient=town.id==='plaza'?family.filter(a=>a.id!==player.id).concat(squirrel.active?squirrel:[],unicorn.riding?[]:unicornActor):town.id==='recreation'?recreation.actors(player):[];
@@ -306,7 +317,7 @@
  $('return-plaza').addEventListener('click',()=>{if($('dialog').open)$('dialog').close();enterScene('plaza',[50,84.47265625].map(v=>v*10));});
  function loadImage(path){return new Promise((resolve,reject)=>{const img=new Image();img.onload=()=>resolve(img);img.onerror=()=>reject(new Error('Could not load '+path));img.src=window.EMBEDDED_ASSETS?.[path]||path;});}
  Promise.all([loadImage(town.image).then(img=>{background=img;sceneImages.plaza=img;}),...ids.map(id=>loadImage(characters[id].sheet).then(img=>{sheets[id]=img;})),
-  ...Object.entries({...Object.fromEntries(Object.entries(recreation.dogData).map(([id,data])=>[id,data.sheet])),swim:'assets/characters/chris-swim.png',sword:'assets/items/sword-slash.png'}).map(([id,path])=>loadImage(path).then(img=>{extraSheets[id]=img;}))
+  ...Object.entries({...Object.fromEntries(Object.entries(recreation.dogData).map(([id,data])=>[id,data.sheet])),swim:'assets/characters/chris-swim.png',sword:'assets/items/sword-slash.png',swordIcon:window.V4_RPG.items.sword.image}).map(([id,path])=>loadImage(path).then(img=>{extraSheets[id]=img;}))
  ]).then(()=>{
   ids.forEach(id=>{const p=portraits[id].getContext('2d');p.imageSmoothingEnabled=false;p.drawImage(sheets[id],64,0,64,64,-8,-5,64,64);});
   loaded=true;$('loading').hidden=true;resize();updateNearby();paintPower();canvas.focus({preventScroll:true});

@@ -82,7 +82,7 @@
     if(id==='sword'&&stats.equipment.weapon!=='sword'){button.disabled=true;button.title='Requires equipped Japanese sword';}
     button.dataset.ability=id||'none';button.setAttribute('aria-pressed',String(equipped===id));list.append(button);
    }
-   detail.append(list,element('p','Relic-style slot: choose one power. X or the power button uses it in the world. Sword slash requires the sword; soccer shots are available too. Original characters retain their familiar power.','menu-note'));
+   detail.append(list,element('p','Relic-style slot: choose one power. X or the power button uses it in the world. Find the sword in the Dino house to unlock Sword slash. Jeff throws baseballs, Ari throws soccer balls, Chris fires a water beam, and Jaime spins a skate tornado.','menu-note'));
   }
   detail.append(element('p','Preview progress lasts for this play session only; local saves are the next milestone.','menu-note'));
  }

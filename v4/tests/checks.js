@@ -78,6 +78,9 @@ return async function checkV4(page,{width=1280,height=900,touch=false,cinema=fal
     check(member.hp===member.maxHP&&['strength','quickness','dexterity','defense'].every(key=>Number.isInteger(member[key])&&member[key]>0),'Initial stats');
    }
    const base=r.stats('jason').strength;
+   check(r.inventory.sword===0&&!r.discoveries.sword,'Sword must be discovered, not granted at start');
+   check(!r.equip('jason','weapon','sword').ok,'Cannot equip undiscovered sword');
+   check(r.collectSword().ok&&!r.collectSword().ok&&r.inventory.sword===1,'One-time sword collection');
    check(r.equip('jason','weapon','sword').ok,'Equip sword');
    check(r.stats('jason').strength===base+4&&r.inventory.sword===0,'Sword modifier and inventory');
    check(!r.equip('connor','weapon','sword').ok,'No duplicate sword');

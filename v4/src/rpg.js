@@ -13,10 +13,15 @@
    equipment:{weapon:null,accessory:null},ability:window.FAMILY_POWERS.definitions[id]?id:null}];
  }));
  const items=Object.freeze({
-  sword:Object.freeze({id:'sword',name:'Japanese sword',slot:'weapon',strength:4,image:'assets/items/sword.png',description:'Strength +4. Equip to select Sword slash in Abilities.'}),
+  sword:Object.freeze({id:'sword',name:'Japanese sword',slot:'weapon',strength:4,image:'assets/items/sword.png',description:'Find it in the Dino house. Strength +4. Equip to select Sword slash in Abilities.'}),
   hamburger:Object.freeze({id:'hamburger',name:'Five Guys hamburger',heal:50,description:'Restore up to 50 HP to the selected character.'})
  });
- const inventory={sword:1,hamburger:3};
+ const inventory={sword:0,hamburger:3},discoveries={sword:false};
+ function collectSword(){
+  if(discoveries.sword)return {ok:false,message:'You already found the Japanese sword.'};
+  discoveries.sword=true;inventory.sword++;
+  return {ok:true,message:'You found the Japanese sword! Open Menu > Equip to equip it, then choose Sword slash in Abilities.'};
+ }
  function member(id){if(!members[id])throw new Error('Unknown character: '+id);return members[id];}
  function stats(id){
   const value=member(id),weapon=items[value.equipment.weapon];
@@ -28,7 +33,7 @@
   if(itemId!==null&&(!items[itemId]||items[itemId].slot!==slot))throw new Error('Item does not fit this slot.');
   const old=value.equipment[slot];
   if(old===itemId)return {ok:false,message:'Already equipped.'};
-  if(itemId!==null&&inventory[itemId]<1)return {ok:false,message:'That item is already equipped by another character.'};
+  if(itemId!==null&&inventory[itemId]<1)return {ok:false,message:itemId==='sword'&&!discoveries.sword?'Find the Japanese sword in the Dino house first.':'That item is already equipped by another character.'};
   if(old)inventory[old]++;
   if(itemId)inventory[itemId]--;
   value.equipment[slot]=itemId;
@@ -51,5 +56,5 @@
   value.ability=ability;
   return {ok:true,message:ability?window.FAMILY_POWERS.definitions[ability].name+' equipped.':'Special ability unequipped.'};
  }
- window.V4_RPG={members,items,inventory,stats,equip,useItem,equipAbility};
+ window.V4_RPG={members,items,inventory,discoveries,collectSword,stats,equip,useItem,equipAbility};
 })();

@@ -4,7 +4,7 @@
  function create(){
   let clock=0,passes=0,lastPass=0;
   const friends=[{id:'jeff',x:385,y:345,direction:'right',frame:1,moving:true},{id:'ari',x:575,y:345,direction:'left',frame:1,moving:true}];
-  const dogs=[{id:'barney',x:370,y:390,direction:'right',frame:1,moving:true},{id:'rosie',x:560,y:390,direction:'left',frame:1,moving:true}];
+  const dogs=[{id:'barney',x:1110,y:320,direction:'down',frame:1,moving:true},{id:'rosie',x:1135,y:400,direction:'up',frame:1,moving:true}];
   const swimmer={id:'chris',x:358,y:817,direction:'up',frame:1,moving:true,swimming:true};
   const skater={id:'jaime',x:100,y:330,direction:'down',frame:1,moving:true};
   const ball={x:395,y:345,rotation:0,waiting:false};
@@ -15,9 +15,9 @@
     actor.frame=Math.floor(clock*6)%4;
    });
    dogs.forEach((actor,i)=>{
-    actor.x=(i?555:380)+Math.sin(clock*.6+i*Math.PI)*25;
-    actor.y=386+Math.cos(clock*.6+i*Math.PI)*6;
-    actor.direction=Math.cos(clock*.6+i*Math.PI)>=0?'right':'left';actor.frame=Math.floor(clock*7)%4;
+    actor.x=(i?1135:1110)+Math.sin(clock*.6+i*Math.PI)*7;
+    actor.y=(i?400:320)+Math.sin(clock*.6+i*Math.PI)*12;
+    actor.direction=Math.cos(clock*.6+i*Math.PI)>=0?'down':'up';actor.frame=Math.floor(clock*7)%4;
    });
    swimmer.y=800+Math.sin(clock*.5)*65;swimmer.direction=Math.cos(clock*.5)>=0?'down':'up';swimmer.frame=Math.floor(clock*6)%4;
    skater.y=350+Math.sin(clock*.65)*110;skater.direction=Math.cos(clock*.65)>=0?'down':'up';skater.frame=Math.floor(clock*10)%4;
