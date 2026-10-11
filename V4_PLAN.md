@@ -9,8 +9,8 @@ A humorous family/neighborhood 2D HTML/JavaScript adventure inspired by Final Fa
 - V3 is the current working reference, located in `v3/`. Prior versions: root (V1), `v2/`. Do not modify them for V4.
 - V3 uses HTML Canvas and JavaScript. `v3/src/game.js` coordinates rendering, player, collision, interaction, powers, dinosaurs; `v3/src/map.js` defines plaza geometry, and `v3/src/scenes.js` defines multiple scenes, images, walkable regions, portals and special north-roundabout ellipses.
 - Read `PROGRESS.md` and the live repo before touching code. Other development may have advanced since these notes.
-- Create isolated `work/v4-features` branch (or compatible fresh feature branch) and `v4/` sandbox using verified V3 code. Reuse shared art without unnecessary duplication. No publication without explicit approval.
-- Small coherent commits, automated desktop/mobile checks, and bounded chat responses. Never paste huge HTML or base64 art in chat or through giant connector requests.
+- Develop V4 separately from V1–V3, ideally in `v4/` with a suitable Git branch. Reuse shared art without unnecessary duplication. The user authorizes Copilot to publish tested, working V4 updates automatically; preserve existing routes, shared site configuration and all earlier versions.
+- Let Copilot choose its Git and commit strategy. Test important desktop/mobile behavior and keep chat output bounded; don't paste huge HTML or base64 art into conversation.
 
 ## Tool responsibilities
 - ChatGPT image-generation chats: character sprites, consistent 128x128 menu portraits, dinosaur/companion art, map backgrounds, item art.
@@ -53,9 +53,9 @@ A humorous family/neighborhood 2D HTML/JavaScript adventure inspired by Final Fa
 
 ## Parallel development rules
 - Art generation and Copilot programming may run independently.
-- Multiple code tasks must use separate feature branches or clearly disjoint files; avoid simultaneous edits to `game.js` or to main.
+- For simultaneous code tasks, coordinate branches/files so agents don't overwrite concurrent changes; avoid conflicting edits to `game.js`.
 - First deliver one working menu vertical slice before expanding into every gameplay system.
-- After testing, share changed files/commits and request explicit approval before merging/publishing.
+- Copilot may merge/deploy functioning V4 iterations without asking for publication approval each time, provided V1–V3 and their URLs remain intact. Summarize what changed and provide the playable V4 link.
 
 ## Immediate Copilot request
-Build Milestone 0 and the first vertical slice of Milestone 1 ONLY: isolated V4 based on latest V3; accessible FFVI-style party menu with placeholder portraits, roster, stats and navigation. No Tiled, no map rewrite, no publication. Leave hooks for equipment, items and abilities, then incrementally implement those features in following commits.
+Build Milestone 0 and the first vertical slice of Milestone 1: isolated V4 based on latest V3; accessible FFVI-style party menu with placeholder portraits, roster, stats and navigation. No Tiled or map rewrite. Copilot can publish tested V4 versions automatically while preserving V1–V3. Leave hooks for equipment, items and abilities, then add those features incrementally.
