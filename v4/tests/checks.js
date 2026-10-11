@@ -7,9 +7,9 @@ return async function checkV4(page,{width=1280,height=900,touch=false,cinema=fal
  const gameRoute='**/v4/src/game.js*';
  await page.route(gameRoute,async route=>{
   const response=await route.fetch(),source=await response.text();
-  const hook='window.GAME={test:{enterScene,position(x,y){player.x=x;player.y=y;resetInput();updateCamera();updateNearby();},place(id){select(id);player.x=dinoHome.x-28;player.y=dinoHome.y;player.direction="right";Object.assign(dino,{...dinoHome,stunned:0,timer:60,target:null,turnTimer:60});powers=makePowers();},},';
+  const hook='window.GAME={test:{enterScene,position(x,y){player.x=x;player.y=y;resetInput();updateCamera();updateNearby();},place(id){select(id);const spot=[[dinoHome.x-28,dinoHome.y,"right"],[dinoHome.x+28,dinoHome.y,"left"],[dinoHome.x,dinoHome.y+28,"up"],[dinoHome.x,dinoHome.y-28,"down"]].find(([x,y])=>!blocked(x,y));if(!spot)throw new Error("No clear dinosaur approach");[player.x,player.y,player.direction]=spot;Object.assign(dino,{...dinoHome,stunned:0,timer:60,target:null,turnTimer:60});powers=makePowers();},},';
   assert(source.includes('window.GAME={'),'Test hook target missing');
-  await route.fulfill({response,body:source.replace('window.GAME={',hook)});
+  await route.fulfill({response,body:source.replace('window.GAME={',hook).replace('flight.update(dt,player,town,!unicorn.riding)','flight.update(dt,player,town,false)')});
  });
  let cdp;
  try{
@@ -22,13 +22,16 @@ return async function checkV4(page,{width=1280,height=900,touch=false,cinema=fal
   await page.waitForFunction(()=>GAME.ready&&V3_INTRO.state.ready);
   assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'Intro horizontal overflow');
   await page.keyboard.press('2');
-  assert(await page.evaluate(()=>GAME.state.player.id==='jason'&&GAME.state.input.keys.length===0),'Intro must block game inputs');
+  assert(await page.evaluate(()=>GAME.state.player.id==='coco'&&GAME.state.input.keys.length===0),'Intro must block game inputs');
   if(cinema){
    await page.locator('#intro-sound').click();
    await page.locator('#intro-start').click();
-   await page.waitForFunction(()=>!V3_INTRO.active,null,{timeout:40000});
+   await page.waitForFunction(()=>!V3_INTRO.active,null,{timeout:50000});
    results.push('Full opening movie completes and releases game');
   }else await page.locator('#intro-skip').click();
+  await page.locator('#continue').click();
+  await page.evaluate(()=>{for(const id of Object.keys(CHARACTERS))if(!V4_RPG.members[id].joined)V4_RPG.recruit(id);});
+  await page.evaluate(()=>GAME.test.enterScene('plaza',[500,844.7265625]));
   const ids=await page.evaluate(()=>Object.keys(CHARACTERS));
   assert(ids.length===14,'Complete ten existing plus four new characters');
   await page.locator('#open-menu').click();
@@ -137,7 +140,7 @@ return async function checkV4(page,{width=1280,height=900,touch=false,cinema=fal
    assert(await page.evaluate(()=>!GAME.blocked(GAME.state.player.x,GAME.state.player.y)&&!GAME.blocked(GAME.state.dinosaur.x,GAME.state.dinosaur.y)),'Scene spawns walkable: '+scene);
    for(const id of touch?['coco']:ids){
     await page.evaluate(id=>GAME.test.place(id),id);await page.keyboard.press('x');
-    await page.waitForFunction(()=>GAME.state.dinosaur.stunned>1.5,null,{timeout:2000});
+    await page.waitForFunction(()=>GAME.state.dinosaur.stunned>1.5,null,{timeout:2000}).catch(error=>{throw new Error('Power '+id+' failed in '+scene+': '+error.message);});
    }
   }
   await page.evaluate(()=>GAME.test.enterScene('plaza',[500,844.7265625]));

@@ -34,7 +34,7 @@
    ball.x=a.x+(b.x-a.x)*t;ball.y=a.y+(b.y-a.y)*t+5;ball.rotation=clock*7;
   }
   function actors(player){
-   return friends.concat(swimmer,skater).filter(actor=>actor.id!==player.id).concat(dogs);
+   return friends.concat(swimmer,skater).filter(actor=>actor.id!==player.id&&!V4_RPG.members[actor.id].joined).concat(V4_RPG.discoveries.dogs?[]:dogs);
   }
   function drawBall(ctx){
    const x=Math.round(ball.x),y=Math.round(ball.y);

@@ -4,20 +4,26 @@ Isolated feature preview based on V3. V1–V3 are unchanged; V4 reuses their art
 
 ## Controls and features
 - Open **Menu**, press **M**, or press **Escape** to pause the world. Escape / Return closes the menu; held movement is cleared.
-- Party and Stats cover the complete existing ten-character roster plus Jaime, Chris, Jeff and Ari (14 playable humans). Select a roster member, then **Play as** to switch without teleporting.
+- Begin as **Coco**, waking in her Dino house bedroom. Find Connor next door through the supplied upstairs hallway, then explore to find everyone. Talk with **E** / **Talk**; after their joining dialogue, friends walk into the hero and disappear into the party.
+- Party and Stats show all 14 humans, including missing friends with location hints. Only recruited friends appear in the toolbar and become playable. Select a rescued roster member, then **Play as** to switch without teleporting; there is no party-size cap. Borrowing a friend's ability also requires rescuing them.
+- An objective hint points to the next missing friend, but recruitment is not forced into that order. Friends are spread through existing locations; the Rock Band house entrance is on the recreation street **west of the pool**.
 - Keyboard: Tab / Shift+Tab moves focus, Enter activates buttons, arrow keys / Home / End navigate the section tabs. All actions also support mouse/touch.
 - Items: shared inventory starts with three Five Guys hamburgers (50 HP restoration, capped at max HP). Full-HP targets cannot waste items.
 - Equip: discover the Japanese sword in the Dino house's central hallway using **E**, the touch **Take** button or a nearby click. Collection grants one shared weapon per session, not a starter item. Weapon/accessory slots and Strength +4 remain; unequipping returns the sword to inventory.
 - Abilities: one relic-style equipped power per character. Original characters retain their original powers; Jeff throws a baseball, Ari keeps Soccer volley, Chris fires a directional water beam and Jaime spins upright in a skate tornado. New effects use original Canvas art. Projectiles/beam stop at scenery and tornado hits cannot pass through walls. Sword slash uses the uploaded action art and requires the discovered sword equipped; removing the weapon clears that ability. Cooldowns belong to the caster, not the selected relic.
 - Intro: Adam and Kate play tennis on the tennis court; Coco and Peachy play basketball on the basketball court.
-- The next intro shot uses the supplied Rock Band room: Connor, Coco, Peachy, Jason (Jay), Vito, Brie, Adam and Kate sing, play controllers/instruments and dance. It replaces the north-street walking lineup immediately before Coco's mirror scene. The performance lasts six seconds; the full opening is now 32 seconds.
+- The next intro shot uses the supplied Rock Band room: Connor, Coco, Peachy, Jason (Jay), Vito, Brie, Adam, Kate, **Mark and Stephanie** sing, play instruments and dance. Detailed original pixel guitar/bass/microphone sprites replace the old flat props. The performance lasts six seconds and cuts directly to Coco's mirror scene.
+- The first four walkers are lower to clear the benches. The final four seconds now show Coco lying in her supplied bedroom: **"That flash sure was scary!"** The full opening is 36 seconds; skipping starts the same playable chapter. Replaying does not reset recruitment.
 - That shot has a quiet original SNES-inspired rock riff synthesized with Web Audio (square-wave lead, triangle bass and percussion), not a licensed song or game recording. Sound remains optional; mute/skip/replay cancel queued notes, and the riff stops before Coco's room. Reduced-motion mode removes dance bounce/sway/walk cycles.
-- Existing intro, portals, unicorn, joystick, music and harmless dinosaur tag remain. Equipment affects the RPG stat display, not combat damage yet.
+- Supplied T-rex, raptor, triceratops and pterodactyl atlases replace procedural dinosaurs. An outdoor pterodactyl can lift you into a zoomed-out map view, return to the **exact original spot**, and give you a small harmless bounce. At least ten gameplay seconds must pass after landing before another lift; the timer survives portals. No grabs indoors or while riding a unicorn. Menus pause the flight, and switching/powers/portals wait for landing.
+- Short, quiet original chiptune sound effects accompany doors, powers, pickups, recruitment and landings; no continuous footsteps. **Help > Sound effects** mutes these independently of music and cancels queued effects.
+- The Dino house uses half its old world scale so furniture is less oversized relative to characters. Bedrooms connect through the supplied hallway and stairs. Chairs are passable; tables/beds and pool water stay solid. The gate between the courts and pool is traversable, with a wider deck route.
+- Existing portals, unicorn, joystick, music and harmless dinosaur tag remain. Equipment affects the RPG stat display, not combat damage yet.
 - The old-version navigation banner is removed. **Help** in the toolbar keeps route guidance, Replay intro and Back to plaza accessible.
 - **Fullscreen** uses the browser Fullscreen API where supported. **Expand** is the fallback: it hides the game header/footer and fills the available browser viewport, but cannot hide browser address bars. Exit view remains available next to Menu; menus and Help still work in either mode.
 - On iPhone, open V4 in Safari, choose **Share > Add to Home Screen**, enable **Open as Web App** if offered, then launch the icon for a standalone view without browser chrome. V4-only standalone metadata is included; this does not add offline support. Safe-area padding protects notch/home-indicator controls. Physical iPhone behavior still needs device verification.
 
-**Preview limitation:** HP, XP, equipment, inventory and discoveries are session-only. Reload starts a fresh preview, including the sword pickup; local persistence, XP rewards, combat damage and rescue/unlock quests are not implemented in this increment.
+**Preview limitation:** Recruitment, companions, HP, XP, equipment, inventory and discoveries are session-only. Reload starts fresh as Coco. Saves are deliberately deferred for this increment; XP rewards, leveling, combat damage and dog bites are not implemented.
 
 ## Artwork
 Original uploads remain untouched in `../art inbox/` (the folder currently has a space, not a hyphen).
@@ -47,11 +53,29 @@ All 14 current humans now have supplied portraits; the placeholder fallback rema
 - `assets/characters/chris-swim.png`: swimming poses for ambient lap-pool animation.
 - `assets/companions/{barney,rosie}.png`: the two dogs' supplied idle/walk poses, scaled below human size.
 - `assets/items/sword.png` and `sword-slash.png`: isolated blade icon and three supplied slash phases.
-- `assets/scenes/rockband.png`: 960x540 nearest-neighbor derivative of `Scene - Rockband Area.png`. Existing character atlases gain cinematic-only sway/bounce, singing mouths, original instrument/controller overlays and notes; normal gameplay sprites are unchanged. New Coco/Connor bedroom originals are retained for future location work; this increment deliberately preserves the established mirror/window shot and meteor alignment.
+- `assets/scenes/rockband.png`: 960x540 nearest-neighbor derivative of `Scene - Rockband Area.png`. Existing character atlases gain cinematic-only sway/bounce, singing mouths, instrument overlays and notes; normal gameplay sprites are unchanged.
+- `assets/scenes/{coco-room,connor-room,upstairs}.png`: 600x450 derivatives of the supplied bedroom and `Scene - Dino House Upstairs Hallway.png` originals, used by the connected playable interiors. The established mirror/window shot and meteor alignment are unchanged.
+- `assets/dinosaurs/{trex,raptor,triceratops,pterodactyl}.png`: transparent 512x1024 directional atlases, 128px cells, foot baseline y=124. Three supplied phases repeat as 0/1/2/1.
+- `assets/items/band-instruments.png`: an original 256x64 pixel atlas of guitar, bass, microphone and sticks; no third-party instrument assets.
 - Other emotion/action poses stay intact in the original sheets for later features; they are not all separate playable actions yet.
 
 ## Recreation activity
-The bench-lined lawn left of the playground in the existing shared recreation map is now reachable from the north path. Jeff and Ari pass a moving soccer ball; the soccer landmark explains their location. When controlling Jeff/Ari, their ambient copy is omitted; the other teammate passes to the player on the field and waits if the player leaves. Chris swims in the lap pool, Jaime skates along the west street, and Barney/Rosie wander the northeast street. Their nearby landmark lets you find both dogs; they remain ambient for now, not recruited/following/bite companions. Water and benches remain collision-blocked for the player. All activity freezes with menus/dialogs/intro and stops off-scene.
+The bench-lined lawn left of the playground is reachable from the north path. Jeff and Ari pass a soccer ball until recruited; Chris swims and Jaime skates until found. Their gold encounter markers stay at accessible places, including Chris's dry poolside meeting point. Recruited humans no longer leave duplicate ambient copies behind.
+
+Find Barney and Rosie on the northeast street with **E** / **Look**. They follow collision-checked breadcrumbs at different comfortable lags (90/140 world pixels), catch up when you stop, and pause with the menu. They follow the active hero rather than a specific character. On entering another area they emerge behind you once there is enough space, rather than appearing in an overlapping pile. They do not bite dinosaurs yet.
+
+### Where to find friends
+| Friends | Location |
+| --- | --- |
+| Connor | Bedroom next door to Coco, upstairs in the Dino house |
+| Peachy / Jason | Dino house front door / kitchen hallway |
+| Jeff / Ari | Soccer lawn left of the playground |
+| Chris / Jaime | Lap-pool deck / west recreation street |
+| Mark / Stephanie | Rock Band house, entered west of the pool |
+| Adam | Neighborhood path |
+| Brie | Plaza restaurant path |
+| Vito | Main Street, near the courts route |
+| Kate | South street below the meteor roundabout |
 
 ## Verification
 Run `node v4/tests/run.cjs` from the repository root using the existing Playwright test environment (`playwright`, Chromium). `BROWSER_PATH` optionally selects an installed Chromium; `PLAYWRIGHT_CORE` optionally points at a `playwright-core` installation. The runner serves the repository temporarily and closes the browser/server when done.
@@ -64,4 +88,6 @@ Checks cover deterministic stats, roster switching, pause/input resets, keyboard
 
 [Content checks](tests/content-checks.js) verify exact intro court positions, short display names, reachable one-time sword pickup and equip gating, northeast dog encounters, directional/collision behavior of the new powers, and live keyboard/touch activation. Optional `V4_ARTIFACT_DIR` saves screenshots of the courts, sword, dogs and power effects.
 
-[Intro checks](tests/intro-checks.js) verify all fourteen portrait contracts, the exact eight-person cast throughout the new shot, animated poses and direct room transition, gameplay pause, reduced motion, real Web Audio scheduling and mute/skip/replay cleanup. Offline audio rendering checks the original riff's six-second waveform, RMS/peak limits and silent tail before the cut; these are not physical-device listening tests.
+[Intro checks](tests/intro-checks.js) verify all fourteen portrait contracts, the exact ten-person cast, instrument/dance poses and direct room transition, bench-clear walking, Coco lying in bed, gameplay pause, reduced motion, real Web Audio scheduling and mute/skip/replay cleanup. Offline audio rendering checks the original riff's six-second waveform, RMS/peak limits and silent tail before the cut; these are not physical-device listening tests.
+
+[Chapter checks](tests/chapter-checks.js) begin with the real Coco-only state, verify every selection/equipment/ability rescue lock, and walk collision-respecting routes through all ten connected scenes to recruit all thirteen missing humans. They cover joining animations/disappearance, house scale/chairs/tables, the open pool gate and solid water, sword access, following-dog spacing/corners/menu/switch/portal behavior, natural flight approach and indoor/riding guards, overview/pause/exact safe return/bounce/ten-second cooldown, and actual sound scheduling/mute cleanup. The same flow runs on desktop and emulated portrait/landscape touch.

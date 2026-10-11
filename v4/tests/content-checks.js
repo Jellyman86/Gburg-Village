@@ -5,7 +5,8 @@ return async function checkContent(page,{touch=false,artifactDir}={}){
  page.on('pageerror',onError);
  await page.route(gamePattern,async route=>{
   const response=await route.fetch(),source=await response.text();
-  await route.fulfill({response,body:source.replace('window.GAME={','window.GAME={test:{enterScene,position(x,y){player.x=x;player.y=y;resetInput();updateCamera();updateNearby();},place(id){select(id);player.x=dinoHome.x-28;player.y=dinoHome.y;player.direction="right";Object.assign(dino,{...dinoHome,stunned:0,timer:60,target:null,turnTimer:60});powers=makePowers();},},')});
+  // Keep the target's walk aligned with the shot during touch auto-wait, rather than randomly dodging.
+  await route.fulfill({response,body:source.replace('window.GAME={','window.GAME={test:{enterScene,position(x,y){player.x=x;player.y=y;resetInput();updateCamera();updateNearby();},place(id){select(id);player.x=dinoHome.x-28;player.y=dinoHome.y;player.direction="right";Object.assign(dino,{...dinoHome,stunned:0,timer:60,target:{x:dinoHome.x+100,y:dinoHome.y},turnTimer:60,mode:"wander"});powers=makePowers();},},').replace('flight.update(dt,player,town,!unicorn.riding)','flight.update(dt,player,town,false)')});
  });
  await page.route(introPattern,async route=>{
   const response=await route.fetch(),source=await response.text();
@@ -49,6 +50,8 @@ return async function checkContent(page,{touch=false,artifactDir}={}){
   }
   await screenshot('intro-courts');
   if(touch)await page.locator('#intro-skip').tap();else await page.locator('#intro-skip').click();
+  await page.locator('#continue').click();
+  await page.evaluate(()=>{for(const id of Object.keys(CHARACTERS))if(!V4_RPG.members[id].joined)V4_RPG.recruit(id);GAME.select('jason');});
   assert(await page.evaluate(()=>CHARACTERS.jeff.name==='Jeff'&&CHARACTERS.chris.name==='Chris'),'Short display names, stable IDs');
   assert(await page.evaluate(()=>V4_RPG.inventory.sword===0&&!V4_RPG.discoveries.sword),'Fresh game has no free sword');
   await page.locator('#open-menu').click();await page.locator('#tab-equip').click();
@@ -57,13 +60,13 @@ return async function checkContent(page,{touch=false,artifactDir}={}){
   assert(await page.locator('[data-ability="sword"]').isDisabled(),'Sword slash unavailable before discovery');
   await page.locator('#close-menu').click();
   await page.evaluate(()=>GAME.test.enterScene('house',[285,863]));
-  assert((await connected([[780,615]])).every(Boolean),'Sword reachable from front-door arrival');
-  await page.evaluate(()=>GAME.test.position(750,635));await screenshot('house-sword');
+  assert((await connected([[390,307.5]])).every(Boolean),'Sword reachable from front-door arrival');
+  await page.evaluate(()=>GAME.test.position(375,317.5));await screenshot('house-sword');
   if(touch)await page.locator('#interact').tap();
   else{
    const point=await page.evaluate(()=>{
     const canvas=document.getElementById('game'),bounds=canvas.getBoundingClientRect(),camera=GAME.state.camera;
-    return {x:bounds.left+(780-camera.x)*bounds.width/canvas.width,y:bounds.top+(600-camera.y)*bounds.height/canvas.height};
+    return {x:bounds.left+(390-camera.x)*bounds.width/canvas.width,y:bounds.top+(292.5-camera.y)*bounds.height/canvas.height};
    });
    await page.mouse.click(point.x,point.y);
   }
@@ -73,7 +76,7 @@ return async function checkContent(page,{touch=false,artifactDir}={}){
   assert(await page.evaluate(()=>GAME.state.nearest!=='sword'),'Collected pickup disappears from nearby interaction');
   await page.evaluate(()=>GAME.test.enterScene('plaza',[500,844.7265625]));
   await page.evaluate(()=>GAME.test.enterScene('house',[285,863]));
-  await page.evaluate(()=>GAME.test.position(780,615));await page.keyboard.press('e');
+  await page.evaluate(()=>GAME.test.position(390,307.5));await page.keyboard.press('e');
   assert(await page.evaluate(()=>V4_RPG.inventory.sword===1&&!GAME.state.dialog),'Cannot recollect on revisit');
   await page.locator('#open-menu').click();await page.locator('#tab-equip').click();
   await page.locator('[data-equip="sword"]').click();
@@ -117,12 +120,15 @@ return async function checkContent(page,{touch=false,artifactDir}={}){
   assert(powerModel,'Directional/collision power model tests');
   for(const id of ['jeff','ari','chris','jaime']){
    await page.evaluate(id=>GAME.test.place(id),id);
+   const before=await page.evaluate(()=>({target:GAME.state.dinosaur,buttonDisabled:document.getElementById('power').disabled,ability:V4_RPG.members[GAME.state.player.id].ability,at:performance.now()}));
    if(touch)await page.locator('#power').tap();else await page.keyboard.press('x');
+   const action=await page.evaluate(()=>({casts:GAME.state.powers.casts,target:GAME.state.dinosaur,at:performance.now()}));
+   assert(action.casts.some(c=>c.owner===id),'Keyboard/touch actually casts '+id);
    try{
     await page.waitForFunction(()=>GAME.state.dinosaur.stunned>0,null,{timeout:2000});
    }catch(error){
     await screenshot('failed-power-'+id);
-    throw new Error('Live '+id+' hit failed: '+JSON.stringify(await page.evaluate(()=>GAME.state)),{cause:error});
+    throw new Error('Live '+id+' hit failed: '+JSON.stringify({before,action,state:await page.evaluate(()=>GAME.state)}),{cause:error});
    }
    const cast=await page.evaluate(()=>GAME.state.powers.casts[0]);
    assert(cast.owner===id&&cast.kind===({jeff:'baseball',ari:'soccer',chris:'water-beam',jaime:'tornado'})[id],'Live native power owner and kind: '+id);

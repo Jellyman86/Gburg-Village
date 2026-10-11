@@ -55,9 +55,42 @@ public static class VillageArt {
   }
  }
  public static void Scene(string source,string destination) {
-  using(var image=new Bitmap(source))using(var result=new Bitmap(960,540,PixelFormat.Format32bppArgb))using(var g=Graphics.FromImage(result)){
+  Map(source,destination,960,540);
+ }
+ public static void Map(string source,string destination,int width,int height) {
+  using(var image=new Bitmap(source))using(var result=new Bitmap(width,height,PixelFormat.Format32bppArgb))using(var g=Graphics.FromImage(result)){
    g.InterpolationMode=InterpolationMode.NearestNeighbor;g.PixelOffsetMode=PixelOffsetMode.Half;
-   g.DrawImage(image,0,0,960,540);result.Save(destination,ImageFormat.Png);
+   g.DrawImage(image,0,0,width,height);result.Save(destination,ImageFormat.Png);
+  }
+ }
+ static void Pixel(Graphics g,string color,int x,int y,int w,int h) {
+  using(var brush=new SolidBrush(ColorTranslator.FromHtml(color)))g.FillRectangle(brush,x,y,w,h);
+ }
+ public static void Instruments(string destination) {
+  using(var result=new Bitmap(256,64,PixelFormat.Format32bppArgb))using(var g=Graphics.FromImage(result)){
+   g.Clear(Color.Transparent);
+   for(int frame=0;frame<2;frame++){
+    int x=frame*64;
+    Pixel(g,"#172332",x+22,8,9,41);Pixel(g,"#ae794c",x+24,10,5,34);
+    Pixel(g,"#172332",x+18,3,17,10);Pixel(g,"#d6ad69",x+20,5,13,6);
+    Pixel(g,"#172332",x+13,33,27,23);Pixel(g,"#172332",x+17,29,19,31);
+    string color=frame==0?"#b94549":"#3876a3";
+    Pixel(g,color,x+15,36,23,17);Pixel(g,color,x+19,32,15,25);
+    Pixel(g,frame==0?"#ec8570":"#79b9d0",x+17,37,6,14);
+    Pixel(g,"#e8d9b0",x+26,32,9,16);Pixel(g,"#283748",x+22,37,11,3);
+    Pixel(g,"#283748",x+22,44,11,3);Pixel(g,"#c9d2d5",x+22,52,11,2);
+    for(int i=0;i<4;i++)Pixel(g,"#efdb9e",x+24+i,12,1,40);
+    for(int i=0;i<5;i++)Pixel(g,"#514942",x+24,15+i*4,5,1);
+    Pixel(g,"#f6e4b5",x+34,49,2,2);Pixel(g,"#f6e4b5",x+34,53,2,2);
+    Pixel(g,"#9bc15f",x+24,19,2,2);Pixel(g,"#e6bd4d",x+26,23,2,2);
+   }
+   Pixel(g,"#172332",145,10,17,18);Pixel(g,"#829eaa",147,12,13,14);
+   Pixel(g,"#e5edf1",149,13,9,2);Pixel(g,"#344654",149,17,9,2);
+   Pixel(g,"#344654",149,21,9,2);Pixel(g,"#172332",150,27,7,28);
+   Pixel(g,"#718991",152,29,3,23);Pixel(g,"#c5d5d9",151,34,5,3);
+   Pixel(g,"#172332",207,12,5,41);Pixel(g,"#deb77c",208,13,3,39);
+   Pixel(g,"#172332",229,8,5,45);Pixel(g,"#f0d3a1",230,9,3,43);
+   result.Save(destination,ImageFormat.Png);
   }
  }
  public static void Icon(string source,string destination,Rectangle cell) {
@@ -92,7 +125,7 @@ function Cells($rows) {
  return ,$result
 }
 $assets=Join-Path $root 'v4\assets'
-foreach($folder in @('characters','companions','items','portraits','scenes')){
+foreach($folder in @('characters','companions','items','portraits','scenes','dinosaurs')){
  New-Item -ItemType Directory -Path (Join-Path $assets $folder) -Force | Out-Null
 }
 # Recipes use measured alpha row gaps and visually verified down/up/left/right poses.
@@ -125,6 +158,23 @@ foreach($id in @('ari','jeff','adam','kate','brie','vito','mark','stephanie')){
  [VillageArt]::Portrait((Join-Path $inbox ($name+' Portrait.png')),(Join-Path $assets "portraits\$id.png"))
 }
 [VillageArt]::Scene((Join-Path $inbox 'Scene - Rockband Area.png'),(Join-Path $assets 'scenes\rockband.png'))
+[VillageArt]::Map((Join-Path $inbox "Scene - Coco's Room.png"),(Join-Path $assets 'scenes\coco-room.png'),600,450)
+[VillageArt]::Map((Join-Path $inbox "Scene - Connor's Room.png"),(Join-Path $assets 'scenes\connor-room.png'),600,450)
+[VillageArt]::Map((Join-Path $inbox 'Scene - Dino House Upstairs Hallway.png'),(Join-Path $assets 'scenes\upstairs.png'),600,450)
+[VillageArt]::Instruments((Join-Path $assets 'items\band-instruments.png'))
+$dinoRows=@{
+ trex=@(0,174,361,523,685,847,1008)
+ raptor=@(0,203,407,567,750,924,1105)
+ triceratops=@(0,209,412,589,763,934,1105)
+ pterodactyl=@(0,250,490,730,960)
+}
+$dinoSources=@{trex='Trex sprites.png';raptor='Raptor Sprites.png';triceratops='Triceratops Sprites.png';pterodactyl='pterodactyl Sprites.png'}
+foreach($id in $dinoRows.Keys){
+ $bands=$dinoRows[$id];$rows=@()
+ $order=if($id -eq 'pterodactyl'){@(0,2,3,1,0,2,3,1)}else{@(0,2,3,1,0,4,5,1)}
+ foreach($r in $order){$height=$bands[$r+1]-$bands[$r];$rows+=,@(0,$bands[$r],241,$height)}
+ [VillageArt]::Atlas((Join-Path $inbox $dinoSources[$id]),(Join-Path $assets "dinosaurs\$id.png"),(Cells $rows),128,128,8,104,84)
+}
 [VillageArt]::Icon((Join-Path $inbox 'Sword Sprite.png'),(Join-Path $assets 'items\sword.png'),[System.Drawing.Rectangle]::new(630,10,200,200))
 [VillageArt]::Atlas((Join-Path $inbox 'Sword Action shots (I think).png'),(Join-Path $assets 'items\sword-slash.png'),(Cells (,@(0,0,418,160))),64,64,1,56,38)
 [VillageArt]::Atlas((Join-Path $inbox 'Chris Sprites.png'),(Join-Path $assets 'characters\chris-swim.png'),(Cells @(@(0,1510,240,140),@(0,1650,240,169),@(0,1819,240,154),@(0,1973,240,179))),64,64,4,56,36)

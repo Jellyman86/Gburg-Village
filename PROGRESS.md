@@ -37,20 +37,25 @@ Updated: 2026-10-11. This is a lightweight handoff, not a detailed activity log.
 - The user prefers ChatGPT image-generation chats for sprites, 128×128 portraits and backgrounds; GitHub Copilot handles implementation and publishing.
 - Tiled is **deferred**. Do not build a Tiled integration unless specifically requested again.
 - Milestone 0 and Milestone 1 menu slice are complete; starter inventory/equipment/ability selection from Milestone 2 is implemented.
-- Next systems: versioned local saves, XP/progression and rescue quests. No combat-damage behavior has been introduced; dinosaur tag remains harmless.
-- Future backlog also includes dog companion, more friends/dinos, outfits, weight room, music, map and collision polish. See V4_PLAN.md.
+- Coco rescue chapter is locally verified on `v4-rescue-chapter`; publication is next. All 18 gameplay/display/recreation/content/intro/chapter suites passed at 1280x900, 390x844 and 844x390 with no browser exceptions or failed asset requests. Final artwork-aligned gate routes and all 13 recruitment flows passed an additional targeted run in all three layouts; touch power fixtures passed six repeat runs.
+- New supplied Coco/Connor bedrooms connect through `Scene - Dino House Upstairs Hallway.png` and stairs to the half-scale Dino house. Chairs are passable, tables/beds stay solid, and the court-side pool gate/deck route is widened with water kept blocked.
+- Mark and Stephanie join the ten-person Rock Band intro, with original pixel instrument sprites; first walkers clear the benches and a four-second Coco-in-bed ending extends the opening to 36 seconds. Original quiet rock music remains confined to its six-second shot.
+- Four supplied dinosaur atlases replace procedural art. Barney/Rosie follow collision-checked breadcrumbs with distinct 90/140px lags, pause with menus and retain following across character/area changes. Outdoor pterodactyl flights offer an overview, exact no-damage return and small bounce; at least ten gameplay seconds after landing, including across portals, are required before another lift.
+- A visible next-friend objective and missing-member location hints are included. Saves were explicitly deferred by the user; no autosave, XP rewards, leveling or combat damage is introduced.
+- Restrained original Web Audio effects have a separate Help mute that cancels scheduled voices. Intro/chapter checks cover actual audio scheduling and cleanup; no physical-device listening is claimed.
+- Future backlog includes versioned saves, progression, dog bites, outfits, weight room and more content. No Tiled integration. See V4_PLAN.md.
 
 ## Immediate next action for Copilot
 1. Inspect current refs/worktree and read `v4/README.md`; preserve the user's existing `V4_PLAN.md` edits and inbox originals.
-2. Add versioned local save/progression without resetting established data accidentally.
-3. Continue integrating newly supplied art using `v4/tools/process-art.ps1`; current walking/swimming/dog/sword recipes are verified. Add rescue/recruited dog behavior separately.
-4. Continue publishing tested V4-only feature increments while preserving all earlier versions and public routes.
+2. Complete final rescue-chapter regression and publish only after all required checks pass; confirm remote refs before updating main.
+3. Verify the published chapter/intro and unchanged V1–V3 public routes, then record deployment evidence.
+4. Saves/progression are future increments, not part of the current update. Keep inbox originals intact and use `v4/tools/process-art.ps1` for derivatives.
 
 ## Known limitations / caution
 - Some pathing/collision accuracy and map image resolution need eventual improvement; not a blocker for starting RPG features.
-- V4 stats/inventory/equipment/abilities/discoveries currently last only for the play session; reloading starts fresh, including the sword pickup. This limitation is stated in the menu and help.
-- XP rewards, leveling, combat damage, accessory items and rescue/unlock quests are not implemented yet. Sword modifiers currently affect displayed RPG stats only.
-- Portrait generation continues externally. All supplied human walking sheets are now integrated; unused emotion/action poses stay in the untouched originals for later features. Dogs currently animate as ambient characters, not recruited/following/bite companions.
+- V4 recruitment/companions/stats/inventory/equipment/abilities/discoveries last only for the play session; reloading starts fresh as Coco. This limitation is stated in the menu and help. Saves are intentionally deferred for this update.
+- XP rewards, leveling, combat damage and accessory items are not implemented. Sword modifiers affect displayed RPG stats only; dog bites are still future work.
+- Portrait generation continues externally. Supplied human and dinosaur walking sheets are integrated; unused emotion/action poses stay in the untouched originals for later features.
 - No physical iPhone/Safari verification has been performed.
 
 ## Minimal future updates

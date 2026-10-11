@@ -38,6 +38,43 @@
  recreation.landmarks.push({id:'soccer',name:'Jeff & Ari · Soccer field',x:490,y:385,radius:65,text:'Jeff and Ari are passing a soccer ball on the lawn beside the playground. Open Party to play as either friend.'});
  recreation.landmarks.push({id:'dogs',name:'Barney & Rosie · Northeast street',x:1125,y:360,radius:80,text:'You found Barney and Rosie on the northeast street! They are sniffing around and happy to see you.'});
  recreation.hint='Jeff and Ari play soccer left of the playground. Find Barney and Rosie on the northeast street; Main Street leads back to the shops.';
- SCENES.house.landmarks.push({id:'sword',name:'Japanese sword · Pick up',x:780,y:615,radius:42,pickup:'sword'});
+ const house=SCENES.house;
+ house.width=724;house.height=543;house.indoor=true;house.bounds={left:0,top:0,right:724,bottom:543};
+ house.walkable=house.walkable.map(o=>({x:o.x/2,y:o.y/2,w:o.w/2,h:o.h/2}));
+ house.landmarks=house.landmarks.map(o=>({...o,x:o.x/2,y:o.y/2,radius:42}));
+ house.walkable.push(...[
+  [55,395,85,95],[42,190,70,235],[140,300,545,185],[375,140,255,77],
+  [375,200,38,200],[140,168,240,30],[140,115,148,77]
+ ].map(([x,y,w,h])=>({x,y,w,h})));
+ house.obstacles=[{x:245,y:308,w:65,h:78},{x:475,y:346,w:68,h:45}];
+ house.landmarks.push({id:'upstairs',name:'Upstairs · Bedrooms',x:90,y:420,radius:44,to:'upstairs',arrival:[495,900]});
+ house.landmarks.push({id:'sword',name:'Japanese sword · Pick up',x:390,y:307.5,radius:42,pickup:'sword'});
+ function interior(id,name,width,height,image,walkable,obstacles,landmarks,hint){
+  SCENES[id]={id,name,width,height,image,bounds:{left:0,top:0,right:width,bottom:height},spawn:{x:width/2,y:height*.8},
+   indoor:true,walkable:walkable.map(([x,y,w,h])=>({x,y,w,h})),obstacles:obstacles.map(([x,y,w,h])=>({x,y,w,h})),landmarks,hint};
+ }
+ interior('upstairs','Dino house · Upstairs',600,450,'assets/scenes/upstairs.png',[[211,195,189,157],[274,149,64,62],[240,340,114,110]],[],[
+  {id:'coco-room',name:"Coco's room",x:382,y:233,radius:45,to:'cocoRoom',arrival:[210,880]},
+  {id:'connor-room',name:"Connor's room · Next door",x:239,y:206,radius:45,to:'connorRoom',arrival:[180,810]},
+  {id:'downstairs',name:'Downstairs · Living room',x:297,y:412,radius:44,to:'house',arrival:[152,810]}
+ ],"Coco and Connor's rooms are next to each other. Stairs lead to the living floor.");
+ interior('cocoRoom',"Dino house · Coco's room",600,450,'assets/scenes/coco-room.png',
+  [[85,210,450,200],[165,140,130,80],[85,290,90,120]],[[340,150,180,165]],[
+   {id:'hall',name:"Hallway · Connor is next door",x:126,y:396,radius:42,to:'upstairs',arrival:[620,555]}
+  ],"Find Connor next door. Look at the gold door marker to enter the upstairs hallway.");
+ interior('connorRoom',"Dino house · Connor's room",600,450,'assets/scenes/connor-room.png',
+  [[85,220,465,190],[105,180,105,70]],[[220,165,165,145]],[
+   {id:'hall',name:'Upstairs hallway',x:108,y:365,radius:42,to:'upstairs',arrival:[430,555]}
+  ],'Talk to Connor, then head downstairs to find Peachy and Jason.');
+ interior('rockband','Rock Band house · Mark & Stephanie',576,324,'assets/scenes/rockband.png',
+  [[45,160,490,140],[80,135,370,35]],[[235,190,145,50]],[
+   {id:'outside',name:'Outside · West of the pool',x:70,y:200,radius:42,to:'recreation',arrival:[80,670]}
+  ],'Talk to Mark and Stephanie. The door leads to the street west of the pool.');
+ recreation.landmarks.push({id:'rockband-house',name:'Rock Band house · Enter ←',x:100,y:840,radius:48,to:'rockband',arrival:[180,650]});
+ recreation.walkable.push({x:280,y:650,w:45,h:90},{x:275,y:700,w:37,h:244},{x:1030,y:640,w:44,h:128});
+ recreation.walkable.push({x:513,y:640,w:47,h:96},{x:290,y:696,w:745,h:44});
+ recreation.landmarks.push({id:'pool-gate',name:'Pool gate · Open',x:533,y:690,radius:35,text:'The gate between the courts and pool is open! Walk down onto the deck. Chris is beside the lap pool; the water remains off limits.'});
+ recreation.obstacles.push({x:315,y:744,w:86,h:175},{x:846,y:720,w:103,h:107},{x:557,y:754,w:391,h:76},{x:948,y:812,w:25,h:63},{x:573,y:852,w:118,h:54});
+ recreation.hint+=' The Rock Band house entrance is on the street west of the pool.';
  SCENES.house.hint='Explore the Dino house. A Japanese sword lies in the central hallway. Look nearby to pick it up; the front door leads outside.';
 })();

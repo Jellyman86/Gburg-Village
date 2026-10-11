@@ -4,11 +4,12 @@ return async function checkRecreation(page,{screenshotPath}={}){
  page.on('pageerror',onError);
  await page.route(routePattern,async route=>{
   const response=await route.fetch(),source=await response.text();
-  await route.fulfill({response,body:source.replace('window.GAME={','window.GAME={test:{enterScene,position(x,y){player.x=x;player.y=y;resetInput();updateCamera();updateNearby();},},')});
+  await route.fulfill({response,body:source.replace('window.GAME={','window.GAME={test:{enterScene,position(x,y){player.x=x;player.y=y;resetInput();updateCamera();updateNearby();},},').replace('flight.update(dt,player,town,!unicorn.riding)','flight.update(dt,player,town,false)')});
  });
  try{
   await page.goto(page.url().split('/v4/')[0]+'/v4/');
   await page.waitForFunction(()=>GAME.ready&&V3_INTRO.state.ready);await page.locator('#intro-skip').click();
+  await page.locator('#continue').click();await page.evaluate(()=>V4_RPG.recruit('jason'));
   assert(await page.evaluate(()=>['ari','jeff','jaime','chris'].every(id=>CHARACTERS[id].walkRowOffset===4&&!CHARACTERS[id].spritePlaceholder)),'New walking art is used, not stand-ins');
   const assets=await page.evaluate(async()=>{
    const paths=['ari','jeff','jaime','chris'].map(id=>['assets/characters/'+id+'.png',256,512])
@@ -59,7 +60,7 @@ return async function checkRecreation(page,{screenshotPath}={}){
    await page.evaluate(()=>GAME.test.position(490,400));await page.screenshot({path:screenshotPath});
    await page.evaluate(position=>GAME.test.position(position.x,position.y),position);
   }
-  await page.locator('#open-menu').click();
+  await page.evaluate(()=>V4_RPG.recruit('ari'));await page.locator('#open-menu').click();
   const frozen=await page.evaluate(()=>GAME.state.recreation);
   await page.waitForTimeout(180);
   assert(JSON.stringify(frozen)===JSON.stringify(await page.evaluate(()=>GAME.state.recreation)),'Menu freezes soccer/dogs/swimmer/skater');
@@ -76,7 +77,7 @@ return async function checkRecreation(page,{screenshotPath}={}){
   assert((await page.locator('#dialog-body').textContent()).includes('Jeff and Ari'),'Soccer field interaction');
   await page.locator('#continue').click();
   await page.evaluate(()=>GAME.test.enterScene('house',[285,863]));
-  await page.evaluate(()=>GAME.test.position(780,615));await page.keyboard.press('e');
+  await page.evaluate(()=>GAME.test.position(390,307.5));await page.keyboard.press('e');
   assert(await page.evaluate(()=>V4_RPG.discoveries.sword&&V4_RPG.inventory.sword===1),'Sword picked up in actual Dino house');
   await page.locator('#continue').click();
   await page.evaluate(()=>GAME.test.enterScene('recreation',[490/1254*1000,385/1254*1000]));

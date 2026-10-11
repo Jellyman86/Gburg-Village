@@ -2,7 +2,7 @@
  'use strict';
  const $=id=>document.getElementById(id),dialog=$('rpg-menu'),rpg=window.V4_RPG;
  const sections=['Party','Stats','Items','Equip','Abilities'],tabs=[],roster={};
- let selected='jason',section='Party';
+ let selected='coco',section='Party';
  function element(tag,text,className){
   const node=document.createElement(tag);if(text!==undefined)node.textContent=text;
   if(className)node.className=className;return node;
@@ -24,7 +24,7 @@
   detail.setAttribute('aria-labelledby','tab-'+section.toLowerCase());detail.replaceChildren();
   Object.entries(roster).forEach(([id,button])=>{
    button.setAttribute('aria-pressed',String(id===selected));
-   button.querySelector('.roster-stats').textContent=`Lv ${rpg.members[id].level} · HP ${rpg.members[id].hp}/${rpg.stats(id).maxHP}`+(window.GAME?.state.player.id===id?' · Active':'');
+   button.querySelector('.roster-stats').textContent=!rpg.members[id].joined?'Not found yet':`Lv ${rpg.members[id].level} · HP ${rpg.members[id].hp}/${rpg.stats(id).maxHP}`+(window.GAME?.state.player.id===id?' · Active':'');
   });
   const summary=element('div',undefined,'member-summary'),heading=element('div');
   heading.append(element('h3',character.name),element('p',`Level ${stats.level} · HP ${stats.hp} / ${stats.maxHP}`),element('p',`XP ${stats.xp} / ${stats.nextLevelXP}`));
@@ -38,8 +38,10 @@
    }
    detail.append(table);
    const play=element('button','Play as '+character.name,'primary');play.type='button';play.id='menu-play';
+   play.disabled=!stats.joined||!!window.GAME?.busy;
    play.addEventListener('click',()=>{window.GAME.select(selected);close();});
-   detail.append(play,element('p','All roster members are playable. Exploration and dinosaur tag remain real-time outside this menu.','menu-note'));
+   detail.append(play,element('p',stats.joined?'This friend is in your party. Exploration stays real-time outside the menu.':'Find '+character.name+' to unlock them. '+(window.V4_STORY.locations[selected]?.hint||''),'menu-note'));
+   detail.append(element('p',window.V4_STORY.objective(),'menu-note'));
   }else if(section==='Items'){
    detail.append(element('h3','Shared inventory'));
    for(const item of Object.values(rpg.items)){
@@ -48,7 +50,7 @@
     row.append(element('strong',item.name+' × '+rpg.inventory[item.id]),element('p',item.description));
     if(item.heal){
      const use=action('Use on '+character.name,()=>rpg.useItem(selected,item.id));use.dataset.item=item.id;
-     use.disabled=rpg.inventory[item.id]===0||stats.hp===stats.maxHP;
+     use.disabled=!stats.joined||rpg.inventory[item.id]===0||stats.hp===stats.maxHP;
      row.append(use);
      if(stats.hp===stats.maxHP)row.append(element('small','Full HP: no hamburger needed. Dinosaur tag is still harmless.'));
     }
@@ -66,7 +68,7 @@
      row.append(element('p',item.description));
      if(item.image){const image=element('img');image.src=item.image;image.alt=item.name;image.width=64;image.height=64;image.className='item-icon';row.append(image);}
      const equip=action('Equip '+item.name+' ('+rpg.inventory[item.id]+' available)',()=>rpg.equip(selected,slot,item.id));
-     equip.dataset.equip=item.id;equip.disabled=rpg.inventory[item.id]===0;row.append(equip);
+     equip.dataset.equip=item.id;equip.disabled=!stats.joined||rpg.inventory[item.id]===0;row.append(equip);
     }
     if(slot==='accessory')row.append(element('p','Accessory slot reserved for future items.'));
     detail.append(row);
@@ -79,6 +81,7 @@
    const list=element('div',undefined,'ability-list');
    for(const [id,power] of [[null,{name:'None'}],...Object.entries(window.FAMILY_POWERS.definitions)]){
     const button=action(power.name,()=>rpg.equipAbility(selected,id));
+    button.disabled=!stats.joined||!!(rpg.members[id]&&!rpg.members[id].joined);
     if(id==='sword'&&stats.equipment.weapon!=='sword'){button.disabled=true;button.title='Requires equipped Japanese sword';}
     button.dataset.ability=id||'none';button.setAttribute('aria-pressed',String(equipped===id));list.append(button);
    }
@@ -117,7 +120,7 @@
  });
  $('roster-count').textContent=String(Object.keys(roster).length);
  function open(){
-  if(!window.GAME?.ready||window.V3_INTRO?.active||$('dialog').open||dialog.open)return;
+  if(!window.GAME?.ready||window.GAME?.state.joining||window.V3_INTRO?.active||$('dialog').open||dialog.open)return;
   selected=window.GAME.state.player.id;section='Party';$('menu-message').textContent='';
   document.dispatchEvent(new Event('v4-menu-open'));render();dialog.showModal();tabs[0].focus();
  }

@@ -8,6 +8,8 @@ return async function checkDisplay(page,{width=1280,height=900,touch=false}={}){
   await page.goto(page.url().split('/v4/')[0]+'/v4/');
   await page.waitForFunction(()=>GAME.ready&&V3_INTRO.state.ready);
   await page.locator('#intro-skip').click();
+  await page.locator('#continue').click();
+  await page.evaluate(()=>V4_RPG.recruit('connor'));
   assert(await page.locator('.preview-nav').count()===0,'Old version banner removed, not merely hidden');
   const normal=await page.locator('#game').boundingBox();
   await activateScreen();
