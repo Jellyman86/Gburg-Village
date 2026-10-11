@@ -16,11 +16,11 @@
  'Follow Main Street along the bottom toward Home, or the courts and pool.'),
  neighborhood:make('neighborhood','Main Street · Home',1254,1254,
  [[85,705,72,280],[88,925,817,54],[837,682,67,293],[199,255,590,48],[196,265,82,360],[218,610,555,61],[729,266,66,405],[112,649,140,70],[772,647,96,80],[682,229,55,63]],
- [['to-district','← Main Street shops',120,870,'district',895,966],['to-house','Dinosaur house · Enter',713,276,'house',285,863],['to-recreation','Courts & pool →',865,880,'recreation',80,870]],
+ [['to-district','← Main Street shops',120,870,'district',895,966],['to-house','Dinosaur house · Enter',713,276,'house',285,863],['to-recreation','Courts & pool →',865,880,'recreation',895,880]],
  'Follow the loop to the green dinosaur. Go at its front steps enters the house.'),
  recreation:make('recreation','Lakelands · Courts & Pool',1254,1254,
  [[48,125,61,848],[72,945,865,39],[888,570,42,405],[845,150,90,430],[105,125,775,44],[528,154,41,240],[207,344,657,43],[207,353,34,207],[230,515,578,45],[231,547,24,205],[405,545,30,208],[231,736,200,26],[614,543,26,44],[825,548,36,184],[224,905,660,69]],
- [['to-district','← Main Street shops',80,870,'district',535,966]],
+ [['to-district','← Main Street shops',80,870,'district',535,966],['to-neighborhood','Main Street · Home →',895,880,'neighborhood',865,880]],
  'Explore the paths beside the courts and pools. Main Street leads back to the shops.'),
  house:make('house','Home · Living floor',1448,1086,
  [[200,825,615,65],[198,548,88,330],[260,790,280,99],[505,524,58,328],[515,360,68,210],[510,291,130,90],[519,127,36,232],[215,330,303,35],[387,125,31,238],[162,299,257,61],[199,339,38,213],[540,826,420,49],[537,686,46,183]],
@@ -68,13 +68,13 @@
   ],'Talk to Connor, then head downstairs to find Peachy and Jason.');
  interior('rockband','Rock Band house · Mark & Stephanie',576,324,'assets/scenes/rockband.png',
   [[45,160,490,140],[80,135,370,35]],[[235,190,145,50]],[
-   {id:'outside',name:'Outside · West of the pool',x:70,y:200,radius:42,to:'recreation',arrival:[80,670]}
-  ],'Talk to Mark and Stephanie. The door leads to the street west of the pool.');
- recreation.landmarks.push({id:'rockband-house',name:'Rock Band house · Enter ←',x:100,y:840,radius:48,to:'rockband',arrival:[180,650]});
+   {id:'outside',name:'Outside · East of the pool',x:70,y:200,radius:42,to:'recreation',arrival:[895,670]}
+  ],'Talk to Mark and Stephanie. The door leads to the street on the right side of the recreation map.');
+ recreation.landmarks.push({id:'rockband-house',name:'Rock Band house · Enter →',x:1125,y:840,radius:48,to:'rockband',arrival:[180,650]});
  recreation.walkable.push({x:280,y:650,w:45,h:90},{x:275,y:700,w:37,h:244},{x:1030,y:640,w:44,h:128});
  recreation.walkable.push({x:513,y:640,w:47,h:96},{x:290,y:696,w:745,h:44});
  recreation.landmarks.push({id:'pool-gate',name:'Pool gate · Open',x:533,y:690,radius:35,text:'The gate between the courts and pool is open! Walk down onto the deck. Chris is beside the lap pool; the water remains off limits.'});
  recreation.obstacles.push({x:315,y:744,w:86,h:175},{x:846,y:720,w:103,h:107},{x:557,y:754,w:391,h:76},{x:948,y:812,w:25,h:63},{x:573,y:852,w:118,h:54});
- recreation.hint+=' The Rock Band house entrance is on the street west of the pool.';
+ recreation.hint+=' Rock Band is on the right/east street. Return to Main Street Home at the southeast diamond, or Main Street shops at the southwest diamond. Walk over a zone diamond or click/tap it to travel.';
  SCENES.house.hint='Explore the Dino house. A Japanese sword lies in the central hallway. Look nearby to pick it up; the front door leads outside.';
 })();

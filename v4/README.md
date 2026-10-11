@@ -6,7 +6,9 @@ Isolated feature preview based on V3. V1–V3 are unchanged; V4 reuses their art
 - Open **Menu**, press **M**, or press **Escape** to pause the world. Escape / Return closes the menu; held movement is cleared.
 - Begin as **Coco**, waking in her Dino house bedroom. Find Connor next door through the supplied upstairs hallway, then explore to find everyone. Talk with **E** / **Talk**; after their joining dialogue, friends walk into the hero and disappear into the party.
 - Party and Stats show all 14 humans, including missing friends with location hints. Only recruited friends appear in the toolbar and become playable. Select a rescued roster member, then **Play as** to switch without teleporting; there is no party-size cap. Borrowing a friend's ability also requires rescuing them.
-- An objective hint points to the next missing friend, but recruitment is not forced into that order. Friends are spread through existing locations; the Rock Band house entrance is on the recreation street **west of the pool**.
+- An objective hint points to the next missing friend, but recruitment is not forced into that order. Friends are spread through existing locations; the Rock Band house entrance is on the **right/east recreation street**.
+- Zone diamonds have visible destination labels. **Walk/run over a diamond or click/tap it** to travel; clicking a visible zone diamond does not require standing next to it. **E / Go** still works. Arrival diamonds are ignored by automatic travel until you move away, preventing bounce-back loops; movement is cleared during loading. The touch camera leaves extra space below the map so bottom exits stay above the joystick/buttons. Indoors are dinosaur-free.
+- Lakelands Courts & Pool connects directly to **Main Street Home at the southeast/right diamond** and **Main Street shops at the southwest/left diamond**. Home's courts exit returns to the matching east street; the Rock Band door returns beside its east-street entrance.
 - Keyboard: Tab / Shift+Tab moves focus, Enter activates buttons, arrow keys / Home / End navigate the section tabs. All actions also support mouse/touch.
 - Items: shared inventory starts with three Five Guys hamburgers (50 HP restoration, capped at max HP). Full-HP targets cannot waste items.
 - Equip: discover the Japanese sword in the Dino house's central hallway using **E**, the touch **Take** button or a nearby click. Collection grants one shared weapon per session, not a starter item. Weapon/accessory slots and Strength +4 remain; unequipping returns the sword to inventory.
@@ -71,7 +73,7 @@ Find Barney and Rosie on the northeast street with **E** / **Look**. They follow
 | Peachy / Jason | Dino house front door / kitchen hallway |
 | Jeff / Ari | Soccer lawn left of the playground |
 | Chris / Jaime | Lap-pool deck / west recreation street |
-| Mark / Stephanie | Rock Band house, entered west of the pool |
+| Mark / Stephanie | Rock Band house, entered from the right/east recreation street |
 | Adam | Neighborhood path |
 | Brie | Plaza restaurant path |
 | Vito | Main Street, near the courts route |
@@ -91,3 +93,5 @@ Checks cover deterministic stats, roster switching, pause/input resets, keyboard
 [Intro checks](tests/intro-checks.js) verify all fourteen portrait contracts, the exact ten-person cast, instrument/dance poses and direct room transition, bench-clear walking, Coco lying in bed, gameplay pause, reduced motion, real Web Audio scheduling and mute/skip/replay cleanup. Offline audio rendering checks the original riff's six-second waveform, RMS/peak limits and silent tail before the cut; these are not physical-device listening tests.
 
 [Chapter checks](tests/chapter-checks.js) begin with the real Coco-only state, verify every selection/equipment/ability rescue lock, and walk collision-respecting routes through all ten connected scenes to recruit all thirteen missing humans. They cover joining animations/disappearance, house scale/chairs/tables, the open pool gate and solid water, sword access, following-dog spacing/corners/menu/switch/portal behavior, natural flight approach and indoor/riding guards, overview/pause/exact safe return/bounce/20-second pickup cooldown, independent fly-away/ten-second disappearance, the exact 150px scare boundary and real keyboard/touch/projectile scares, and actual sound scheduling/mute cleanup. The same flow runs on desktop and emulated portrait/landscape touch.
+
+[Navigation checks](tests/navigation-checks.js) verify all 20 reciprocal zone transitions, every exit's collision reachability from every arrival, all indoor scenes without dinosaurs, actual keyboard/touch run-over travel and click/tap travel beyond the old interaction radius, arrival movement without bounce-back, right-side Rock Band placement and direct Home/shops returns. Run through the same test runner on desktop, phone portrait and landscape.

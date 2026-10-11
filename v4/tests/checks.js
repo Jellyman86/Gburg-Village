@@ -137,7 +137,8 @@ return async function checkV4(page,{width=1280,height=900,touch=false,cinema=fal
   const scenes={north:[499,954],plaza:[592.45,361.33],district:[568.18,966.85],neighborhood:[243.22,558.21],recreation:[542.26,366.83],house:[538.67,662.98]};
   for(const [scene,arrival] of Object.entries(scenes)){
    assert(await page.evaluate(async({scene,arrival})=>GAME.test.enterScene(scene,arrival),{scene,arrival}),'Scene loads: '+scene);
-   assert(await page.evaluate(()=>!GAME.blocked(GAME.state.player.x,GAME.state.player.y)&&!GAME.blocked(GAME.state.dinosaur.x,GAME.state.dinosaur.y)),'Scene spawns walkable: '+scene);
+   assert(await page.evaluate(()=>!GAME.blocked(GAME.state.player.x,GAME.state.player.y)&&(SCENES[GAME.state.scene].indoor?GAME.state.dinosaur===null:!GAME.blocked(GAME.state.dinosaur.x,GAME.state.dinosaur.y))),'Scene spawns walkable; indoor scenes have no dinosaurs: '+scene);
+   if(await page.evaluate(()=>SCENES[GAME.state.scene].indoor))continue;
    for(const id of touch?['coco']:ids){
     await page.evaluate(id=>GAME.test.place(id),id);await page.keyboard.press('x');
     await page.waitForFunction(()=>GAME.state.dinosaur.stunned>1.5,null,{timeout:2000}).catch(error=>{throw new Error('Power '+id+' failed in '+scene+': '+error.message);});

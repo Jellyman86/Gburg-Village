@@ -22,6 +22,7 @@ const server=http.createServer((req,res)=>{
   const contentCheck=new Function(fs.readFileSync(path.join(__dirname,'content-checks.js'),'utf8'))();
   const introCheck=new Function(fs.readFileSync(path.join(__dirname,'intro-checks.js'),'utf8'))();
   const chapterCheck=new Function(fs.readFileSync(path.join(__dirname,'chapter-checks.js'),'utf8'))();
+  const navigationCheck=new Function(fs.readFileSync(path.join(__dirname,'navigation-checks.js'),'utf8'))();
   for(const options of [
    {width:1280,height:900,cinema:true},
    {width:390,height:844,touch:true},
@@ -36,6 +37,7 @@ const server=http.createServer((req,res)=>{
     console.log(JSON.stringify(await contentCheck(page,{touch:options.touch,artifactDir:process.env.V4_ARTIFACT_DIR})));
     console.log(JSON.stringify(await introCheck(page,{...options,artifactDir:process.env.V4_ARTIFACT_DIR})));
     console.log(JSON.stringify(await chapterCheck(page,{...options,artifactDir:process.env.V4_ARTIFACT_DIR})));
+    console.log(JSON.stringify(await navigationCheck(page,{...options,artifactDir:process.env.V4_ARTIFACT_DIR})));
    }finally{await context.close();}
   }
  }finally{if(browser)await browser.close();await new Promise(resolve=>server.close(resolve));}
