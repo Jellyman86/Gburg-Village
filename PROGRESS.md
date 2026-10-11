@@ -12,7 +12,7 @@ Updated: 2026-10-11. This is a lightweight handoff, not a detailed activity log.
 - V4 feature preview: https://jellyman86.github.io/Gburg-Village/v4/
   - Published and live-browser verified on 2026-10-11. Feature commit: `a3a8ddb`.
   - Latest artwork/recreation deployment: `210c70b`, Pages deployment succeeded; live roster (14), eight portraits, Jeff's soccer power, new walking sheets and sword icon verified.
-  - Current content update: courts, discoveries and revised powers passed the full local suite; publication verification pending.
+  - Latest content deployment: `faf7fa9`, Pages deployment succeeded. Live browser verified corrected courts, short names, reachable one-time sword pickup/equip, northeast dog encounter and all four requested powers. V1–V3 public HTML remains unchanged.
   - Isolated V3-based game; FFVI-inspired Party/Stats/Items/Equip/Abilities menu, safe world pause, complete ten-character roster plus playable Jaime, Chris, Jeff and Ari (14 humans; stable IDs unchanged).
   - Level/HP/XP and deterministic core stats, shared hamburger inventory, discoverable Japanese sword (+4 strength), weapon/accessory slots, and one selectable power per character.
   - Eight supplied portraits processed to transparent 128x128 derivatives. Originals in `art inbox/` remain untouched and untracked; other portraits are clearly labeled placeholders.
