@@ -4,7 +4,8 @@
   jason:[120,14,10,10,12],connor:[90,10,15,14,8],coco:[80,8,12,13,9],
   peachy:[110,12,14,12,10],stephanie:[95,9,12,15,9],mark:[115,13,10,11,11],
   adam:[105,12,13,14,10],kate:[100,10,12,14,11],brie:[95,10,13,12,10],
-  vito:[105,12,15,12,9],jaime:[100,10,17,13,9],chris:[115,13,14,11,11]
+  vito:[105,12,15,12,9],jaime:[100,10,17,13,9],chris:[115,13,14,11,11],
+  jeff:[110,12,13,14,11],ari:[100,11,15,15,10]
  };
  const members=Object.fromEntries(Object.keys(window.CHARACTERS).map(id=>{
   const [maxHP,strength,quickness,dexterity,defense]=profiles[id];
@@ -12,7 +13,7 @@
    equipment:{weapon:null,accessory:null},ability:window.FAMILY_POWERS.definitions[id]?id:null}];
  }));
  const items=Object.freeze({
-  sword:Object.freeze({id:'sword',name:'Japanese sword',slot:'weapon',strength:4,description:'Placeholder weapon · Strength +4. Accurate artwork is coming later.'}),
+  sword:Object.freeze({id:'sword',name:'Japanese sword',slot:'weapon',strength:4,image:'assets/items/sword.png',description:'Strength +4. Equip to select Sword slash in Abilities.'}),
   hamburger:Object.freeze({id:'hamburger',name:'Five Guys hamburger',heal:50,description:'Restore up to 50 HP to the selected character.'})
  });
  const inventory={sword:1,hamburger:3};
@@ -31,6 +32,7 @@
   if(old)inventory[old]++;
   if(itemId)inventory[itemId]--;
   value.equipment[slot]=itemId;
+  if(value.ability==='sword'&&value.equipment.weapon!=='sword')value.ability=null;
   return {ok:true,message:itemId?items[itemId].name+' equipped.':'Item returned to inventory.'};
  }
  function useItem(id,itemId){
@@ -45,6 +47,7 @@
  function equipAbility(id,ability){
   const value=member(id);
   if(ability!==null&&!window.FAMILY_POWERS.definitions[ability])throw new Error('Unknown ability: '+ability);
+  if(ability==='sword'&&value.equipment.weapon!=='sword')return {ok:false,message:'Equip the Japanese sword before selecting Sword slash.'};
   value.ability=ability;
   return {ok:true,message:ability?window.FAMILY_POWERS.definitions[ability].name+' equipped.':'Special ability unequipped.'};
  }

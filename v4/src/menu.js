@@ -44,6 +44,7 @@
    detail.append(element('h3','Shared inventory'));
    for(const item of Object.values(rpg.items)){
     const row=element('div',undefined,'item-row');
+    if(item.image){const image=element('img');image.src=item.image;image.alt=item.name;image.width=64;image.height=64;image.className='item-icon';row.append(image);}
     row.append(element('strong',item.name+' × '+rpg.inventory[item.id]),element('p',item.description));
     if(item.heal){
      const use=action('Use on '+character.name,()=>rpg.useItem(selected,item.id));use.dataset.item=item.id;
@@ -63,6 +64,7 @@
     }
     for(const item of Object.values(rpg.items).filter(item=>item.slot===slot)){
      row.append(element('p',item.description));
+     if(item.image){const image=element('img');image.src=item.image;image.alt=item.name;image.width=64;image.height=64;image.className='item-icon';row.append(image);}
      const equip=action('Equip '+item.name+' ('+rpg.inventory[item.id]+' available)',()=>rpg.equip(selected,slot,item.id));
      equip.dataset.equip=item.id;equip.disabled=rpg.inventory[item.id]===0;row.append(equip);
     }
@@ -77,9 +79,10 @@
    const list=element('div',undefined,'ability-list');
    for(const [id,power] of [[null,{name:'None'}],...Object.entries(window.FAMILY_POWERS.definitions)]){
     const button=action(power.name,()=>rpg.equipAbility(selected,id));
+    if(id==='sword'&&stats.equipment.weapon!=='sword'){button.disabled=true;button.title='Requires equipped Japanese sword';}
     button.dataset.ability=id||'none';button.setAttribute('aria-pressed',String(equipped===id));list.append(button);
    }
-   detail.append(list,element('p','Relic-style slot: choose one of the original powers. X or the power button uses it in the world. Original characters start with their familiar power.','menu-note'));
+   detail.append(list,element('p','Relic-style slot: choose one power. X or the power button uses it in the world. Sword slash requires the sword; soccer shots are available too. Original characters retain their familiar power.','menu-note'));
   }
   detail.append(element('p','Preview progress lasts for this play session only; local saves are the next milestone.','menu-note'));
  }

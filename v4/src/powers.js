@@ -11,11 +11,16 @@
   adam:{name:'Tennis racket swing',label:'Swing',kind:'racket',cooldown:.4,duration:.42,range:63},
   kate:{name:'Turtle shot',label:'Turtle',kind:'turtle',cooldown:.6,duration:1.5,speed:230},
   brie:{name:'Salad toss',label:'Salad',kind:'salad',cooldown:.5,duration:1.4,speed:250},
-  vito:{name:'Flip',label:'Flip',kind:'flip',cooldown:.65,duration:.65,range:48}
+  vito:{name:'Flip',label:'Flip',kind:'flip',cooldown:.65,duration:.65,range:48},
+  jaime:{name:'Rollerblade spin',label:'Spin',kind:'flip',cooldown:.65,duration:.65,range:48},
+  chris:{name:'Pool splash',label:'Splash',kind:'wave',cooldown:.85,duration:1.25,range:125},
+  jeff:{name:'Soccer shot',label:'Shoot',kind:'soccer',cooldown:.6,duration:1.4,speed:265},
+  ari:{name:'Soccer volley',label:'Volley',kind:'soccer',cooldown:.6,duration:1.4,speed:265},
+  sword:{name:'Sword slash',label:'Slash',kind:'sword',cooldown:.6,duration:.45,range:55}
  }).map(([id,power])=>[id,Object.freeze(power)])));
  const directions={down:{x:0,y:1},left:{x:-1,y:0},right:{x:1,y:0},up:{x:0,y:-1}};
  const projectile=power=>!!power.speed;
- function create({blocked,getTarget,onHit,getActor=()=>null,getAbility=actor=>actor.id}){
+ function create({blocked,getTarget,onHit,getActor=()=>null,getAbility=actor=>actor.id,getSwordImage=()=>null}){
   const cooldowns=Object.fromEntries(Object.keys(definitions).map(id=>[id,0])),casts=[];
   let serial=0;
   function activate(actor){
@@ -41,7 +46,7 @@
     }else if(!projectile(power)&&target&&cast.age>=.08&&cast.age<=power.duration){
      const dx=target.x-cast.x,dy=(target.y-cast.y)/.58,distance=Math.hypot(dx,dy);
      const range=cast.kind==='wave'?Math.min(power.range,Math.max(0,cast.age-.08)*150):power.range;
-     const facing=cast.kind!=='punch'&&cast.kind!=='racket'||dx*cast.dx+dy*cast.dy>=distance*.25;
+     const facing=!['punch','racket','sword'].includes(cast.kind)||dx*cast.dx+dy*cast.dy>=distance*.25;
      if(distance<=range+16&&facing)hit(cast);
     }
    }
@@ -74,7 +79,13 @@
   function drawActor(ctx,actor){
    const cast=activeCast(actor);if(!cast)return;
    const power=definitions[cast.id],phase=cast.age/power.duration;ctx.save();
-   if(cast.kind==='wave'){
+   if(cast.kind==='sword'){
+    const image=getSwordImage();
+    if(image){
+     ctx.translate(Math.round(actor.x),Math.round(actor.y)-24);ctx.rotate(Math.atan2(cast.dy,cast.dx)+.65);
+     ctx.drawImage(image,Math.min(2,Math.floor(phase*3))*64,0,64,64,-8,-32,64,64);
+    }
+   }else if(cast.kind==='wave'){
     const drop=Math.floor(cast.age*24)%8;for(const side of [-1,1]){const x=Math.round(actor.x)+side*6,y=Math.round(actor.y)-29+drop;ctx.fillStyle='#c9f5ff';ctx.fillRect(x,y,2,3);ctx.fillStyle='#55bde9';ctx.fillRect(x,y+3,2,3);}
    }else if(cast.kind==='punch'){
     ctx.translate(Math.round(actor.x),Math.round(actor.y)-24);ctx.rotate(Math.atan2(cast.dy,cast.dx));const reach=10+Math.sin(phase*Math.PI)*18;
@@ -95,7 +106,10 @@
   }
   function drawProjectile(ctx,cast){
    const rect=(color,x,y,w,h)=>{ctx.fillStyle=color;ctx.fillRect(x,y,w,h);};
-   if(cast.kind==='football'){
+   if(cast.kind==='soccer'){
+    ctx.fillStyle='#eef2ea';ctx.beginPath();ctx.arc(0,0,6,0,Math.PI*2);ctx.fill();
+    ctx.strokeStyle='#253447';ctx.lineWidth=1;ctx.stroke();rect('#253447',-2,-2,4,4);rect('#253447',-5,-4,2,2);rect('#253447',3,3,2,2);
+   }else if(cast.kind==='football'){
     rect('#482b23',-6,-2,12,4);rect('#482b23',-4,-4,8,8);rect('#a96535',-4,-2,8,4);rect('#a96535',-2,-3,4,6);rect('#f8e8c9',-3,-1,6,1);for(const x of [-2,0,2])rect('#f8e8c9',x,-2,1,3);
    }else if(cast.kind==='plane'){
     ctx.fillStyle='#d1eafa';ctx.beginPath();ctx.moveTo(11,0);ctx.lineTo(-9,-8);ctx.lineTo(-5,0);ctx.lineTo(-9,8);ctx.closePath();ctx.fill();ctx.strokeStyle='#456c88';ctx.lineWidth=1;ctx.stroke();ctx.fillStyle='#fff8e8';ctx.beginPath();ctx.moveTo(11,0);ctx.lineTo(-8,-7);ctx.lineTo(-2,0);ctx.closePath();ctx.fill();

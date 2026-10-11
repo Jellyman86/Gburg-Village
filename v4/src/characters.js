@@ -4,9 +4,11 @@ window.CHARACTERS=Object.fromEntries(['jason','connor','coco','peachy','stephani
  frameWidth:64,frameHeight:64,frames:4,rows:{down:0,left:1,right:2,up:3},
  foot:{x:32,y:60},speed:120,runSpeed:205,walkFPS:8,runFPS:12
 }]));
-for(const [id,name,standIn] of [['jaime','Jaime','vito'],['chris','Chris Tappis','adam']]){
- window.CHARACTERS[id]={...window.CHARACTERS[standIn],id,name,spritePlaceholder:true};
+for(const [id,name] of [['jaime','Jaime'],['chris','Chris Tappis'],['jeff','Jeff Bigs'],['ari','Ari']]){
+ window.CHARACTERS[id]={...window.CHARACTERS.jason,id,name,sheet:`assets/characters/${id}.png`,
+  rows:{down:0,left:1,right:2,up:3},walkRowOffset:4};
 }
-for(const id of ['jason','connor','coco','peachy','jaime','chris']){
+window.CHARACTERS.jaime.speed=155;window.CHARACTERS.jaime.runSpeed=245;
+for(const id of ['jason','connor','coco','peachy','jaime','chris','jeff','ari']){
  window.CHARACTERS[id].portrait=`assets/portraits/${id}.png`;
 }

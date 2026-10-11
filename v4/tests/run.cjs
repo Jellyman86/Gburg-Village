@@ -18,6 +18,7 @@ const server=http.createServer((req,res)=>{
   browser=await chromium.launch({headless:true,...(process.env.BROWSER_PATH?{executablePath:process.env.BROWSER_PATH}:{})});
   const check=new Function(fs.readFileSync(path.join(__dirname,'checks.js'),'utf8'))();
   const displayCheck=new Function(fs.readFileSync(path.join(__dirname,'display-checks.js'),'utf8'))();
+  const recreationCheck=new Function(fs.readFileSync(path.join(__dirname,'recreation-checks.js'),'utf8'))();
   for(const options of [
    {width:1280,height:900,cinema:true},
    {width:390,height:844,touch:true},
@@ -28,6 +29,7 @@ const server=http.createServer((req,res)=>{
     const page=await context.newPage();await page.goto(`http://127.0.0.1:${server.address().port}/v4/`);
     console.log(JSON.stringify(await check(page,options)));
     console.log(JSON.stringify(await displayCheck(page,options)));
+    console.log(JSON.stringify(await recreationCheck(page,{screenshotPath:process.env.V4_ARTIFACT_DIR?path.join(process.env.V4_ARTIFACT_DIR,`recreation-${options.width}x${options.height}.png`):undefined})));
    }finally{await context.close();}
   }
  }finally{if(browser)await browser.close();await new Promise(resolve=>server.close(resolve));}

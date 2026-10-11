@@ -32,6 +32,7 @@
 #rpg-menu .primary{min-height:44px}
 #rpg-menu .menu-note{margin-top:16px;font-size:12px}
 .item-row{padding:12px 0;border-top:1px solid #7184ae}
+.item-icon{display:block;image-rendering:pixelated;object-fit:contain;margin:6px 0}
 .item-row button,.ability-list button{min-height:44px;padding:8px 12px;background:#253d7d;border:1px solid #97a6cb;border-radius:3px}
 .item-row small{display:block;font:11px/1.5 system-ui;color:#d9e5ff;margin-top:6px}
 .ability-list{display:grid;grid-template-columns:1fr 1fr;gap:8px}

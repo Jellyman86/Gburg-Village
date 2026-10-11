@@ -30,7 +30,7 @@ return async function checkV4(page,{width=1280,height=900,touch=false,cinema=fal
    results.push('Full opening movie completes and releases game');
   }else await page.locator('#intro-skip').click();
   const ids=await page.evaluate(()=>Object.keys(CHARACTERS));
-  assert(ids.length===12,'Complete ten existing plus two new characters');
+  assert(ids.length===14,'Complete ten existing plus four new characters');
   await page.locator('#open-menu').click();
   assert(await page.locator('#menu-roster button').count()===ids.length,'Full roster in menu');
   const origin=await page.evaluate(()=>GAME.state.player);
@@ -69,7 +69,7 @@ return async function checkV4(page,{width=1280,height=900,touch=false,cinema=fal
   const stopped=await page.evaluate(()=>GAME.state.player);
   await page.waitForTimeout(100);
   assert(await page.evaluate(actor=>GAME.state.player.x===actor.x&&GAME.state.player.y===actor.y,stopped),'No stuck movement after close');
-  results.push('12-character roster, portraits, safe switching, pause, keyboard tabs/focus/input reset');
+  results.push('14-character roster, portraits, safe switching, pause, keyboard tabs/focus/input reset');
 
   const model=await page.evaluate(()=>{
    const r=V4_RPG,check=(value,message)=>{if(!value)throw new Error(message);};
@@ -127,12 +127,12 @@ return async function checkV4(page,{width=1280,height=900,touch=false,cinema=fal
   assert(await page.evaluate(()=>GAME.state.powers.casts.some(c=>c.owner==='chris'&&c.id==='coco')),'Equipped ability wired to real game');
   results.push('Deterministic stats, equipment/count conservation, healing boundaries, equipped ability owner/cooldown and live UI');
 
-  await page.evaluate(()=>{for(const id of Object.keys(FAMILY_POWERS.definitions))V4_RPG.equipAbility(id,id);});
+  await page.evaluate(()=>{for(const id of Object.keys(CHARACTERS))V4_RPG.equipAbility(id,id);});
   const scenes={north:[499,954],plaza:[592.45,361.33],district:[568.18,966.85],neighborhood:[243.22,558.21],recreation:[542.26,366.83],house:[538.67,662.98]};
   for(const [scene,arrival] of Object.entries(scenes)){
    assert(await page.evaluate(async({scene,arrival})=>GAME.test.enterScene(scene,arrival),{scene,arrival}),'Scene loads: '+scene);
    assert(await page.evaluate(()=>!GAME.blocked(GAME.state.player.x,GAME.state.player.y)&&!GAME.blocked(GAME.state.dinosaur.x,GAME.state.dinosaur.y)),'Scene spawns walkable: '+scene);
-   for(const id of touch?['coco']:Object.keys(await page.evaluate(()=>FAMILY_POWERS.definitions))){
+   for(const id of touch?['coco']:ids){
     await page.evaluate(id=>GAME.test.place(id),id);await page.keyboard.press('x');
     await page.waitForFunction(()=>GAME.state.dinosaur.stunned>1.5,null,{timeout:2000});
    }

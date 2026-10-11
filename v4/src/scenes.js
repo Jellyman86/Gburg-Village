@@ -32,4 +32,9 @@
  north.blockedEllipses=[{x:499/1000*1536,y:203/1000*1536,rx:96/1000*1536,ry:67/1000*1536}];
  north.overlay={image:'../v3/assets/meteor-crater.png',x:587,y:200,w:360,h:205,source:[130,180,1300,670]};
  north.landmarks.push({id:'meteor',name:'The meteor crater',x:767,y:437,radius:55,text:'It landed right in the roundabout! Something prehistoric crawled out. Keep to the road around the broken island.'});
+ const recreation=SCENES.recreation;
+ recreation.walkable.push({x:320,y:280,w:310,h:125},{x:615,y:290,w:80,h:87});
+ recreation.obstacles.push({x:409,y:414,w:44,h:25},{x:647,y:320,w:21,h:63});
+ recreation.landmarks.push({id:'soccer',name:'Jeff & Ari · Soccer field',x:490,y:385,radius:65,text:'Jeff Bigs and Ari are passing a soccer ball on the lawn beside the playground. Barney and Rosie are sniffing around nearby! Open Party to play as either friend.'});
+ recreation.hint='Jeff and Ari are playing soccer on the bench-lined lawn left of the playground. Follow the north path; Main Street leads back to the shops.';
 })();

@@ -6,7 +6,8 @@
  const keys=new Set(),sheets={},portraits={},buttons={},camera={x:0,y:0};
  const player={...town.spawn,id:'jason',direction:'down',frame:1,moving:false,running:false,clock:0};
  const visitorSpawns={stephanie:{x:304,y:375},mark:{x:906,y:375},adam:{x:568,y:555},kate:{x:768,y:562},brie:{x:465,y:825},vito:{x:1167,y:780}};
- const family=ids.map((id,i)=>({id,...(visitorSpawns[id]||{x:town.spawn.x+(i-1.5)*42,y:town.spawn.y+34}),direction:'down',frame:1}));
+ const family=ids.filter(id=>!['jeff','ari','chris','jaime'].includes(id)).map((id,i)=>({id,...(visitorSpawns[id]||{x:town.spawn.x+(i-1.5)*42,y:town.spawn.y+34}),direction:'down',frame:1}));
+ const recreation=window.V4_RECREATION.create(),extraSheets={};
  let loaded=false,previous=0,toastTimer=0,nearest=null,joyId=null,runId=null,joy={x:0,y:0},touchRun=false,background;
  const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
  function updateCamera(){camera.x=Math.round(clamp(player.x-canvas.width/2,0,Math.max(0,town.width-canvas.width)));camera.y=Math.round(clamp(player.y-canvas.height*.57,0,Math.max(0,town.height-canvas.height)));}
@@ -48,7 +49,7 @@
  const dinoHomes={north:{x:923,y:408},plaza:{x:910,y:370},district:{x:1850,y:1050},neighborhood:{x:305,y:700},recreation:{x:680,y:460},house:{x:780,y:720}};
  const dinosaurs=Object.fromEntries(Object.entries(dinoHomes).map(([id,h])=>[id,{...h,facing:1,clock:0,stars:0,mode:'wander',timer:7,target:null,turnTimer:0,moving:false,stunned:0}]));
  let dinoHome=dinoHomes.plaza,dino=dinosaurs.plaza;
- let powers; function makePowers(){return window.FAMILY_POWERS.create({blocked,getTarget:()=>dino,getActor:()=>player,getAbility:actor=>window.V4_RPG.members[actor.id].ability,onHit:()=>{
+ let powers; function makePowers(){return window.FAMILY_POWERS.create({blocked,getTarget:()=>dino,getActor:()=>player,getAbility:actor=>window.V4_RPG.members[actor.id].ability,getSwordImage:()=>extraSheets.sword,onHit:()=>{
   dino.stunned=2;dino.mode='wander';dino.timer=6;dino.target=null;dino.moving=false;toast('Dazed for 2 seconds! Make your getaway.');
  }});} powers=makePowers();
  const powerButton=$('power'),powerLabel=$('power-label'),powerHint=$('power-hint');
@@ -62,6 +63,9 @@
  }
  function activatePower(){
   if(!loaded||window.V3_INTRO?.active||$('dialog').open||window.V4_MENU.active)return false;
+  if(window.V4_RPG.members[player.id].ability==='sword'&&window.V4_RPG.members[player.id].equipment.weapon!=='sword'){
+   toast('Equip the Japanese sword to use Sword slash.');return false;
+  }
   const used=powers.activate({...player,powerHeight:unicorn.riding?20:0});
   if(used){toast(window.FAMILY_POWERS.definitions[window.V4_RPG.members[player.id].ability].name+'!');paintPower();}
   return used;
@@ -249,6 +253,7 @@
   player.moving=Math.hypot(player.x-oldX,player.y-oldY)>.01;
   if(player.moving){player.clock+=dt*(player.running?c.runFPS:c.walkFPS);player.frame=Math.floor(player.clock)%4;}else{player.clock=0;player.frame=1;}
   unicorn.update(dt,player);powers.update(dt);updateDino(dt);if(town.id==='plaza')updateSquirrel(dt);paintPower();
+  if(town.id==='recreation')recreation.update(dt,player);
   updateCamera();updateNearby();$('status').textContent=c.name+' · '+(unicorn.riding?(player.moving&&player.running?'Galloping':'Riding a unicorn'):player.moving?(player.running?'Running':'Walking'):'Taking it all in');$('area-label').textContent=town.id!=='plaza'?town.name:player.y<401?'CENTER POINT WAY':player.y<785?'THE GREEN':'THE PLAZA';
  }
  function sprite(actor,active){
@@ -258,7 +263,8 @@
   const pose=active?powers.pose(actor):{lift:0,rotation:0},saddle=active&&unicorn.riding?20:0;
   if(saddle)unicorn.draw(ctx,actor);
   ctx.save();ctx.translate(x,y-30-saddle-pose.lift);ctx.rotate(pose.rotation);
-  ctx.drawImage(sheets[actor.id],(pose.frame??actor.frame)*64,c.rows[pose.direction||actor.direction]*64,64,64,-c.foot.x,30-c.foot.y,64,64);ctx.restore();
+  const row=c.rows[pose.direction||actor.direction]+(actor.moving?(c.walkRowOffset||0):0);
+  ctx.drawImage(sheets[actor.id],(pose.frame??actor.frame)*64,row*64,64,64,-c.foot.x,30-c.foot.y,64,64);ctx.restore();
   if(active)powers.drawActor(ctx,{...actor,y:actor.y-saddle});
  }
  function draw(){
@@ -267,7 +273,16 @@
   town.landmarks.forEach(l=>{ctx.fillStyle=nearest===l?'#ffeda6':'#eedba2';ctx.strokeStyle='#705b35';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(l.x,l.y-21);ctx.lineTo(l.x+5,l.y-15);ctx.lineTo(l.x,l.y-9);ctx.lineTo(l.x-5,l.y-15);ctx.closePath();ctx.fill();ctx.stroke();});
   powers.drawGround(ctx);
   const unicornActor=unicorn.state;
-  (town.id==='plaza'?family.filter(a=>a.id!==player.id).concat(squirrel.active?squirrel:[],unicorn.riding?[]:unicornActor):[]).concat(dino,player).sort((a,b)=>a.y-b.y).forEach(a=>a===dino?drawDino():a===squirrel?drawSquirrel():a===unicornActor?unicorn.draw(ctx):sprite(a,a===player));powers.drawAir(ctx);ctx.restore();
+  const ambient=town.id==='plaza'?family.filter(a=>a.id!==player.id).concat(squirrel.active?squirrel:[],unicorn.riding?[]:unicornActor):town.id==='recreation'?recreation.actors(player):[];
+  ambient.concat(dino,player).sort((a,b)=>a.y-b.y).forEach(a=>{
+   if(a===dino)drawDino();else if(a===squirrel)drawSquirrel();else if(a===unicornActor)unicorn.draw(ctx);
+   else if(recreation.dogData[a.id]||a.swimming){
+    const rows={down:0,left:1,right:2,up:3},row=a.swimming?({down:0,up:1,left:2,right:3})[a.direction]:rows[a.direction]+4;
+    ctx.drawImage(a.swimming?extraSheets.swim:extraSheets[a.id],a.frame*64,row*64,64,64,Math.round(a.x)-32,Math.round(a.y)-60,64,64);
+   }else sprite(a,a===player);
+  });
+  if(town.id==='recreation')recreation.drawBall(ctx);
+  powers.drawAir(ctx);ctx.restore();
  }
  function frame(time){const dt=previous?Math.min((time-previous)/1000,.05):0;previous=time;update(dt);draw();requestAnimationFrame(frame);}
  async function enterScene(id,arrival){
@@ -290,13 +305,15 @@
  }
  $('return-plaza').addEventListener('click',()=>{if($('dialog').open)$('dialog').close();enterScene('plaza',[50,84.47265625].map(v=>v*10));});
  function loadImage(path){return new Promise((resolve,reject)=>{const img=new Image();img.onload=()=>resolve(img);img.onerror=()=>reject(new Error('Could not load '+path));img.src=window.EMBEDDED_ASSETS?.[path]||path;});}
- Promise.all([loadImage(town.image).then(img=>{background=img;sceneImages.plaza=img;}),...ids.map(id=>loadImage(characters[id].sheet).then(img=>{sheets[id]=img;}))]).then(()=>{
+ Promise.all([loadImage(town.image).then(img=>{background=img;sceneImages.plaza=img;}),...ids.map(id=>loadImage(characters[id].sheet).then(img=>{sheets[id]=img;})),
+  ...Object.entries({...Object.fromEntries(Object.entries(recreation.dogData).map(([id,data])=>[id,data.sheet])),swim:'assets/characters/chris-swim.png',sword:'assets/items/sword-slash.png'}).map(([id,path])=>loadImage(path).then(img=>{extraSheets[id]=img;}))
+ ]).then(()=>{
   ids.forEach(id=>{const p=portraits[id].getContext('2d');p.imageSmoothingEnabled=false;p.drawImage(sheets[id],64,0,64,64,-8,-5,64,64);});
   loaded=true;$('loading').hidden=true;resize();updateNearby();paintPower();canvas.focus({preventScroll:true});
  }).catch(error=>{$('loading').innerHTML='';const message=document.createElement('b');message.textContent=error.message;const help=document.createElement('span');help.textContent='Extract the full ZIP, then open index.html or the standalone play.html.';$('loading').append(message,help);console.error(error);});
  resize();requestAnimationFrame(frame);
  // Read-only diagnostic state for repeatable browser checks.
- window.GAME={get ready(){return loaded&&!changing;},get state(){return{scene:town.id,player:{...player},actors:family.map(actor=>({...actor})),powers:powers.state,unicorn:unicorn.state,dinosaur:{...dino},squirrel:{...squirrel},camera:{...camera},nearest:nearest?.id||null,viewport:{width:canvas.width,height:canvas.height},dialog:$('dialog').open,menu:window.V4_MENU.active,input:{joy:{...joy},touchRun,keys:[...keys]}};},select,blocked};
+ window.GAME={get ready(){return loaded&&!changing;},get state(){return{scene:town.id,player:{...player},actors:family.map(actor=>({...actor})),recreation:recreation.state,powers:powers.state,unicorn:unicorn.state,dinosaur:{...dino},squirrel:{...squirrel},camera:{...camera},nearest:nearest?.id||null,viewport:{width:canvas.width,height:canvas.height},dialog:$('dialog').open,menu:window.V4_MENU.active,input:{joy:{...joy},touchRun,keys:[...keys]}};},select,blocked};
 })();
 
 
