@@ -1,30 +1,35 @@
-# GitHub Copilot instructions — Gburg Village
+# Copilot instructions — Gburg Village
 
-Read `V4_PLAN.md` and `PROGRESS.md` before V4 work. User is building a family-friendly, top-down HTML Canvas pixel-art adventure and wants low-cost, incremental iteration and a Tiled editing workflow.
+Read `V4_PLAN.md` and `PROGRESS.md` before coding; inspect latest repo state, don't rely solely on prior chat summaries.
 
-## Safety and scope
-- Do not edit, delete, reorganize, or deploy root V1, `v2/`, or `v3/` files for V4 requests. Preserve their playable URLs.
-- V4 is not yet built. Use a new `work/v4-tiled` branch and `v4/` sandbox after verifying a fresh base; do not overwrite other AI work.
-- Do not modify GitHub Pages settings, fast-forward main, or publish V4 without explicit user approval.
-- Inspect existing file paths and relevant instructions first; don't assume V3 geometry or URLs are immutable.
-- Prefer a minimal patch over refactoring a large working game. Check diffs for unrequested changes.
+Project: family/neighborhood top-down HTML Canvas adventure, Final Fantasy IV–VI-inspired presentation, Zelda-style REAL-TIME exploration/combat. Every created human character should be playable eventually. The user generates pixel art/portraits separately; Copilot handles the coding and integration.
 
-## First requested job
-Implement only milestone 0 and 1 of `V4_PLAN.md`: a playable isolated V4 and editable Market Square collision rectangles from Tiled `.tmj` JSON. Preserve all existing features; test each stage. The user wants to move collision rectangles in Tiled and see them reflected in V4 with no subsequent code edits.
+## Current priority: FEATURES, not Tiled
+- Build V4 RPG menu, roster, stats, equipment, items, relic-style equipped abilities and save foundation before optional map-editing tooling.
+- **Do not implement Tiled** or a new tilemap pipeline unless the user explicitly requests it in the future. Pathing/collision bugs can be fixed directly in existing JS, with tests.
+- Use 128x128 transparent portrait PNGs when supplied; meanwhile use obvious placeholders and stable character IDs.
+- Menus should work on desktop, keyboard and iPhone touch; preserve real-time gameplay outside the menu.
 
-## Technical guidance
-- Runtime is browser HTML/JS/Canvas, not a game-engine project; preserve keyboard, touch and mobile support.
-- V3 plaza: `v3/src/map.js`, `window.TOWN`, 1536x1024, `obstacles` rectangles and bounds.
-- Other V3 scenes: `v3/src/scenes.js`, using walkable rectangles normalized to image dimensions, portals/arrival positions; north also includes ellipse geometry and meteor overlay.
-- Existing scene images are reused. Match pixel/world dimensions exactly; never confuse 0–1000 normalized values with pixel positions.
-- First slice imports only rectangle objects from a named `Collision` object layer; retain compatibility for all unmigrated scenes. Do not silently lose ellipses, walkable allowlists or landmarks.
-- Use documented async preload if needed so collision data is ready before play. Show errors/fallback visibly when map loading fails.
-- Keep map files small and readable; preserve relative URLs across GitHub Pages subpaths. Never embed image binary/base64 into code.
+## Safety
+- V1 root, `v2/`, and `v3/` are preserved working versions. Do not edit, delete, rename or publish them while implementing V4.
+- Start from a fresh baseline in a dedicated `work/v4-features` branch and isolated `v4/`. Do not overwrite concurrent AI changes; verify current refs first.
+- Do not publish or merge V4 without explicit user permission. Keep old public versions accessible.
+- Avoid giant monolithic rewrites, mass asset copies, and large code/base64 dumps in chat. Prefer small testable commits.
+- Track actual outcomes/limitations in progress log; don't claim physical iPhone verification from desktop emulation.
 
-## Testing and handoff
-- Verify a baseline V4 before collision changes.
-- Confirm pixel-accurate collision imports, movement boundaries, existing intro/sprites/dinos/scene navigation, and touch/mobile viewport controls.
-- Include a small debug collision overlay and a test for deliberately moving one object in Tiled and refreshing V4.
-- Use small commits and update `PROGRESS.md` or a V4-specific checkpoint log with evidence (not claims of unperformed tests).
-- Report concise summaries (changed files, commit SHAs, verified behavior, unresolved blockers, next step). Never dump large source files or asset data into chat.
-- Request user approval before any publication.
+## First coding task
+Milestone 0 + first slice of Milestone 1 in `V4_PLAN.md`: set up playable isolated V4 and build an FFVI-style Party/Stats menu supporting the FULL playable roster, levels, HP, XP, strength, quickness, dexterity, defense, portrait placeholder slots, safe movement pause and responsive controls. Use separate character data and menu state/UI where practical. Do not implement the whole equipment/quest system in one enormous patch.
+
+## Follow-up increments (after first slice tested)
+1. Inventory / equipment slots; Japanese sword placeholder and hamburger healing item.
+2. Relic-style selection of one equipped ability per character while retaining existing powers.
+3. Persistence, progression and friend rescue/unlock logic.
+4. New characters, locations, audio and polish once assets arrive.
+
+## Existing implementation pointers
+- `v3/src/game.js` core Canvas loop/movement.
+- `v3/src/map.js` plaza map data; `v3/src/scenes.js` scene images, routes, collisions.
+- Existing asset paths may reference `v2/`, root or V3. Preserve relative URLs and existing gameplay mechanics during V4 duplication.
+- Test intro, dinosaurs, powers, portals, keyboard and touch after changes.
+
+Report concise diffs, commit SHAs, verification evidence and next action. Do not dump source files into chat.
