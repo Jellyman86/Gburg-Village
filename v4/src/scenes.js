@@ -12,16 +12,16 @@
  'Head north to the meteor crater. Follow the road around it, or explore the café alley to the east.'),
  district:make('district','Shops & Main Street',3256,1086,
  [[20,246,620,75],[415,275,38,725],[25,615,450,65],[20,945,960,48],[625,0,25,375],[430,313,550,63],[950,305,35,665],[640,315,30,675],[430,665,540,65]],
- [['to-plaza','← Family meeting spot',435,630,'plaza',1415/1536*1000,780/1024*1000],['to-neighborhood','Main Street → Home',895,966,'neighborhood',120,870],['to-recreation','Walk to the courts & pool',535,966,'recreation',80,870]],
- 'Follow Main Street along the bottom toward Home, or the courts and pool.'),
+ [['to-plaza','← Family meeting spot',435,630,'plaza',1415/1536*1000,780/1024*1000],['to-neighborhood','Main Street → Home',895,966,'neighborhood',120,870]],
+ 'Follow Main Street east toward Home, or west to Market Square.'),
  neighborhood:make('neighborhood','Main Street · Home',1254,1254,
  [[85,705,72,280],[88,925,817,54],[837,682,67,293],[199,255,590,48],[196,265,82,360],[218,610,555,61],[729,266,66,405],[112,649,140,70],[772,647,96,80],[682,229,55,63]],
  [['to-district','← Main Street shops',120,870,'district',895,966],['to-house','Dinosaur house · Enter',713,276,'house',120,900],['to-recreation','Courts & pool →',865,880,'recreation',895,880]],
  'Follow the loop to the green dinosaur. Go at its front steps enters the house.'),
  recreation:make('recreation','Lakelands · Courts & Pool',1254,1254,
  [[48,125,61,848],[72,945,865,39],[888,570,42,405],[845,150,90,430],[105,125,775,44],[528,154,41,240],[207,344,657,43],[207,353,34,207],[230,515,578,45],[231,547,24,205],[405,545,30,208],[231,736,200,26],[614,543,26,44],[825,548,36,184],[224,905,660,69]],
- [['to-district','← Main Street shops',80,870,'district',535,966],['to-neighborhood','Main Street · Home →',895,880,'neighborhood',865,880]],
- 'Explore the paths beside the courts and pools. Main Street leads back to the shops.'),
+ [['to-neighborhood','↑ Main Street · Home',80,148,'neighborhood',865,890]],
+ 'Explore the courts, pool and playground. The top-left street returns to Home; reach shops through Home.'),
  house:make('house','Home · Living floor',1448,1086,
  [[200,825,615,65],[198,548,88,330],[260,790,280,99],[505,524,58,328],[515,360,68,210],[510,291,130,90],[519,127,36,232],[215,330,303,35],[387,125,31,238],[162,299,257,61],[199,339,38,213],[540,826,420,49],[537,686,46,183]],
  [['to-neighborhood','Front door · Go outside',120,940,'neighborhood',713,276]],
@@ -37,7 +37,7 @@
  recreation.obstacles.push({x:409,y:414,w:44,h:25},{x:647,y:320,w:21,h:63});
  recreation.landmarks.push({id:'soccer',name:'Jeff & Ari · Soccer field',x:490,y:385,radius:65,text:'Jeff and Ari are passing a soccer ball on the lawn beside the playground. Open Party to play as either friend.'});
  recreation.landmarks.push({id:'dogs',name:'Barney & Rosie · Northeast street',x:1125,y:360,radius:80,text:'You found Barney and Rosie on the northeast street! They are sniffing around and happy to see you.'});
- recreation.hint='Jeff and Ari play soccer left of the playground. Find Barney and Rosie on the northeast street; Main Street leads back to the shops.';
+ recreation.hint='Jeff and Ari play soccer left of the playground. Find Barney and Rosie on the northeast street; the top-left street returns to Home.';
  const house=SCENES.house;
  house.width=724;house.height=543;house.indoor=true;house.bounds={left:0,top:0,right:724,bottom:543};
  house.walkable=house.walkable.map(o=>({x:o.x/2,y:o.y/2,w:o.w/2,h:o.h/2}));
@@ -75,7 +75,7 @@
  recreation.walkable.push({x:513,y:640,w:47,h:96},{x:290,y:696,w:745,h:44});
  recreation.landmarks.push({id:'pool-gate',name:'Pool gate · Open',x:533,y:690,radius:35,text:'The gate between the courts and pool is open! Walk down onto the deck. Chris is beside the lap pool; the water remains off limits.'});
  recreation.obstacles.push({x:315,y:744,w:86,h:175},{x:846,y:720,w:103,h:107},{x:557,y:754,w:391,h:76},{x:948,y:812,w:25,h:63},{x:573,y:852,w:118,h:54});
- recreation.hint+=' Rock Band is on the right/east street. Return to Main Street Home at the southeast diamond, or Main Street shops at the southwest diamond. Walk over a zone diamond or click/tap it to travel.';
+ recreation.hint+=' Rock Band is on the right/east street. Walk over a door diamond or click/tap it to travel.';
  SCENES.house.hint='Explore the Dino house. A Japanese sword lies in the central hallway. Look nearby to pick it up; the front door leads outside.';
  function road(scene,id,zones,arrival,arrivalDirection,position){
   const portal=SCENES[scene].landmarks.find(l=>l.id===id);
@@ -89,17 +89,12 @@
  district.viewBounds={...district.bounds};
  district.obstacles.push({x:2370,y:798,w:886,h:288});
  road('district','to-plaza',[{x:1408,y:267,w:32,h:811,direction:'left'}],[895,762],'left');
- road('district','to-neighborhood',[
-  {x:2330,y:1020,w:40,h:58,direction:'right'},
-  {x:2350,y:770,w:858,h:28,direction:'down'}
- ],[120,905],'up',{x:2350,y:1049});
- road('district','to-recreation',[{x:1700,y:1055,w:240,h:20,direction:'down'}],[80,180],'down');
+ road('district','to-neighborhood',[{x:2330,y:1020,w:40,h:58,direction:'right'}],[120,905],'up',{x:2350,y:1049});
  road('neighborhood','to-district',[{x:106,y:1180,w:91,h:35,direction:'down'}],[700,966],'left',{x:150,y:1195});
- road('neighborhood','to-recreation',[{x:1049,y:1180,w:85,h:35,direction:'down'}],[895,210],'down',{x:1085,y:1195});
- road('recreation','to-district',[{x:60,y:170,w:77,h:30,direction:'up'}],[535,966],'up',{x:100,y:185,name:'↑ Main Street shops'});
- road('recreation','to-neighborhood',[{x:1059,y:188,w:114,h:32,direction:'up'}],[865,890],'up',{x:1122,y:210,name:'↑ Main Street · Home'});
+ road('neighborhood','to-recreation',[{x:1049,y:1180,w:85,h:35,direction:'down'}],[80,180],'down',{x:1085,y:1195});
+ road('recreation','to-neighborhood',[{x:60,y:170,w:77,h:30,direction:'up'}],[865,890],'up',{x:100,y:185,name:'↑ Main Street · Home'});
  plaza.hint='Follow the gold road arrows north to the roundabout or east to Main Street. Crossing the road exit travels automatically; diamonds remain clickable.';
- district.hint='This is the shops side of Main Street. Go west to the detailed plaza, south at the courts exit, or east toward the detailed Home neighborhood. Follow gold road arrows; there is no need to hit a diamond.';
+ district.hint='Go west to Market Square, or take the bottom-right road to Home Neighborhood. Courts & Pool is reached through Home. Follow gold road arrows; there is no need to hit a diamond.';
  SCENES.neighborhood.hint='The south-left road leads to Main Street shops; the south-right road leads to Courts & Pool. Follow the loop to the green dinosaur and its front-door diamond.';
- recreation.hint='Follow gold road arrows north: the northwest street returns to Main Street shops, and the northeast street returns to Main Street Home. Rock Band is on the right/east street. The pool gate is open.';
+ recreation.hint='The top-left/northwest road is the only outdoor exit: it returns to Home Neighborhood. Reach Main Street shops through Home. Rock Band is on the right/east street. The pool gate is open.';
 })();

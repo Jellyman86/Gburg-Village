@@ -116,7 +116,7 @@ return async function checkChapter(page,{width=1280,height=900,touch=false,artif
    return dogs.state.dogs.map(d=>({...d,blocked:blocked(d.x,d.y),distance:Math.hypot(d.x-actor.x,d.y-actor.y)}));
   });
   assert(corner.every(d=>!d.hidden&&!d.blocked&&d.x>275&&d.distance>=85),'Both dogs negotiate tight right-angle routes without cutting walls or crowding');
-  await portal('to-district');assert(await page.evaluate(()=>GAME.state.companions.dogs.every(d=>d.hidden)),'Dogs safely emerge behind you after area change');
+  await portal('to-neighborhood');await portal('to-district');assert(await page.evaluate(()=>GAME.state.companions.dogs.every(d=>d.hidden)),'Dogs safely emerge behind you after area change');
   await recruit('vito');await portal('to-plaza');await recruit('brie');await portal('to-north');await recruit('kate');
   assert(await page.evaluate(()=>Object.values(V4_RPG.members).every(m=>m.joined)&&V4_STORY.objective().startsWith('Everyone')),'All fourteen are actually findable and recruitable');
   await activate('#open-menu');await activate('[data-member="mark"]');await activate('#menu-play');

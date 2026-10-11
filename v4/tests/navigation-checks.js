@@ -59,7 +59,17 @@ return async function checkNavigation(page,{touch=false,artifactDir,width=1280,h
    }
    return edges;
   });
-  assert(topology.length===20,'All 20 zone transitions have reciprocal connections');
+  assert(topology.length===18,'All 18 zone transitions have reciprocal connections');
+  const expected={plaza:['district','north'],north:['plaza'],district:['neighborhood','plaza'],neighborhood:['district','recreation'],recreation:['neighborhood']};
+  for(const [from,destinations] of Object.entries(expected)){
+   const actual=topology.filter(edge=>edge.from===from&&expected[edge.to]).map(edge=>edge.to).sort();
+   assert(JSON.stringify(actual)===JSON.stringify(destinations.slice().sort()),'Exact outdoor connections: '+from);
+  }
+  const courtsExit=topology.find(edge=>edge.from==='recreation'&&edge.to==='neighborhood');
+  assert(courtsExit.x<200&&courtsExit.y<250,'Recreation Home diamond is top-left');
+  assert(topology.find(edge=>edge.from==='neighborhood'&&edge.to==='recreation').arrival[0]===80,'Home arrives on the matching northwest recreation road');
+  const shopsHome=topology.find(edge=>edge.from==='district'&&edge.to==='neighborhood');
+  assert(shopsHome.x>2200&&shopsHome.y>1000&&shopsHome.roads.length===1,'Shops has one bottom-right Home crossing');
   assert(await page.evaluate(()=>{
    for(const scene of Object.values(SCENES))for(const portal of scene.landmarks)for(const road of portal.roads||[]){
     const horizontal=road.direction==='left'||road.direction==='right',positive=road.direction==='right'||road.direction==='down';
@@ -192,7 +202,7 @@ return async function checkNavigation(page,{touch=false,artifactDir,width=1280,h
     throw new Error('Diamond click/tap '+edge.from+'/'+edge.id+' failed from '+JSON.stringify(spot)+': '+JSON.stringify(await page.evaluate(()=>GAME.state)),{cause:error});
    }
   }
-  await page.evaluate(()=>GAME.test.enterScene('recreation',[895,880]));
+  await page.evaluate(()=>GAME.test.enterScene('recreation',[80,180]));
   const rock=await page.evaluate(()=>SCENES.recreation.landmarks.find(l=>l.id==='rockband-house'));
   assert(rock.x>627,'Rock Band entrance on right side');
   if(artifactDir)await page.screenshot({path:artifactDir+'\\connected-recreation-'+width+'x'+height+'.png'});
@@ -201,6 +211,6 @@ return async function checkNavigation(page,{touch=false,artifactDir,width=1280,h
   assert(await page.evaluate(()=>GAME.state.scene==='recreation'&&GAME.state.menu),'Menu blocks movement-triggered travel');
   await activate('#close-menu');
   assert(errors.length===0&&failed.length===0,'Navigation errors/assets: '+errors.concat(failed).join('; '));
-  return {transitions:topology.length,roadLanes:lanes,touch,errors,failed,results:['Every reciprocal zone route and arrival is collision-reachable','Full-road exits work at both edges and the middle, including both Home approaches; duplicate overview areas blocked','Directional road crossings avoid accidental sideways travel; diamonds remain clickable/tappable','Exact arrivals without immediate bounce; leaving and returning re-arms the door; no dinosaurs in any indoor scene']};
+  return {transitions:topology.length,roadLanes:lanes,touch,errors,failed,results:['Exact requested outdoor graph; every reciprocal route and arrival is collision-reachable','Top-left recreation Home exit and matching spawn; only bottom-right Shops Home crossing; no direct Shops/Recreation route','Full-road exits work at both edges and the middle; duplicate overview areas blocked','Exact arrivals without immediate bounce; clickable diamonds, re-armed doors and dinosaur-free interiors']};
  }finally{await stop();await page.unroute(pattern);page.off('pageerror',onError);page.off('response',onResponse);}
 };
