@@ -1,4 +1,4 @@
-// V3 scenes. Separate maps keep artwork detailed without a giant world texture.
+// Separate maps keep artwork detailed without a giant world texture.
 (() => {
  const rects=(list,w,h)=>list.map(([x,y,rw,rh])=>({x:x*w/1000,y:y*h/1000,w:rw*w/1000,h:rh*h/1000}));
  const make=(id,name,w,h,paths,ports,hint)=>({id,name,width:w,height:h,image:`../v2/assets/${id}.webp`,bounds:{left:0,top:0,right:w,bottom:h},spawn:{x:w/2,y:h/2},obstacles:[],walkable:rects(paths,w,h),landmarks:ports.map(([id,name,x,y,to,tx,ty])=>({id,name,x:x*w/1000,y:y*h/1000,radius:55,to,arrival:[tx,ty]})),hint});
@@ -77,4 +77,29 @@
  recreation.obstacles.push({x:315,y:744,w:86,h:175},{x:846,y:720,w:103,h:107},{x:557,y:754,w:391,h:76},{x:948,y:812,w:25,h:63},{x:573,y:852,w:118,h:54});
  recreation.hint+=' Rock Band is on the right/east street. Return to Main Street Home at the southeast diamond, or Main Street shops at the southwest diamond. Walk over a zone diamond or click/tap it to travel.';
  SCENES.house.hint='Explore the Dino house. A Japanese sword lies in the central hallway. Look nearby to pick it up; the front door leads outside.';
+ function road(scene,id,zones,arrival,arrivalDirection,position){
+  const portal=SCENES[scene].landmarks.find(l=>l.id===id);
+  Object.assign(portal,{roads:zones,arrival,arrivalDirection},position);
+ }
+ road('plaza','to-district',[{x:1395,y:700,w:40,h:96,direction:'right'}],[447,630],'right');
+ road('plaza','to-north',[{x:584,y:280,w:79,h:32,direction:'up'}],[499,930],'up');
+ road('north','to-plaza',[{x:703,y:1450,w:125,h:40,direction:'down'}],[620/1536*1000,335/1024*1000],'down');
+ const district=SCENES.district;
+ district.bounds.left=1400;
+ district.viewBounds={...district.bounds};
+ district.obstacles.push({x:2370,y:798,w:886,h:288});
+ road('district','to-plaza',[{x:1408,y:267,w:32,h:811,direction:'left'}],[895,762],'left');
+ road('district','to-neighborhood',[
+  {x:2330,y:1020,w:40,h:58,direction:'right'},
+  {x:2350,y:770,w:858,h:28,direction:'down'}
+ ],[120,905],'up',{x:2350,y:1049});
+ road('district','to-recreation',[{x:1700,y:1055,w:240,h:20,direction:'down'}],[80,180],'down');
+ road('neighborhood','to-district',[{x:106,y:1180,w:91,h:35,direction:'down'}],[700,966],'left',{x:150,y:1195});
+ road('neighborhood','to-recreation',[{x:1049,y:1180,w:85,h:35,direction:'down'}],[895,210],'down',{x:1085,y:1195});
+ road('recreation','to-district',[{x:60,y:170,w:77,h:30,direction:'up'}],[535,966],'up',{x:100,y:185,name:'↑ Main Street shops'});
+ road('recreation','to-neighborhood',[{x:1059,y:188,w:114,h:32,direction:'up'}],[865,890],'up',{x:1122,y:210,name:'↑ Main Street · Home'});
+ plaza.hint='Follow the gold road arrows north to the roundabout or east to Main Street. Crossing the road exit travels automatically; diamonds remain clickable.';
+ district.hint='This is the shops side of Main Street. Go west to the detailed plaza, south at the courts exit, or east toward the detailed Home neighborhood. Follow gold road arrows; there is no need to hit a diamond.';
+ SCENES.neighborhood.hint='The south-left road leads to Main Street shops; the south-right road leads to Courts & Pool. Follow the loop to the green dinosaur and its front-door diamond.';
+ recreation.hint='Follow gold road arrows north: the northwest street returns to Main Street shops, and the northeast street returns to Main Street Home. Rock Band is on the right/east street. The pool gate is open.';
 })();

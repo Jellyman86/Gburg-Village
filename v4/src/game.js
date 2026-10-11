@@ -11,12 +11,14 @@
  let loaded=false,previous=0,toastTimer=0,nearest=null,joyId=null,runId=null,joy={x:0,y:0},touchRun=false,background;
  const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
  function updateCamera(){
-  const overview=flight.view().overview,fit=Math.min(canvas.width/town.width,canvas.height/town.height,.8);
+  const bounds=town.viewBounds||{left:0,top:0,right:town.width,bottom:town.height};
+  const worldWidth=bounds.right-bounds.left,worldHeight=bounds.bottom-bounds.top;
+  const overview=flight.view().overview,fit=Math.min(canvas.width/worldWidth,canvas.height/worldHeight,.8);
   viewScale=1+(fit-1)*overview;
   const width=canvas.width/viewScale,height=canvas.height/viewScale;
   const touchSpace=document.body.classList.contains('touch')?Math.min(140,canvas.height*.28)/viewScale:0;
-  camera.x=Math.round(width>=town.width?(town.width-width)/2:clamp(player.x-width/2,0,town.width-width));
-  camera.y=Math.round(height>=town.height+touchSpace?(town.height+touchSpace-height)/2:clamp(player.y-height*.57,0,town.height+touchSpace-height));
+  camera.x=Math.round(width>=worldWidth?bounds.left+(worldWidth-width)/2:clamp(player.x-width/2,bounds.left,bounds.right-width));
+  camera.y=Math.round(height>=worldHeight+touchSpace?bounds.top+(worldHeight+touchSpace-height)/2:clamp(player.y-height*.57,bounds.top,bounds.bottom+touchSpace-height));
  }
  function resize(){
   const r=canvas.getBoundingClientRect(),scale=r.width<600?1.35:r.height<350?1.5:1.8;
@@ -211,13 +213,28 @@
  function landmarks(){return town.landmarks.filter(l=>(!l.pickup||!V4_RPG.discoveries[l.pickup])&&(l.id!=='dogs'||!V4_RPG.discoveries.dogs)).concat(V4_STORY.encounters(town.id));}
  function goThrough(portal){
   if(unicorn.riding){toast('Hop off the unicorn before entering another area.');return false;}
-  enterScene(portal.to,portal.arrival);return true;
+  enterScene(portal.to,portal.arrival,portal.arrivalDirection);return true;
  }
- function checkZoneCrossing(){
+ function nearPortal(portal,x,y){
+  return Math.hypot(portal.x-x,portal.y-y)<=portal.radius+8||(portal.roads||[]).some(r=>x>=r.x-8&&x<=r.x+r.w+8&&y>=r.y-8&&y<=r.y+r.h+8);
+ }
+ function crossesRoad(road,oldX,oldY,newX,newY){
+  const horizontal=road.direction==='left'||road.direction==='right';
+  const before=horizontal?oldX:oldY,after=horizontal?newX:newY,delta=after-before;
+  const positive=road.direction==='right'||road.direction==='down';
+  if(positive?delta<=0:delta>=0)return false;
+  const start=horizontal?road.x:road.y,end=start+(horizontal?road.w:road.h);
+  if(Math.max(before,after)<start||Math.min(before,after)>end)return false;
+  const entry=positive?start:end,t=clamp((entry-before)/delta,0,1);
+  const transverse=horizontal?oldY+(newY-oldY)*t:oldX+(newX-oldX)*t;
+  const low=horizontal?road.y:road.x,high=low+(horizontal?road.h:road.w);
+  return transverse>=low&&transverse<=high;
+ }
+ function checkZoneCrossing(oldX,oldY){
   const portals=town.landmarks.filter(l=>l.to);
-  for(const portal of portals)if(Math.hypot(portal.x-player.x,portal.y-player.y)>portal.radius+8)arrivalPortals.delete(portal.id);
+  for(const portal of portals)if(!nearPortal(portal,oldX,oldY))arrivalPortals.delete(portal.id);
   if(!player.moving||unicorn.riding)return false;
-  const portal=portals.find(l=>!arrivalPortals.has(l.id)&&Math.hypot(l.x-player.x,l.y-player.y)<=22);
+  const portal=portals.find(l=>!arrivalPortals.has(l.id)&&(l.roads?l.roads.some(r=>crossesRoad(r,oldX,oldY,player.x,player.y)):Math.hypot(l.x-player.x,l.y-player.y)<=22));
   return portal?goThrough(portal):false;
  }
  function updateNearby(){
@@ -251,7 +268,7 @@
   }
   if(nearest)showDialog(nearest.name,nearest.text);else toast('Walk toward a gold diamond to look around.');
  }
- $('help').addEventListener('click',()=>showDialog('A walk with the family','Start as Coco and find Connor next door. Follow the objective hint and talk to friends at gold diamonds to recruit them. Party shows missing friends and their locations. Move with WASD or arrows; hold Shift to run. E or Space interacts. Walk/run over a zone diamond or click/tap it to travel. Destination labels show where each exit leads. From Courts & Pool, the southeast/right diamond returns to Main Street Home; the southwest/left diamond returns to Main Street shops. Rock Band is on the right/east street. Houses have no dinosaurs. Menu or M / Escape pauses the world for stats, items, equipment and one equipped ability. Play as switches to a rescued friend; 1–9 and 0 select the first ten once found. On a phone, drag the left joystick and hold Run with your other thumb. Landscape gives a wider view. Use X or the power button; short cooldowns let you use powers often. Find Barney and Rosie on the northeast recreation street and they will follow at a comfortable distance. The pool gate is open, but water stays blocked. A pterodactyl may lift you for a map view, then drop you safely at the same spot and fly away. Pickups are at least 20 seconds apart; he disappears for 10 seconds after flying away. Attack near him to scare him off for 10 seconds, too! Dinosaur tag is harmless. Find the sparkling unicorn in the plaza: E / Ride mounts, Run gallops, and E / Off dismounts. Powers work while riding. Sound effects have a separate mute below. This preview is session-only; reloading starts fresh.','HOW TO PLAY'));
+ $('help').addEventListener('click',()=>showDialog('A walk with the family','Start as Coco and find Connor next door. Follow the objective hint and talk to friends at gold diamonds to recruit them. Party shows missing friends and their locations. Move with WASD or arrows; hold Shift to run. E or Space interacts. Follow gold road arrows toward the next area: the whole road exit triggers travel, so you do not need to hit a diamond. Passing sideways along a road exit does not travel. Indoor door diamonds still activate by walking over them. Click/tap any zone diamond or use E / Go as an alternative. Arrivals clear input and prevent immediate bounce-back. From Courts & Pool, go north on the northeast/right street for Main Street Home, or on the northwest/left street for Main Street shops. Home returns to shops/courts from its south-left/south-right roads. Rock Band is on the right/east street. Houses have no dinosaurs. Menu or M / Escape pauses the world for stats, items, equipment and one equipped ability. Play as switches to a rescued friend; 1–9 and 0 select the first ten once found. On a phone, drag the left joystick and hold Run with your other thumb. Landscape gives a wider view. Use X or the power button; short cooldowns let you use powers often. Find Barney and Rosie on the northeast recreation street and they will follow at a comfortable distance. The pool gate is open, but water stays blocked. A pterodactyl may lift you for a map view, then drop you safely at the same spot and fly away. Pickups are at least 20 seconds apart; he disappears for 10 seconds after flying away. Attack near him to scare him off for 10 seconds, too! Dinosaur tag is harmless. Find the sparkling unicorn in the plaza: E / Ride mounts, Run gallops, and E / Off dismounts. Dismount before travelling between areas. Powers work while riding. Sound effects have a separate mute below. This preview is session-only; reloading starts fresh.','HOW TO PLAY'));
  const close=()=>{$('dialog').close();resetInput();canvas.focus({preventScroll:true});};
  $('close-dialog').addEventListener('click',close);$('continue').addEventListener('click',close);
  $('dialog').addEventListener('close',()=>{
@@ -298,7 +315,7 @@
   const c=characters[player.id];player.running=touchRun||keys.has('ShiftLeft')||keys.has('ShiftRight');const oldX=player.x,oldY=player.y;
   if(length>.01){player.direction=Math.abs(x)>Math.abs(y)?(x>0?'right':'left'):(y>0?'down':'up');const speed=unicorn.riding?(player.running?280:170):(player.running?c.runSpeed:c.speed);move(x*speed*dt,y*speed*dt);}
   player.moving=Math.hypot(player.x-oldX,player.y-oldY)>.01;
-  if(checkZoneCrossing())return;
+  if(checkZoneCrossing(oldX,oldY))return;
   if(player.moving){player.clock+=dt*(player.running?c.runFPS:c.walkFPS);player.frame=Math.floor(player.clock)%4;}else{player.clock=0;player.frame=1;}
   unicorn.update(dt,player);powers.update(dt);if(dino)updateDino(dt);if(town.id==='plaza')updateSquirrel(dt);paintPower();
   if(town.id==='recreation')recreation.update(dt,player);
@@ -320,8 +337,19 @@
   if(active)powers.drawActor(ctx,{...actor,y:actor.y-saddle});
  }
  function draw(){
-  if(!loaded)return;ctx.fillStyle='#17383b';ctx.fillRect(0,0,canvas.width,canvas.height);ctx.save();ctx.scale(viewScale,viewScale);ctx.translate(-camera.x,-camera.y);ctx.drawImage(background,0,0,town.width,town.height);
+  if(!loaded)return;ctx.fillStyle='#17383b';ctx.fillRect(0,0,canvas.width,canvas.height);ctx.save();ctx.scale(viewScale,viewScale);ctx.translate(-camera.x,-camera.y);
+  if(town.viewBounds){const b=town.viewBounds;ctx.save();ctx.beginPath();ctx.rect(b.left,b.top,b.right-b.left,b.bottom-b.top);ctx.clip();ctx.drawImage(background,0,0,town.width,town.height);ctx.restore();}
+  else ctx.drawImage(background,0,0,town.width,town.height);
   if(town.overlay&&sceneOverlays[town.id]){const o=town.overlay;ctx.drawImage(sceneOverlays[town.id],...o.source,o.x,o.y,o.w,o.h);}
+  for(const portal of town.landmarks)for(const road of portal.roads||[]){
+   const horizontal=road.direction==='left'||road.direction==='right',length=horizontal?road.h:road.w;
+   for(let offset=12;offset<length;offset+=24){
+    const x=horizontal?road.x+road.w/2:road.x+offset,y=horizontal?road.y+offset:road.y+road.h/2;
+    if(blocked(x,y,3,3))continue;
+    ctx.save();ctx.translate(x,y);ctx.rotate(({right:0,down:Math.PI/2,left:Math.PI,up:-Math.PI/2})[road.direction]);
+    ctx.strokeStyle='#f3dc98';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(-3,-4);ctx.lineTo(2,0);ctx.lineTo(-3,4);ctx.stroke();ctx.restore();
+   }
+  }
   landmarks().forEach(l=>{
    if(l.pickup){
     if(!window.V4_RPG.discoveries[l.pickup])ctx.drawImage(extraSheets.swordIcon,l.x-16,l.y-34,32,32);
@@ -355,7 +383,7 @@
   powers.drawAir(ctx);ctx.restore();
  }
  function frame(time){const dt=previous?Math.min((time-previous)/1000,.05):0;previous=time;update(dt);draw();requestAnimationFrame(frame);}
- async function enterScene(id,arrival){
+ async function enterScene(id,arrival,direction='down'){
   if(changing||!scenes[id])return false;
   if(joining||pendingRecruit||flight.state.active){toast('Finish this moment before entering another area.');return false;}
   changing=true;resetInput();$('stage').classList.add('transitioning');
@@ -367,9 +395,9 @@
    const x=arrival[0]*town.width/1000,y=arrival[1]*town.height/1000;
    if(blocked(x,y)){town=old;throw new Error('The entrance needs more space.');}
    dinoHome=town.indoor?null:dinoHomes[id]||null;dino=town.indoor?null:dinosaurs[id]||null;
-   background=img;Object.assign(player,{x,y,direction:'down',frame:1,clock:0});
+   background=img;Object.assign(player,{x,y,direction,frame:1,clock:0});
    arrivalPortals.clear();
-   for(const portal of town.landmarks)if(portal.to&&Math.hypot(portal.x-x,portal.y-y)<=portal.radius+8)arrivalPortals.add(portal.id);
+   for(const portal of town.landmarks)if(portal.to&&nearPortal(portal,x,y))arrivalPortals.add(portal.id);
    powers=makePowers();unicorn=window.FAMILY_UNICORN.create({blocked});squirrel.active=false;
    companions.enter(player);flight.enter(id,player);V4_SFX.play('door');
    $('route-hint').textContent=town.hint;document.querySelector('.location small').textContent=town.id==='plaza'?'Market Square · Afternoon':town.name;nearest=null;updateCamera();updateNearby();toast(town.name);

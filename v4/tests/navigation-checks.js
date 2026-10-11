@@ -5,7 +5,7 @@ return async function checkNavigation(page,{touch=false,artifactDir,width=1280,h
  page.on('pageerror',onError);page.on('response',onResponse);
  await page.route(pattern,async route=>{
   const response=await route.fetch(),source=await response.text();
-  const hook='window.GAME={test:{enterScene,position(x,y){player.x=x;player.y=y;resetInput();updateCamera();updateNearby();},tick(dt){update(dt);draw();}},';
+  const hook='window.GAME={test:{enterScene,crossesRoad,position(x,y){player.x=x;player.y=y;resetInput();updateCamera();updateNearby();},tick(dt){update(dt);draw();}},';
   await route.fulfill({response,body:source.replace('window.GAME={',hook).replace('flight.update(dt,player,town,!unicorn.riding)','flight.update(dt,player,town,false)')});
  });
  const activate=selector=>touch?page.locator(selector).tap():page.locator(selector).click();
@@ -31,6 +31,19 @@ return async function checkNavigation(page,{touch=false,artifactDir,width=1280,h
   },portal);
   if(touch)await page.touchscreen.tap(point.x,point.y);else await page.mouse.click(point.x,point.y);
  }
+ async function stageApproach(spot){
+  await page.evaluate(([x,y])=>{
+   const scene=SCENES[GAME.state.scene],portals=scene.landmarks.filter(l=>l.to);
+   let clear;
+   for(let a=16;a<scene.width&&!clear;a+=32)for(let b=16;b<scene.height;b+=32){
+    if(GAME.blocked(a,b)||portals.some(l=>Math.hypot(l.x-a,l.y-b)<=l.radius+8||(l.roads||[]).some(r=>a>=r.x-8&&a<=r.x+r.w+8&&b>=r.y-8&&b<=r.y+r.h+8)))continue;
+    clear=[a,b];break;
+   }
+   if(!clear)throw new Error('No clear road departure fixture: '+scene.id);
+   GAME.test.position(...clear);GAME.test.tick(0);
+   GAME.test.position(x,y);GAME.test.tick(0);
+  },spot);
+ }
  try{
   await page.goto(page.url().split('/v4/')[0]+'/v4/');await page.waitForFunction(()=>GAME.ready&&V3_INTRO.state.ready);
   if(touch)cdp=await page.context().newCDPSession(page);
@@ -47,6 +60,16 @@ return async function checkNavigation(page,{touch=false,artifactDir,width=1280,h
    return edges;
   });
   assert(topology.length===20,'All 20 zone transitions have reciprocal connections');
+  assert(await page.evaluate(()=>{
+   for(const scene of Object.values(SCENES))for(const portal of scene.landmarks)for(const road of portal.roads||[]){
+    const horizontal=road.direction==='left'||road.direction==='right',positive=road.direction==='right'||road.direction==='down';
+    const low=horizontal?road.x:road.y,high=low+(horizontal?road.w:road.h),crossLow=horizontal?road.y:road.x,crossHigh=crossLow+(horizontal?road.h:road.w);
+    const from=positive?low-50:high+50,to=positive?high+50:low-50,mid=(crossLow+crossHigh)/2;
+    const cross=(a,b,c,d)=>horizontal?GAME.test.crossesRoad(road,a,b,c,d):GAME.test.crossesRoad(road,b,a,d,c);
+    if(!cross(from,mid,to,mid)||cross(to,mid,from,mid)||cross(from,crossHigh+1,to,crossHigh+1)||!cross(from,crossLow,to,crossLow)||!cross(from,crossHigh,to,crossHigh)||cross(from,crossHigh+80,to,crossHigh-10))return false;
+   }
+   return true;
+  }),'Swept road crossings detect thin bands, exact edges and direction without false diagonal hits');
   const frontDoor=topology.find(edge=>edge.from==='house'&&edge.to==='neighborhood');
   const homeEntry=topology.find(edge=>edge.from==='neighborhood'&&edge.to==='house');
   assert(Math.abs(frontDoor.x-86.88)<.01&&Math.abs(frontDoor.y-510.42)<.01,'Front-door diamond sits on the threshold between the artwork plants');
@@ -55,7 +78,7 @@ return async function checkNavigation(page,{touch=false,artifactDir,width=1280,h
   for(const edge of topology)(arrivalsByScene[edge.to]||(arrivalsByScene[edge.to]=[])).push(edge.arrival);
   for(const [scene,arrivals] of Object.entries(arrivalsByScene)){
    for(const arrival of arrivals){
-    assert(await page.evaluate(async({scene,arrival})=>await GAME.test.enterScene(scene,arrival),{scene,arrival}),'Scene arrival loads: '+scene);
+    assert(await page.evaluate(async({scene,arrival})=>await GAME.test.enterScene(scene,arrival),{scene,arrival}),'Scene arrival loads: '+scene+' '+JSON.stringify(arrival)+' '+errors.join('; '));
     const connected=await page.evaluate(()=>{
      const scene=SCENES[GAME.state.scene],step=4,w=Math.ceil(scene.width/step),h=Math.ceil(scene.height/step),seen=new Uint8Array(w*h);
      const x=Math.round(GAME.state.player.x/step),y=Math.round(GAME.state.player.y/step),queue=[y*w+x];seen[queue[0]]=1;
@@ -76,6 +99,14 @@ return async function checkNavigation(page,{touch=false,artifactDir,width=1280,h
   for(const edge of topology){
    await page.evaluate(async({edge,arrival})=>GAME.test.enterScene(edge.from,arrival),{edge,arrival:arrivalsByScene[edge.from][0]});
    const approach=await page.evaluate(edge=>{
+    if(edge.roads){
+     const r=edge.roads[0],horizontal=r.direction==='left'||r.direction==='right',positive=r.direction==='right'||r.direction==='down';
+     const axis=horizontal?(positive?r.x-16:r.x+r.w+16):(positive?r.y-16:r.y+r.h+16);
+     const low=horizontal?r.y:r.x,high=low+(horizontal?r.h:r.w),key={right:'d',left:'a',down:'s',up:'w'}[r.direction];
+     const center=horizontal?edge.y:edge.x,values=[center];
+     for(let value=low+8;value<=high-8;value+=4)values.push(value);
+     return values.map(value=>horizontal?[axis,value,key]:[value,axis,key]).find(([x,y])=>!GAME.blocked(x,y)&&!GAME.blocked(horizontal?(positive?r.x+4:r.x+r.w-4):x,horizontal?y:(positive?r.y+4:r.y+r.h-4)));
+    }
     const distance=edge.radius+12;
     const candidates=[[edge.x+distance,edge.y,'a'],[edge.x-distance,edge.y,'d'],[edge.x,edge.y+distance,'w'],[edge.x,edge.y-distance,'s']];
     return candidates.find(([x,y])=>{
@@ -85,11 +116,12 @@ return async function checkNavigation(page,{touch=false,artifactDir,width=1280,h
     });
    },edge);
    assert(approach,'Clear walk-over approach: '+edge.from+'/'+edge.id);
-   await page.evaluate(([x,y])=>{GAME.test.position(x,y);GAME.test.tick(0);},approach);
+   await stageApproach(approach);
    await start(approach[2]);
    try{await page.waitForFunction(to=>GAME.ready&&GAME.state.scene===to,edge.to,{timeout:4000});}finally{await stop();}
    await page.waitForTimeout(80);
    assert(await page.evaluate(edge=>GAME.state.scene===edge.to&&Math.hypot(GAME.state.player.x-edge.destination.x,GAME.state.player.y-edge.destination.y)<1,edge),'One run-over transition, exact arrival and no immediate bounce: '+edge.from+'/'+edge.id);
+   if(edge.arrivalDirection)assert(await page.evaluate(edge=>GAME.state.player.direction===edge.arrivalDirection,edge),'Arrival faces away from road exit: '+edge.id);
    const arrivalKey=await page.evaluate(()=>{
     const s=GAME.state,p=SCENES[s.scene].landmarks.find(l=>l.to&&Math.hypot(l.x-s.player.x,l.y-s.player.y)<=l.radius);
     if(!p)return null;
@@ -101,6 +133,42 @@ return async function checkNavigation(page,{touch=false,artifactDir,width=1280,h
     assert(await page.evaluate(to=>GAME.state.scene===to,edge.to),'Movement on the arrival diamond cannot bounce back: '+edge.id);
    }
   }
+   let lanes=0;
+   for(const edge of topology.filter(edge=>edge.roads)){
+    for(const road of edge.roads){
+     await page.evaluate(async({edge,arrival})=>GAME.test.enterScene(edge.from,arrival),{edge,arrival:arrivalsByScene[edge.from][0]});
+     const probes=await page.evaluate(({road,edge})=>{
+      const horizontal=road.direction==='left'||road.direction==='right',positive=road.direction==='right'||road.direction==='down';
+      const axis=horizontal?(positive?road.x-16:road.x+road.w+16):(positive?road.y-16:road.y+road.h+16);
+      const inside=horizontal?(positive?road.x+4:road.x+road.w-4):(positive?road.y+4:road.y+road.h-4);
+      const low=horizontal?road.y:road.x,high=low+(horizontal?road.h:road.w),spots=[];
+      for(let value=low+8;value<=high-8;value+=4){
+       const x=horizontal?axis:value,y=horizontal?value:axis;
+       if(!GAME.blocked(x,y)&&!GAME.blocked(horizontal?inside:x,horizontal?y:inside))spots.push([x,y]);
+      }
+      if(!spots.length)throw new Error('Road has no collision-clear lanes: '+edge.from+'/'+edge.id);
+      const probes=[spots[0],spots[Math.floor(spots.length/2)],spots[spots.length-1]];
+      const entry=horizontal?(positive?road.x:road.x+road.w):(positive?road.y:road.y+road.h);
+      if(!probes.some(([x,y])=>Math.hypot((horizontal?entry:x)-edge.x,(horizontal?y:entry)-edge.y)>22))throw new Error('Road coverage must include a lane that misses the diamond: '+edge.id);
+      return probes;
+     },{road,edge});
+     for(const spot of probes){
+      await page.evaluate(async({edge,arrival})=>GAME.test.enterScene(edge.from,arrival),{edge,arrival:arrivalsByScene[edge.from][0]});
+      await stageApproach(spot);
+      const key={right:'d',left:'a',down:'s',up:'w'}[road.direction];
+      await start(key);
+      try{await page.waitForFunction(to=>GAME.ready&&GAME.state.scene===to,edge.to,{timeout:4000});}finally{await stop();}
+      lanes++;
+     }
+    }
+   }
+   await page.evaluate(()=>GAME.test.enterScene('district',[700,966]));
+   assert(await page.evaluate(()=>[[700,650],[1000,1049],[2914,1049],[3150,850]].every(([x,y])=>GAME.blocked(x,y))),'Duplicate miniature plaza and home areas are not traversable');
+   assert(await page.evaluate(()=>GAME.state.camera.x>=SCENES.district.viewBounds.left),'Main Street camera cannot scroll into the duplicate plaza');
+   if(artifactDir)await page.screenshot({path:artifactDir+'\\road-seams-district-'+width+'x'+height+'.png'});
+   await page.evaluate(()=>{GAME.test.position(1810,1049);GAME.test.tick(0);});
+   await start('d');await page.waitForTimeout(150);await stop();
+   assert(await page.evaluate(()=>GAME.state.scene==='district'),'Walking along Main Street past a southbound exit does not accidentally travel');
   await page.evaluate(()=>GAME.test.enterScene('upstairs',[620,555]));
   await start('a');
   try{await page.waitForFunction(()=>GAME.state.player.x<=320,null,{timeout:4000});}finally{await stop();}
@@ -133,6 +201,6 @@ return async function checkNavigation(page,{touch=false,artifactDir,width=1280,h
   assert(await page.evaluate(()=>GAME.state.scene==='recreation'&&GAME.state.menu),'Menu blocks movement-triggered travel');
   await activate('#close-menu');
   assert(errors.length===0&&failed.length===0,'Navigation errors/assets: '+errors.concat(failed).join('; '));
-  return {transitions:topology.length,touch,errors,failed,results:['Every reciprocal zone route and arrival is collision-reachable','All zone diamonds activate by running over or clicking/tapping outside old interaction radius','Exact arrivals without immediate bounce; leaving and returning re-arms the door; no dinosaurs in any indoor scene','Rock Band on right; recreation connects directly back to Main Street Home and shops']};
+  return {transitions:topology.length,roadLanes:lanes,touch,errors,failed,results:['Every reciprocal zone route and arrival is collision-reachable','Full-road exits work at both edges and the middle, including both Home approaches; duplicate overview areas blocked','Directional road crossings avoid accidental sideways travel; diamonds remain clickable/tappable','Exact arrivals without immediate bounce; leaving and returning re-arms the door; no dinosaurs in any indoor scene']};
  }finally{await stop();await page.unroute(pattern);page.off('pageerror',onError);page.off('response',onResponse);}
 };
