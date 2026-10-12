@@ -19,6 +19,7 @@ window.TOWN={id:'kentlands',name:'Kentlands Market Square',width:1536,height:102
  ],
  landmarks:[
  {id:'plaza',name:'The family meeting spot',x:768,y:866,radius:60,text:'A little piece of your everyday walk, made into a world of its own. Choose a family member above and explore the square together.'},
+ {id:'banquet',name:'Under the Lights · Celebrate',x:768,y:760,radius:56,event:'banquet'},
  {id:'vasilis',name:'Vasili’s Kitchen',x:433,y:770,radius:62,text:'The familiar navy awning, warm brick, and a table waiting after a walk. The storefront is a landmark in this first outdoor map; interiors can come next.'},
  {id:'fiveguys',name:'Five Guys',x:1167,y:767,radius:60,text:'A stop beside the green. The paths connect around the restaurants and up through the middle of the square.'},
  {id:'green',name:'The green & string lights',x:768,y:562,radius:55,text:'A quiet pocket of green between the shops, with chairs, flowers, and strings of lights. This narrow brick path leads back to Center Point Way.'},

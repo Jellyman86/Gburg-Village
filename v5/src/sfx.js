@@ -11,6 +11,8 @@
   rumble:[[65,.5,.022,45]],roar:[[130,.45,.026,45],[80,.4,.018,55]],
   scream:[[523,.16,.018,880],[659,.16,.016,988]],splash:[[440,.12,.018,70]],
   throw:[[160,.22,.02,900]],impact:[[120,.14,.022,40]],
+  meteor:[[420,.7,.018,60,'sawtooth'],[95,.35,.022,35]],
+  radio:[[3200,.12,.004,2800,'sawtooth'],[2400,.09,.004,3300,'sawtooth']],
   screech:[[1500,.34,.015,520,'sawtooth'],[950,.23,.012,1800,'sawtooth'],[1900,.18,.009,450,'triangle']]};
  async function play(kind){
   if(!enabled||document.hidden||window.V3_INTRO?.active)return false;

@@ -46,7 +46,8 @@
    shot(3,'gary-talk','hq',[200,350,1],'gary',"I've got supplies and water. You get the neighbors somewhere safe."),
    shot(3,'gary-talk','hq',[200,350,1],'gary',"I'll handle the big stuff when everyone's accounted for.")
   ],
-  gary:window.V5_GARY_FINALE.shots
+  gary:window.V5_GARY_FINALE.shots,
+  banquet:window.V5_BANQUET_FINALE.shots
  };
  const friends={
   jeff:{scene:'recreation',camera:field,stage:'soccer',line:'The dinosaur stole our ball. That is absolutely a red card.',reply:"Come with us, Jeff. We'll get everyone somewhere safe."},
@@ -78,7 +79,17 @@
  const loading=document.createElement('div');loading.id='story-loading';loading.hidden=true;
  loading.innerHTML='<p role="status"></p><button id="story-retry" type="button" hidden>Retry artwork</button>';stageEl.append(loading);
  const retry=loading.querySelector('button');
+ const ending=document.createElement('div');ending.id='story-ending';ending.hidden=true;
+ ending.setAttribute('role','dialog');ending.setAttribute('aria-modal','true');ending.setAttribute('aria-labelledby','story-ending-title');
+ ending.innerHTML='<h2 id="story-ending-title">To be Continued</h2><button id="story-continue" type="button">Continue Playing as Gary</button>';stageEl.append(ending);
+ const continueButton=ending.querySelector('button');
+ const cityLabel=document.createElement('span');cityLabel.id='story-city-label';cityLabel.hidden=true;stageEl.append(cityLabel);
  let host=null,current=null,serial=0,raf=0,last=0,readiness=Promise.resolve(),lastResult=null,ctx=null,points=[];
+ function sceneFor(id){
+  const scene=SCENES[id]||window.V5_BANQUET_FINALE.scenes[id];
+  if(!scene)throw new Error('Unknown story backdrop: '+id);
+  return scene;
+ }
  function image(url){
   if(!url)return Promise.reject(new Error('Missing story artwork reference.'));
   if(cache.has(url))return cache.get(url);
@@ -96,11 +107,13 @@
   return Promise.all([...urls].map(image));
  }
  function requirements(shots){
-  const urls=new Set(shots.map(s=>SCENES[s.scene].image));
-  for(const s of shots){const scene=SCENES[s.scene];if(scene.overlay)urls.add(scene.overlay.image);}
+  const urls=new Set(shots.map(s=>sceneFor(s.scene).image));
+  for(const s of shots){const scene=sceneFor(s.scene);if(scene.overlay)urls.add(scene.overlay.image);}
   for(const character of Object.values(CHARACTERS)){urls.add(character.sheet);if(character.emotions)urls.add(character.emotions.sheet);}
   for(const clips of Object.values(window.V5_ACTION_ART))for(const clip of Object.values(clips))urls.add(clip.sheet);
   urls.add(window.V5_WINDOW_ART.sheet);
+  if(shots.some(s=>s.stage.startsWith('swim')))urls.add('../v4/assets/characters/chris-swim.png');
+  if(shots.some(s=>s.stage.startsWith('banquet-')))urls.add(window.V5_BANQUET_FINALE.meteorSheet);
   for(const id of ['trex','raptor','triceratops','pterodactyl'])urls.add('../v4/assets/dinosaurs/'+id+'.png');
   return [...urls];
  }
@@ -114,8 +127,9 @@
   current.previousScene=s.scene;current.focus=null;current.actors=[];
   bubble.querySelector('strong').textContent=CHARACTERS[current.speaker].name;
   bubble.querySelector('p').textContent=s.text;bubble.hidden=!s.text;
-  canvas.setAttribute('aria-label',SCENES[s.scene].name+'. '+CHARACTERS[current.speaker].name+': '+s.text);
+  canvas.setAttribute('aria-label',sceneFor(s.scene).name+'. '+(s.text?CHARACTERS[current.speaker].name+': '+s.text:s.stage));
   cue(s.cue);
+  document.dispatchEvent(new CustomEvent('v5-cinema-shot',{detail:{event:current.event,stage:s.stage,music:s.music||null}}));
  }
  async function prepare(token){
   const run=current;if(!run)return;
@@ -143,7 +157,7 @@
   }
  }
  function load(){readiness=prepare(current.token);readiness.catch(()=>{});}
- retry.onclick=()=>{if(current&&!current.loading){current.index=0;current.age=0;current.elapsed=0;current.defeated.clear();current.actions.clear();load();}};
+ retry.onclick=()=>{if(current&&!current.loading){current.index=0;current.age=0;current.elapsed=0;current.waitingReturn=false;ending.hidden=true;current.defeated.clear();current.actions.clear();load();}};
  function account(s,age){
   if(s.stage!=='gary-wave')return;
   window.V5_GARY_FINALE.deathTimes.forEach((time,i)=>{
@@ -152,11 +166,18 @@
   });
  }
  function advanceTime(delta){
-  if(!current||current.loading||current.error||document.hidden)return;
+  if(!current||current.loading||current.error||current.waitingReturn||document.hidden)return;
   current.age+=delta;current.elapsed+=delta;
   while(current&&current.age>=current.shots[current.index].seconds){
    const s=current.shots[current.index],overflow=current.age-s.seconds;account(s,s.seconds);
-   if(current.index===current.shots.length-1){finish();return;}
+   if(current.index===current.shots.length-1){
+    if(current.event==='banquet'){
+     current.age=s.seconds;current.elapsed=current.duration;current.waitingReturn=true;pause();bubble.hidden=true;cityLabel.hidden=true;ending.hidden=false;
+     canvas.setAttribute('aria-label','To be Continued. Continue Playing as Gary.');
+     document.dispatchEvent(new CustomEvent('v5-cinema-shot',{detail:{event:current.event,stage:'ending'}}));continueButton.focus({preventScroll:true});
+    }else finish();
+    return;
+   }
    current.index++;enterShot();current.age=overflow;
   }
   if(!current)return;
@@ -164,27 +185,28 @@
   while(s.cues&&current.cueIndex<s.cues.length&&current.age>=s.cues[current.cueIndex][0])cue(s.cues[current.cueIndex++][1]);
  }
  function fail(error){
-  if(!current)return;current.error=error.message;pause();loading.hidden=false;retry.hidden=false;
+  if(!current){console.error('Story continuation failed:',error);return;}current.error=error.message;pause();loading.hidden=false;retry.hidden=false;
   loading.querySelector('p').textContent='The story could not play. Retry artwork. '+error.message;console.error('Story presentation failed:',error);
  }
- function tick(now){raf=0;if(!current||document.hidden){last=0;return;}const delta=last?Math.max(0,(now-last)/1000):0;last=now;try{advanceTime(delta);}catch(error){fail(error);}schedule();}
+ function tick(now){raf=0;if(!current||document.hidden||current.waitingReturn){last=0;return;}const delta=last?Math.max(0,(now-last)/1000):0;last=now;try{advanceTime(delta);}catch(error){fail(error);}schedule();}
  function finish(){
   if(!current)return;
   const run=current;
   if(run.event==='gary'&&run.defeated.size!==20)throw new Error('Gary must defeat exactly twenty dinosaurs before joining.');
-  lastResult={event:run.event,defeated:run.defeated.size,actions:[...run.actions],elapsed:run.elapsed};
+  lastResult={event:run.event,defeated:run.defeated.size,actions:[...run.actions],elapsed:run.elapsed,endingAcknowledged:run.waitingReturn===true};
   host.release(run.context,run.scene,run.actors,run.camera);
-  current=null;serial++;pause();bubble.hidden=true;loading.hidden=true;
+  current=null;serial++;pause();bubble.hidden=true;loading.hidden=true;ending.hidden=true;cityLabel.hidden=true;
   document.body.classList.remove('v5-story-active');
   for(const [element,inert] of run.inerted)element.inert=inert;
   canvas.setAttribute('aria-label',run.label);
   document.dispatchEvent(new CustomEvent('v5-cinema-end',{detail:lastResult}));
   run.callback?.(lastResult);
  }
+ continueButton.onclick=()=>{if(current?.waitingReturn){try{finish();}catch(error){fail(error);}}};
  document.addEventListener('visibilitychange',()=>{if(document.hidden)pause();else schedule();});
  document.addEventListener('keydown',event=>{
   if(!current||event.ctrlKey||event.altKey||event.metaKey)return;
-  if(['screen-mode','story-retry'].includes(document.activeElement?.id)&&['Enter',' '].includes(event.key))return;
+  if(['screen-mode','story-retry','story-continue'].includes(document.activeElement?.id)&&['Enter',' '].includes(event.key))return;
   if(['Escape','Enter',' ','w','a','s','d','W','A','S','D','m','M','e','E','x','X','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(event.key)){
    event.preventDefault();event.stopImmediatePropagation();
   }
@@ -220,20 +242,21 @@
   context.drawImage(img,frame*clip.frameWidth,(clip.row||0)*clip.frameHeight,clip.frameWidth,clip.frameHeight,-clip.foot.x,-clip.foot.y,clip.frameWidth,clip.frameHeight);
   context.restore();return true;
  }
- function human(id,x,y,{dir='down',walk=false,pose='',lift=0,rotation=0,scale=1,poseTime=current.age}={}){
+ function human(id,x,y,{dir='down',walk=false,pose='',lift=0,rotation=0,scale=1,poseTime=current.age,swim=false}={}){
+  if(current.event.startsWith('recruit-')&&id!=='coco'&&id!==current.context.player.id&&V4_RPG.members[id].joined)return;
   const c=CHARACTERS[id],t=current.age;
   if((current.event.startsWith('recruit-')||current.event==='gary-talk')&&current.scene===current.context.scene&&id===current.context.player.id){
    x=current.context.player.x;y=current.context.player.y;
   }
-  current.actors.push({id,x,y,direction:dir,pose,lift});points.push([x,y-lift-58],[x,y]);
+  current.actors.push({id,x,y,direction:dir,pose,lift,swim});points.push([x,y-lift-58],[x,y]);
   if(id==='gary'&&pose)current.actions.add(pose);
   oval('#091b3244',x,y,13*scale,4*scale);
-  const expression=pose==='startle'?'surprised':pose||(!walk&&current.speaker===id?'talk':'');
+  const expression=swim?'':pose==='startle'?'surprised':pose||(!walk&&current.speaker===id?'talk':'');
   const clip=actionClip(id,expression),flip=id==='gary'&&dir==='left'&&['attack','special'].includes(expression);
   if(clip&&clip.frameWidth>64){const size=scale*(clip.scale||1);points.push([x+(flip?clip.foot.x-clip.frameWidth:-clip.foot.x)*size,y-lift-clip.foot.y*size],[x+(flip?clip.foot.x:clip.frameWidth-clip.foot.x)*size,y-lift+(clip.frameHeight-clip.foot.y)*size]);}
   ctx.save();ctx.translate(x,y-lift);ctx.scale(scale,scale);
-  if(!drawPose(ctx,id,expression,0,0,poseTime,{rotation,flip})){
-   const img=images.get(c.sheet),row=c.rows[dir]+(walk?(c.walkRowOffset||0):0),frame=walk?Math.floor(t*(c.walkFPS||8))%c.frames:1;
+  if(swim||!drawPose(ctx,id,expression,0,0,poseTime,{rotation,flip})){
+   const img=images.get(swim?'../v4/assets/characters/chris-swim.png':c.sheet),row=swim?{down:0,up:1,left:2,right:3}[dir]:c.rows[dir]+(walk?(c.walkRowOffset||0):0),frame=walk?Math.floor(t*(c.walkFPS||8))%c.frames:1;
    rotatePose(ctx,rotation);ctx.drawImage(img,frame*64,row*64,64,64,-c.foot.x,-c.foot.y,64,64);
   }
   ctx.restore();
@@ -272,6 +295,11 @@
  }
  function stage(s){
   const t=current.age,u=clamp(t/s.seconds),activity=s.stage;
+  if(activity.startsWith('banquet-')){
+   window.V5_BANQUET_FINALE.stage(s,t,{human,reduced:reduced.matches,hasPose:(id,pose)=>!!actionClip(id,pose),
+    meteor(x,y,frame,size){const img=images.get(V5_BANQUET_FINALE.meteorSheet);ctx.save();ctx.globalCompositeOperation='screen';ctx.drawImage(img,frame%3*128,Math.floor(frame/3)*128,128,128,x-size/2,y-size/2,size,size);ctx.restore();}});
+   return;
+  }
   if(activity.startsWith('gary-')){window.V5_GARY_FINALE.stage(s,t,{human,dinosaur,smoke,blast,path,ease,reduced:reduced.matches,focus:(x,y)=>current.focus={x,y},context:current.context});return;}
   if(['wake','peek','window','alarm'].includes(activity)){
    let x=260,y=218;
@@ -300,7 +328,10 @@
    oval('#f1eee4',395+Math.min(u*1.7,1)*160,340,6,6);
    if(panic)dinosaur('raptor',510,340,{scale:.65});else human('coco',470,397,{dir:'up'});
   }else if(activity==='swim'||activity==='swim-panic'){
-   human('chris',358,813,{pose:activity==='swim-panic'?'surprised':''});dinosaur('pterodactyl',310+u*115,750,{dir:'right',scale:.72});
+   ctx.save();ctx.globalAlpha=.22;human('chris',358,848,{swim:true});ctx.restore();
+   if(activity==='swim')human('chris',358,813+(reduced.matches?0:Math.sin(t*3)*2),{swim:true,dir:'up',walk:true});
+   for(let i=0;i<3;i++){ctx.strokeStyle='#c7ffff99';ctx.lineWidth=1;ctx.beginPath();ctx.ellipse(358,817,18+i*7+u*8,3+i*2,0,0,Math.PI*2);ctx.stroke();}
+   dinosaur('pterodactyl',310+u*115,750,{dir:'right',scale:.72});
    if(activity==='swim')human('coco',422,850,{dir:'left'});
   }else if(['wrestle','throw','throw-after'].includes(activity)){
    human('vito',1615,1045,{pose:activity==='wrestle'?'wrestle':activity==='throw-after'?'recover':t<1.5?'wrestle':'throw',dir:'right',poseTime:activity==='throw'&&t>=1.5?t-1.5:t});
@@ -330,7 +361,9 @@
   }
  }
  function cameraFor(s,width,height){
-  const scene=SCENES[s.scene],bounds=scene.viewBounds||scene.bounds;
+  const scene=sceneFor(s.scene),bounds=scene.viewBounds||scene.bounds;
+  const cityCamera=current.event==='banquet'&&V5_BANQUET_FINALE.camera(s,width,height);
+  if(cityCamera)return cityCamera;
   const xs=points.map(p=>p[0]),ys=points.map(p=>p[1]),left=Math.min(...xs),right=Math.max(...xs),top=Math.min(...ys),bottom=Math.max(...ys);
   const focus=current.focus||{x:(left+right)/2,y:bottom};
   let scale=Math.min(1,width/(right-left+100),height/(bottom-top+145));
@@ -358,7 +391,7 @@
  }
  function renderFrame(context,viewport){
   if(!current||current.loading||current.error)return;
-  ctx=context;const s=current.shots[current.index],scene=SCENES[s.scene];
+  ctx=context;const s=current.shots[current.index],scene=sceneFor(s.scene);
   current.actors=[];current.enemies=[];current.smoke=[];current.focus=null;points=[];
   // Measure actor bounds using the same authored stage without painting off-screen.
   ctx.save();try{ctx.translate(-100000,-100000);stageAll(s,true);}finally{ctx.restore();}
@@ -369,7 +402,7 @@
   ctx.save();
   try{
    ctx.imageSmoothingEnabled=false;rect('#17383b',0,0,viewport.width,viewport.height);
-   const c=current.camera,shake=s.shake&&!reduced.matches?Math.max(0,1-current.age/1.5):0;
+   const c=current.camera,shake=s.shake&&!reduced.matches?Math.max(0,1-current.age/1.5):current.event==='banquet'?V5_BANQUET_FINALE.shake(s,current.age,reduced.matches):0;
    ctx.translate(Math.sin(current.age*59)*3*shake,Math.cos(current.age*73)*2*shake);
    ctx.scale(c.scale,c.scale);ctx.translate(-c.x,-c.y);
    ctx.drawImage(images.get(scene.image),0,0,scene.width,scene.height);
@@ -378,7 +411,13 @@
    host.drawAmbient?.(s.scene);
   }finally{ctx.restore();}
   if(current.transition&&!reduced.matches&&current.age<.35)rect('#10282d'+Math.round((1-current.age/.35)*255).toString(16).padStart(2,'0'),0,0,viewport.width,viewport.height);
-  placeBubble();
+  if(current.event==='banquet'){
+   const flash=V5_BANQUET_FINALE.flash(s,current.age,reduced.matches);
+   if(flash)rect('#ffffff'+Math.round(flash*255).toString(16).padStart(2,'0'),0,0,viewport.width,viewport.height);
+   if(s.stage==='banquet-fade')rect('#050810'+Math.round(clamp(current.age/s.seconds)*255).toString(16).padStart(2,'0'),0,0,viewport.width,viewport.height);
+  }
+  cityLabel.hidden=s.stage!=='banquet-city'||current.waitingReturn;cityLabel.textContent=scene.name;
+  if(current.waitingReturn)bubble.hidden=true;else placeBubble();
  }
  function render(context,viewport){try{renderFrame(context,viewport);}catch(error){fail(error);}}
  window.V5_CINEMA={
@@ -387,7 +426,7 @@
   get ready(){return readiness;},get active(){return current!==null;},
   get lastResult(){return lastResult&&{...lastResult,actions:[...lastResult.actions]};},
   get state(){return current?{event:current.event,scene:current.scene,shot:current.index,shotIndex:current.index,age:current.age,elapsed:current.elapsed,duration:current.duration,loading:current.loading,error:current.error,
-   camera:current.camera&&{...current.camera},actors:current.actors.map(a=>({...a})),enemies:current.enemies.map(a=>({...a})),smoke:[...current.smoke],defeated:current.defeated.size,actions:[...current.actions]}:
+   camera:current.camera&&{...current.camera},actors:current.actors.map(a=>({...a})),enemies:current.enemies.map(a=>({...a})),smoke:[...current.smoke],defeated:current.defeated.size,actions:[...current.actions],waitingReturn:current.waitingReturn===true,music:current.shots[current.index].music||null}:
    {event:null,scene:null,shot:-1,shotIndex:-1,age:0,elapsed:0,duration:0,loading:false,error:null};},
   play(event,onComplete){
    if(current||!catalog[event])return false;

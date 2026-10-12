@@ -24,6 +24,20 @@ through relative URLs rather than copying a second asset library.
   flips, a rooftop leap, blasts and twenty individual smoke disappearances.
   After sitting, drinking water and saying "God bless the USA.", he becomes the
   fifteenth playable hero with his Patriot blaster. The meteor mystery continues.
+- After Gary joins, a **new diamond on the existing Market Square map**, between
+  the grass patches north of the family meeting spot and left of Five Guys,
+  offers an optional celebration. It does not replace the string-lights marker.
+  All fifteen celebrate against the supplied starry Kentlands Under the Lights
+  backdrop. Falling meteors interrupt the party; Gary hears radio chatter.
+  Paris, Egypt, Japan, Russia, Hawaii and New York follow in a quick montage.
+  Back at the banquet, Coco says "I guess we are just getting started!" before
+  the fade and "To be Continued" card. **Continue Playing as Gary** returns to
+  the original plaza position. The card waits for click/tap or focused Enter/Space;
+  Escape cannot dismiss it. The finale is one-shot and cannot unlock early.
+- Village music continues through normal recruitment without restarting.
+  Already recruited neighboring NPCs stay absent from subsequent rescue scenes.
+  Chris hides faintly underwater during the invasion montage, but swims normally
+  when found; neither pool scene uses his surprised pose.
 
 Coco remains the narrative protagonist when another unlocked hero is selected.
 Cinematics pause movement, combat, travel and character switching. They use the
@@ -42,6 +56,8 @@ Run and interaction buttons.
 automatically; Enter, Space and Escape do not advance or bypass them.
 Hidden tabs pause story timers. Reduced-motion mode removes camera shake,
 flips and decorative bouncing.
+The optional finale also disables meteor travel, dancing displacement,
+flashes and shaking with reduced motion; its wide sky shot preserves the stars.
 Intro replay never resets recruitment or repeats completed chapter events.
 
 Expand and Home Screen mode retain the V4 desktop/phone behavior. Physical
@@ -57,6 +73,11 @@ grabs you, not during approach, rejected grabs, release or escape.
 - [Story placement](src/story.js), [story events](src/story-events.js) and the
   [cinematic director](src/cinema.js) and [Gary finale](src/gary-finale.js) are
   separate from the core game loop.
+- [Banquet finale](src/banquet-finale.js) owns the 48-second celebration,
+  six-city montage and cinematic-only backdrop metadata. New scenes are not
+  gameplay maps. [Banquet artwork processing](tools/process-banquet-art.ps1)
+  preserves aspect ratios and source hashes while exporting seven backgrounds
+  and the transparent six-frame meteor atlas.
 - Existing `V4_*` implementation globals are retained internally for the reused
   RPG/menu/companion modules. They run only on this separate page.
 - The supplied three-state dinosaur head is masked behind bedroom/kitchen
@@ -69,8 +90,12 @@ grabs you, not during approach, rejected grabs, release or escape.
   coffee, ball, energy-beam and smoke effects remain original Canvas art.
 - Gary's epic battle score is original Web Audio synthesis and respects the
   existing music preference, mute controls and hidden-tab pause.
+  The ending adds original happy cafe and dramatic organ-style scores plus
+  meteor/radio effects, not recordings or melodies copied from commercial games.
+  Optional hamburger/martini sprite uploads were not found; the supplied banquet
+  backdrop's tableware is retained instead.
 - Story flags, stats, equipment and recruitment are **session-only**. Refreshing
-  starts over. Saves, XP rewards/leveling, combat damage and the endgame remain
+  starts over. Saves, XP rewards/leveling, combat damage and later chapters remain
   future increments.
 - Existing road topology, sword, dogs, powers, unicorn and flight behavior are
   retained. No Tiled pipeline or shared deployment configuration was added.
@@ -111,6 +136,12 @@ boundaries, never production position/time setters. Core regression fixtures
 start after the opening; real chapter tests do not bypass story prerequisites.
 [Story-state checks](tests/story-state.cjs) cover callback idempotence, ordered
 prerequisites, grouped recruitment, HQ-only Gary and his twenty-defeat unlock.
+They also check optional banquet prerequisites, acknowledgement, one-shot Gary
+return, exact authored duration, reduced-motion effects and sky framing.
+Chapter checks cover uninterrupted recruitment music, underwater versus swimming
+Chris, paired-NPC absence, all fifteen banquet actors, six cities and meteor
+frames, cafe/organ playback, mute/hidden-tab behavior, bounded ending controls
+and exact return to the original plaza position.
 [Scene-path checks](tests/scene-paths.cjs) verify all twenty reciprocal routes,
 arrival connectivity, gate widths, decorative benches and protected obstacles.
 [Gary choreography checks](tests/gary-finale.cjs) verify four five-enemy waves,

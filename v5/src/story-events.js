@@ -17,7 +17,8 @@
   if(next)return 'Rescue '+CHARACTERS[next].name+' · '+V4_STORY.locations[next].hint+' Regroup at Market Square.';
   if(!completed.has('gathering'))return 'Everyone is rescued! Bring the party to Market Square.';
   if(!completed.has('gary'))return 'Everyone is rescued. Gary has something to show you.';
-  return 'Chapter complete · Gary is playable! The meteor mystery continues next time.';
+  if(!completed.has('banquet'))return 'Gary is playable! Celebrate at the new diamond north of the family meeting spot.';
+  return 'To be Continued · Keep exploring with Gary and the whole party.';
  }
  function allowed(id){
   const index=opening.indexOf(id);
@@ -30,6 +31,7 @@
   if(id==='gathering')return completed.has('montage')&&host.scene()==='plaza'&&host.atMeeting()&&['coco',...V4_STORY.order].every(member=>V4_RPG.members[member].joined);
   if(id==='gary')return completed.has('gathering')&&!V4_RPG.members.gary.joined;
   if(id==='gary-talk')return completed.has('montage')&&host.scene()==='hq';
+  if(id==='banquet')return completed.has('gary')&&V4_RPG.members.gary.joined&&host.scene()==='plaza'&&host.atBanquet();
   if(id.startsWith('recruit-')){
    const member=id.slice(8),location=V4_STORY.locations[member];
    return !!location&&completed.has('montage')&&location.scene===host.scene()&&!V4_RPG.members[member].joined&&!['connor',...family].includes(member);
@@ -46,7 +48,9 @@
  function finish(id,result){
   if(current!==id||completed.has(id))return;
   if(id==='gary'&&result?.defeated!==20){console.error('Gary finale did not account for all twenty dinosaurs.',result);host.notify('Gary needs to finish his battle before joining.');current=null;host.reset();host.refresh();return;}
+  if(id==='banquet'&&result?.endingAcknowledged!==true){console.error('Banquet ending was not acknowledged.',result);host.notify('Finish the banquet ending before continuing.');current=null;host.reset();host.refresh();return;}
   current=null;if(id!=='gary-talk')completed.add(id);award(id);host.reset();host.refresh();
+  if(id==='banquet')host.resumeGary();
   if(id==='family')run('montage');
   else check();
  }
@@ -93,7 +97,7 @@
   }
   return true;
  }
- window.V5_EVENTS={attach,start,check,encounter,canTravel,objective,
+ window.V5_EVENTS={attach,start,check,encounter,canTravel,objective,celebrate:()=>run('banquet'),
   get active(){return current!==null;},
   get state(){return {protagonist:'coco',started,current,completed:[...completed],chapter:completed.has('gary')?'complete':completed.has('gathering')?'gary':completed.has('montage')?'rescues':completed.has('connor')?'family':'opening'};}};
 })();
