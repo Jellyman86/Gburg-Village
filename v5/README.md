@@ -59,14 +59,18 @@ grabs you, not during approach, rejected grabs, release or escape.
 - Existing road topology, sword, dogs, powers, unicorn and flight behavior are
   retained. No Tiled pipeline or shared deployment configuration was added.
 
-## Emotion artwork prototype
+## Coco emotion artwork
 
 [Coco's first emotion sheet](assets/characters/coco-emotions.png) contains six
 transparent 64x64 frames: talking on row 0 and surprised on row 1, three frames
 per row. These are front-facing authored edits of her supplied walking sprite,
 not newly generated likenesses. Her original hair, clothing, legs and foot
-anchor are retained. The prototype is awaiting style approval and is **not yet
-used in gameplay or cinematics**.
+anchor are retained. The user-approved frames play when Coco speaks while
+standing still and reacts to the dinosaur in V5 cinematics. Moving characters
+retain their supplied walking frames. These first emotion poses deliberately
+face the camera so the small facial expressions are visible; other directional
+poses and characters remain future artwork increments. Reduced-motion mode
+uses a static pose instead of cycling the expression frames.
 
 [The drawing script](tools/draw-coco-emotions.ps1) reproduces the PNG and checks
 unique frames, transparent outer margins and unchanged lower-body alignment.
@@ -86,6 +90,9 @@ start after the opening; real chapter tests do not bypass story prerequisites.
 prerequisites, grouped recruitment and all fourteen playable characters.
 [Audio-state checks](tests/sfx-state.cjs) verify the pickup screech's pitch
 sweeps, mute/visibility suppression and cancellation of pending cinematic audio.
+[Emotion checks](tests/emotion-checks.js) trace the actual PNG frames drawn in
+the cinematic canvas, checking all six poses, fixed foot anchors, original
+walking, safe story skips and static reduced-motion playback in all three layouts.
 
 Run the existing browser harness with `PLAYWRIGHT_CORE` and `BROWSER_PATH`
 pointing to your installed Playwright package and Chromium. Optional

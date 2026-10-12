@@ -12,3 +12,4 @@ window.CHARACTERS.jaime.speed=155;window.CHARACTERS.jaime.runSpeed=245;
 for(const id of Object.keys(window.CHARACTERS)){
  window.CHARACTERS[id].portrait=`../v4/assets/portraits/${id}.png`;
 }
+window.CHARACTERS.coco.emotions={sheet:'assets/characters/coco-emotions.png',frames:3,fps:6,rows:{talk:0,surprised:1}};
