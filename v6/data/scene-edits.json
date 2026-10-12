@@ -1,0 +1,176 @@
+{
+  "version": 1,
+  "scenes": {
+    "montage": {
+      "0": {
+        "actors": {
+          "ari": {
+            "dx": -101,
+            "dy": -48
+          }
+        },
+        "speaker": "ari",
+        "text": "That is NOT the goalie!!"
+      },
+      "1": {
+        "bubble": {
+          "placement": "custom",
+          "x": 0.2782846568230216,
+          "y": 0.7641940459116696
+        }
+      },
+      "2": {
+        "actors": {
+          "vito": {
+            "dx": 49,
+            "dy": 19
+          }
+        }
+      },
+      "3": {
+        "actors": {
+          "mark": {
+            "dx": 2,
+            "dy": -98
+          }
+        }
+      },
+      "4": {
+        "bubble": {
+          "placement": "below",
+          "x": 0.261,
+          "y": 0.748
+        }
+      },
+      "5": {
+        "actors": {
+          "brie": {
+            "dx": 83,
+            "dy": 35
+          },
+          "jaime": {
+            "dx": -1,
+            "dy": -22
+          }
+        },
+        "seconds": 3
+      },
+      "6": {
+        "camera": {
+          "x": 2200,
+          "y": 720,
+          "zoom": 0.6
+        },
+        "actors": {
+          "jason": {
+            "dx": -118,
+            "dy": 218
+          },
+          "coco": {
+            "dx": -197,
+            "dy": 182
+          },
+          "connor": {
+            "dx": -317,
+            "dy": -140
+          },
+          "peachy": {
+            "dx": -280,
+            "dy": -156
+          }
+        },
+        "bubble": {
+          "placement": "custom",
+          "x": 0.03764198332042823,
+          "y": 0.5452911255695502
+        },
+        "seconds": 2
+      },
+      "7": {
+        "camera": {
+          "x": 778,
+          "y": 700,
+          "zoom": 0.7
+        },
+        "actors": {
+          "coco": {
+            "dx": -270,
+            "dy": 197
+          },
+          "connor": {
+            "dx": -228,
+            "dy": 173
+          },
+          "jason": {
+            "dx": -185,
+            "dy": 255
+          },
+          "peachy": {
+            "dx": -165,
+            "dy": 228
+          }
+        },
+        "bubble": {
+          "placement": "custom",
+          "x": 0.35795262279240153,
+          "y": 0.7097479766660687
+        },
+        "seconds": 2
+      }
+    },
+    "recruit-adam": {
+      "1": {
+        "bubble": {
+          "placement": "below",
+          "x": 0,
+          "y": 0
+        }
+      }
+    },
+    "family": {
+      "1": {
+        "text": "Is that the TV?",
+        "seconds": 2
+      },
+      "2": {
+        "text": "I think it came from outside!",
+        "seconds": 2
+      },
+      "3": {
+        "text": "Dad! Mom! LOOK OUT THE WINDOW!"
+      },
+      "4": {
+        "text": "AAAAH!"
+      }
+    },
+    "gary-talk": {
+      "1": {
+        "text": "I've been preparing for this..."
+      }
+    },
+    "gary": {
+      "4": {
+        "bubble": {
+          "placement": "above",
+          "x": 0,
+          "y": 0
+        },
+        "text": ""
+      },
+      "5": {
+        "bubble": {
+          "placement": "above",
+          "x": 0,
+          "y": 0
+        }
+      },
+      "7": {
+        "text": "COME GET SOME!! AGHHH!",
+        "seconds": 7
+      },
+      "8": {
+        "text": "That all you got? Anyone else? Who's next?!"
+      }
+    }
+  }
+}

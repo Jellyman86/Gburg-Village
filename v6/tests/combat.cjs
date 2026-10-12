@@ -1,0 +1,62 @@
+const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),vm=require('node:vm');
+const combat=require('../src/combat.js');
+const scope={window:{}};vm.createContext(scope);
+for(const file of ['powers.js','gimmicks.js'])vm.runInContext(fs.readFileSync(path.join(__dirname,'..','src',file),'utf8'),scope);
+const powers=scope.window.FAMILY_POWERS;
+const enemy=kind=>combat.init({kind,x:0,y:0,clock:0});
+const attack={power:powers.definitions.chris,strength:12,x:-25,y:0,dx:1,dy:0,serial:1,owner:'chris'};
+const sounds=[],engine=combat.create({blocked:(x,y)=>x>=20||x<-100||Math.abs(y)>100,onSound:s=>sounds.push(s)});
+const big=enemy('trex');
+assert(engine.hit(big,attack));assert.equal(big.hp,89);assert.equal(engine.state.lastHit.amount,21);
+assert.equal(big.flash,.16);assert.equal(big.bar,2);assert.equal(sounds[0],'hurt-trex');
+engine.update(.5,[big]);assert(big.x<20,'Knockback cannot tunnel through walls');
+engine.setNumbers(false);assert(!engine.state.effects.some(e=>e.type==='number'));
+engine.hit(big,attack);assert.equal(big.hp,68,'Cosmetic toggle does not alter damage');
+assert(!engine.state.effects.some(e=>e.type==='number'));
+for(let i=0;i<4;i++)engine.hit(big,attack);
+assert.equal(big.hp,0);assert.equal(big.mode,'retreat');assert.equal(engine.state.defeats,1);
+assert.equal(engine.hit(big,attack),false);assert.equal(engine.state.defeats,1);
+for(let i=0;i<60;i++){engine.update(.05,[big]);assert(big.x<20&&Math.abs(big.y)<=100,'Retreat remains collision-safe');}
+assert(big.hidden,'Large dinosaur finishes its retreat');
+for(const kind of ['compy','raptor','pterodactyl','triceratops']){
+ const d=enemy(kind),fresh=combat.create({blocked:()=>false,onSound:s=>sounds.push(s)});
+ while(d.alive)fresh.hit(d,attack);
+ assert(sounds.includes(combat.species[kind].sound));
+ fresh.update(.25,[d]);assert.equal(d.hidden,combat.species[kind].outcome==='puff');
+ if(d.hidden)assert(fresh.state.effects.some(e=>e.type==='smoke'),'Small dinosaurs emit smoke');
+ assert.equal(fresh.state.defeats,1);
+}
+assert.throws(()=>combat.init({kind:'unknown'}),/Unknown combat dinosaur/);
+assert.throws(()=>engine.hit(enemy('compy'),{...attack,strength:NaN}),/Invalid attack/);
+const pool=combat.create({blocked:()=>false,onSound:()=>{}});
+for(let i=0;i<100;i++)pool.hit(enemy('compy'),attack);
+assert.equal(pool.state.effects.length,32,'Bounded effect pool');
+pool.clearEffects();assert.equal(pool.state.effects.length,0);
+for(const reduced of [false,true]){
+ const motion=combat.create({blocked:()=>false,onSound:()=>{},reduced:()=>reduced}),d=enemy('compy'),ys=[];
+ motion.hit(d,attack);motion.update(.1,[d]);
+ motion.drawEffects({save(){},restore(){},fillRect(){},strokeText(text,x,y){ys.push(y);},fillText(){}});
+ assert.equal(ys.length,1);assert(reduced?ys[0]===-38:ys[0]<-38,'Reduced motion holds damage text still');
+}
+const targets=[{x:35,y:0,alive:true},{x:40,y:5,alive:true},{x:-30,y:0,alive:true}],hits=[];
+const actor={id:'jason',direction:'right',x:0,y:0};
+const multi=powers.create({blocked:()=>false,getTargets:()=>targets,getActor:()=>actor,getAbility:()=> 'chris',onHit:(id,hit)=>hits.push(hit)});
+assert(multi.activate(actor));assert(!multi.activate(actor),'Cooldown blocks a second cast');
+multi.update(.1);multi.update(.1);assert.equal(hits.length,2,'Once per target, forward arc only');
+assert(hits.every(h=>h.owner==='jason'&&h.power.kind==='towel'),'Equipped ability keeps actual owner');
+const behind=powers.create({blocked:x=>x>20,getTargets:()=>targets,onHit:()=>assert.fail('Hit through wall')});
+behind.activate({...actor,id:'chris'});behind.update(.1);
+const radialHits=[],radial=powers.create({blocked:()=>false,getTargets:()=>targets,onHit:(id,h)=>radialHits.push(h)});
+radial.activate({...actor,id:'coco'});radial.update(.4);radial.update(.1);
+assert.equal(radialHits.length,3,'Radial power hits the group once each');
+let enabled=true;const notices=[];
+const gag=scope.window.V6_GIMMICKS.create({enabled:()=>enabled,notify:s=>notices.push(s)});
+const town={id:'district',walkable:[{x:0,y:0,w:900,h:60}]};
+gag.update(.1,town,{x:100,y:30},{x:0},390);assert(gag.state.active&&gag.state.seen);
+gag.update(7,town,{x:100,y:30},{x:0},390);assert(!gag.state.active);
+gag.update(.1,town,{x:100,y:30},{x:0},390);assert(!gag.state.active);assert.equal(notices.length,1);
+const off=scope.window.V6_GIMMICKS.create({enabled:()=>enabled,notify:()=>{}});
+enabled=false;off.update(.1,town,{x:100,y:30},{x:0},390);assert(!off.state.seen);
+enabled=true;off.update(.1,town,{x:100,y:30},{x:0},390);assert(off.state.active);
+enabled=false;off.update(.1,town,{x:100,y:30},{x:0},390);assert(!off.state.active&&off.state.seen);
+console.log('PASS: damage/armor/strength, every species, knockback/retreat collision, defeat once, smoke, effect cap, numbers toggle, cast ownership/cooldown/groups/LOS and optional once-only bus.');

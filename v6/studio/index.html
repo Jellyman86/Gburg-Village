@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Gburg Studio - Cutscene Director</title><link rel="stylesheet" href="studio.css"></head>
+<body>
+<header><div><h1>Gburg Studio <span>Cutscene Director</span></h1><p>Drag actors or speech bubbles. Preview uses the game's cinematic renderer; no recruitment or rewards.</p></div>
+<div class="actions"><button id="save" disabled>Save to game</button><button id="export" disabled>Export JSON</button><label class="file-button">Import JSON<input id="import" type="file" accept=".json,application/json"></label><button id="reload" disabled>Reload saved</button></div></header>
+<p id="status" role="status">Loading director...</p>
+<main>
+<aside><label>Cinematic<select id="scene" disabled></select></label><label>Shot<select id="shot" size="12" disabled></select></label>
+<p class="hint">Original paths and effects stay intact. Actor edits offset the whole path for this shot. This first version does not draw new animations or edit the opening movie.</p>
+<div class="actions"><button id="undo" disabled>Undo</button><button id="redo" disabled>Redo</button><button id="reset-shot" disabled>Reset shot</button></div></aside>
+<section class="viewer">
+<div class="view-options"><label>Layout<select id="layout"><option value="desktop">Desktop 1280x900</option><option value="portrait">Phone portrait 390x844</option><option value="landscape">Phone landscape 844x390</option></select></label><label><input id="loop" type="checkbox"> Loop selected shot</label><span>Visual preview - silent</span></div>
+<div id="viewport"><div id="preview-size"><iframe id="preview" src="preview.html" title="Live cinematic preview"></iframe></div></div>
+<div class="transport"><button id="play" disabled>Play</button><button id="back-frame" disabled aria-label="Previous frame">-1 frame</button><button id="next-frame" disabled aria-label="Next frame">+1 frame</button><output id="time">0.00 / 0.00 s</output></div>
+<input id="timeline" type="range" min="0" max="1" value="0" step=".01" aria-label="Cinematic timeline" disabled>
+<p id="shot-info" class="hint"></p>
+</section>
+<aside id="inspector">
+<fieldset disabled id="fields"><legend>Selected shot</legend>
+<label>Duration (seconds)<input id="seconds" type="number" min=".5" max="60" step=".1"></label>
+<label>Dialogue<textarea id="text" maxlength="400" rows="4"></textarea></label>
+<label>Speaker<select id="speaker"></select></label>
+<label>Bubble placement<select id="bubble-placement"><option value="auto">Automatic</option><option value="above">Above speaker</option><option value="below">Below speaker</option><option value="custom">Custom (drag bubble)</option></select></label>
+<div class="pair"><label>Bubble X (%)<input id="bubble-x" type="number" min="0" max="100" step=".1"></label><label>Bubble Y (%)<input id="bubble-y" type="number" min="0" max="100" step=".1"></label></div>
+<label>Actor<select id="actor"></select></label><div class="pair"><label>X offset<input id="actor-x" type="number" min="-500" max="500" step="1"></label><label>Y offset<input id="actor-y" type="number" min="-500" max="500" step="1"></label></div>
+<label><input id="manual-camera" type="checkbox"> Manual camera</label>
+<div class="pair"><label>Camera center X<input id="camera-x" type="number" min="0" max="5000" step="1"></label><label>Camera center Y<input id="camera-y" type="number" min="0" max="5000" step="1"></label></div>
+<label>Camera zoom<input id="camera-zoom" type="number" min=".3" max="3" step=".05"></label>
+</fieldset>
+<p id="save-help" class="hint">Checking save support...</p><p class="hint">Save changes your local game settings, not GitHub. Test locally, then ask Copilot to commit/publish. Pixelorama remains the sprite editor.</p>
+</aside></main>
+<script src="../src/scene-edits.js?v=studio-v5-1"></script><script src="studio.js?v=studio-v5-2"></script></body></html>
