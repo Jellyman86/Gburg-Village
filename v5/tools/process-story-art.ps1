@@ -1,6 +1,7 @@
 param(
  [string]$PreviewPath,
- [switch]$ValidateOnly
+ [switch]$ValidateOnly,
+ [switch]$RebuildGaryWalk
 )
 $ErrorActionPreference = 'Stop'
 Add-Type -AssemblyName System.Drawing
@@ -312,10 +313,12 @@ Clip 'gary-unique' $gary (Rects @(@(85,1992,195,180),@(280,1992,160,180),@(440,1
 # Front-facing running poses, without mixing directions in one animation.
 Clip 'gary-run' $gary (Cells @(@(15,744,110,183))) $s
 $walk=Join-Path $assets 'characters\gary-walk.png'
-if (!$ValidateOnly) {
+if (!$ValidateOnly -and (!(Test-Path $walk) -or $RebuildGaryWalk)) {
  $rows=@(@(15,20,110,176),@(15,196,110,182),@(380,20,110,176),@(380,196,110,182),
          @(15,378,110,185),@(15,563,110,181),@(380,563,110,181),@(380,378,110,185))
  [V5StoryArt]::Walk((Join-Path $inbox $gary),$walk,(Cells $rows))
+} elseif (!$ValidateOnly) {
+ Write-Output 'Preserving hand-cleaned Gary walking sheet. -RebuildGaryWalk explicitly replaces it from the original upload.'
 }
 $checks.Add(@($walk,64,64,4,8,$false))
 $portrait=Join-Path $assets 'portraits\gary.png'

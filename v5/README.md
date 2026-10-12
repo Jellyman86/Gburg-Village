@@ -88,6 +88,12 @@ grabs you, not during approach, rejected grabs, release or escape.
   uploads stay single poses. No fake character arms/legs are added.
   Vito's regular walking sprite/portrait remains unchanged. Small tablet,
   coffee, ball, energy-beam and smoke effects remain original Canvas art.
+- Gary's walking sheet includes the user's Pixelorama stray-pixel cleanup.
+  The artwork tool preserves the existing walking PNG during normal processing;
+  `-RebuildGaryWalk` explicitly discards that cleanup and rebuilds from the
+  original upload. Keep an editable Pixelorama project separately when making
+  future hand edits. Frame dimensions, anchors and directional assignments are
+  unchanged by this cleanup.
 - Gary's epic battle score is original Web Audio synthesis and respects the
   existing music preference, mute controls and hidden-tab pause.
   The ending adds original happy cafe and dramatic organ-style scores plus
