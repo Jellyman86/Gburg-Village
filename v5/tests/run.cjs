@@ -1,6 +1,7 @@
 const {chromium}=require(process.env.PLAYWRIGHT_CORE||'playwright');
 const fs=require('node:fs'),path=require('node:path'),http=require('node:http');
 const root=path.resolve(__dirname,'..','..');
+const selected=name=>!process.env.V5_TEST_SUITES||process.env.V5_TEST_SUITES.split(',').includes(name);
 const server=http.createServer((req,res)=>{
  try{
   let url=decodeURIComponent(req.url.split('?')[0]);if(url.endsWith('/'))url+='index.html';
@@ -29,7 +30,7 @@ const server=http.createServer((req,res)=>{
    {width:1280,height:900,cinema:true},
    {width:390,height:844,touch:true},
    {width:844,height:390,touch:true}
-  ]){
+  ].filter(options=>!process.env.V5_TEST_LAYOUTS||process.env.V5_TEST_LAYOUTS.split(',').includes(`${options.width}x${options.height}`))){
    const context=await browser.newContext({viewport:{width:options.width,height:options.height},hasTouch:!!options.touch,isMobile:!!options.touch});
    try{
     const page=await context.newPage();await page.goto(`http://127.0.0.1:${server.address().port}/v5/`);
@@ -40,16 +41,16 @@ const server=http.createServer((req,res)=>{
      await route.fulfill({response,body:source.replace('const completed=new Set();',"const completed=new Set(['awakening','connor','family','montage']);")
       .replace('started=false','started=true')+"\nV5_EVENTS.check=()=>{};\n"});
     });
-    console.log(JSON.stringify(await check(page,options)));
-    console.log(JSON.stringify(await displayCheck(page,options)));
-    console.log(JSON.stringify(await recreationCheck(page,{screenshotPath:process.env.V4_ARTIFACT_DIR?path.join(process.env.V4_ARTIFACT_DIR,`recreation-${options.width}x${options.height}.png`):undefined})));
-    console.log(JSON.stringify(await contentCheck(page,{touch:options.touch,artifactDir:process.env.V4_ARTIFACT_DIR})));
-    console.log(JSON.stringify(await introCheck(page,{...options,artifactDir:process.env.V4_ARTIFACT_DIR})));
-    console.log(JSON.stringify(await navigationCheck(page,{...options,artifactDir:process.env.V4_ARTIFACT_DIR})));
+    if(selected('core'))console.log(JSON.stringify(await check(page,options)));
+    if(selected('display'))console.log(JSON.stringify(await displayCheck(page,options)));
+    if(selected('recreation'))console.log(JSON.stringify(await recreationCheck(page,{screenshotPath:process.env.V4_ARTIFACT_DIR?path.join(process.env.V4_ARTIFACT_DIR,`recreation-${options.width}x${options.height}.png`):undefined})));
+    if(selected('content'))console.log(JSON.stringify(await contentCheck(page,{touch:options.touch,artifactDir:process.env.V4_ARTIFACT_DIR})));
+    if(selected('intro'))console.log(JSON.stringify(await introCheck(page,{...options,artifactDir:process.env.V4_ARTIFACT_DIR})));
+    if(selected('navigation'))console.log(JSON.stringify(await navigationCheck(page,{...options,artifactDir:process.env.V4_ARTIFACT_DIR})));
     await page.unroute(storyPattern);
-    console.log(JSON.stringify(await openingCheck(page,{...options,artifactDir:process.env.V4_ARTIFACT_DIR})));
-    console.log(JSON.stringify(await chapterCheck(page,{...options,artifactDir:process.env.V4_ARTIFACT_DIR})));
-    console.log(JSON.stringify(await emotionCheck(page,{...options,artifactDir:process.env.V4_ARTIFACT_DIR})));
+    if(selected('opening'))console.log(JSON.stringify(await openingCheck(page,{...options,artifactDir:process.env.V4_ARTIFACT_DIR})));
+    if(selected('chapter'))console.log(JSON.stringify(await chapterCheck(page,{...options,artifactDir:process.env.V4_ARTIFACT_DIR})));
+    if(selected('emotions'))console.log(JSON.stringify(await emotionCheck(page,{...options,artifactDir:process.env.V4_ARTIFACT_DIR})));
    }finally{await context.close();}
   }
  }finally{if(browser)await browser.close();await new Promise(resolve=>server.close(resolve));}

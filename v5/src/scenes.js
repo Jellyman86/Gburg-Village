@@ -38,8 +38,18 @@
   [1045,190,115,100],[1060,275,135,175],[1090,440,135,285],
   [1110,710,135,235],[1120,930,125,290]
  ].map(([x,y,w,h])=>({x,y,w,h})));
- recreation.walkable.push({x:320,y:280,w:310,h:125},{x:615,y:290,w:80,h:87});
- recreation.obstacles.push({x:409,y:414,w:44,h:25},{x:647,y:320,w:21,h:63});
+ // Park benches are decorative. Broad lawn/playground paths meet the open north court gate.
+ recreation.walkable.push(...[
+  [125,185,940,65],[275,250,375,205],[650,235,70,260],[740,260,280,195],
+  [260,420,790,38],[1005,225,105,65],
+  [350,494,650,151],[665,435,51,80],[516,625,38,90]
+ ].map(([x,y,w,h])=>({x,y,w,h})));
+ // Closed fence runs stop at the two real gates; the lower internal gaps join all courts.
+ recreation.obstacles.push(...[
+  [310,470,355,24],[716,470,290,24],[337,494,12,164],[1000,494,12,164],
+  [345,645,171,22],[554,645,446,22],[575,501,10,99],[790,501,10,99],
+  [625,575,123,10],[843,575,125,10]
+ ].map(([x,y,w,h])=>({x,y,w,h})));
  recreation.landmarks.push({id:'soccer',name:'Jeff & Ari · Soccer field',x:490,y:385,radius:65,text:'Jeff and Ari are passing a soccer ball on the lawn beside the playground. Open Party to play as either friend.'});
  recreation.landmarks.push({id:'dogs',name:'Barney & Rosie · Northeast street',x:1125,y:360,radius:80,text:'You found Barney and Rosie on the northeast street! They are sniffing around and happy to see you.'});
  recreation.hint='Jeff and Ari play soccer left of the playground. Find Barney and Rosie on the northeast street; the top-left street returns to Home.';
@@ -58,6 +68,21 @@
   SCENES[id]={id,name,width,height,image,bounds:{left:0,top:0,right:width,bottom:height},spawn:{x:width/2,y:height*.8},
    indoor:true,walkable:walkable.map(([x,y,w,h])=>({x,y,w,h})),obstacles:obstacles.map(([x,y,w,h])=>({x,y,w,h})),landmarks,hint};
  }
+ interior('hq','Five Guys · Dinosaur Fighting HQ',724,543,'assets/scenes/five-guys-hq.png',[
+  [150,270,90,170],[170,260,140,45],[285,235,100,55],[370,220,100,45],[455,205,75,50],
+  [510,225,90,55],[565,265,90,65],[525,315,165,130],[145,415,545,115],[610,350,80,105]
+ ],[
+  [0,0,724,165],[45,165,130,110],[175,165,155,79],[185,235,90,29],[330,165,75,65],[405,165,100,45],
+  [535,165,65,65],[600,165,124,105],[655,270,69,20],[685,290,39,40],
+  [255,290,285,55],[345,270,220,55],[470,255,90,55],
+  [230,310,45,90],[275,350,60,60],[355,350,50,65],[440,345,48,55],[550,325,68,50],
+  [0,275,150,268],[450,442,98,62],[685,350,39,193]
+ ],[
+  {id:'outside',name:'Outside · Market Square',x:200,y:500,radius:42,to:'plaza',arrival:[1167/1536*1000,767/1024*1000]}
+ ],'Meet the team at Five Guys HQ. Walk around the briefing table; the entrance mat returns to Market Square.');
+ const hqDoor=plaza.landmarks.find(l=>l.id==='fiveguys');
+ Object.assign(hqDoor,{name:'Five Guys · HQ',to:'hq',arrival:[200/724*1000,450/543*1000],arrivalDirection:'up'});
+ delete hqDoor.text;
  interior('upstairs','Dino house · Upstairs',600,450,'../v4/assets/scenes/upstairs.png',[[211,195,189,157],[274,149,64,62],[240,340,114,110]],[],[
   {id:'coco-room',name:"Coco's room",x:382,y:233,radius:45,to:'cocoRoom',arrival:[210,880]},
   {id:'connor-room',name:"Connor's room · Next door",x:239,y:206,radius:45,to:'connorRoom',arrival:[180,810]},
@@ -76,10 +101,14 @@
    {id:'outside',name:'Outside · East of the pool',x:70,y:200,radius:42,to:'recreation',arrival:[945,670]}
   ],'Talk to Mark and Stephanie. The door leads to the street on the right side of the recreation map.');
  recreation.landmarks.push({id:'rockband-house',name:'Rock Band house · Enter →',x:1185,y:840,radius:48,to:'rockband',arrival:[180,650]});
- recreation.walkable.push({x:280,y:650,w:45,h:90},{x:275,y:700,w:37,h:244},{x:1030,y:640,w:44,h:128});
- recreation.walkable.push({x:513,y:640,w:47,h:96},{x:290,y:696,w:745,h:44});
+ recreation.walkable.push({x:260,y:650,w:65,h:294},{x:1030,y:640,w:44,h:128});
+ recreation.walkable.push({x:513,y:667,w:47,h:69},{x:275,y:696,w:760,h:44},
+  {x:255,y:700,w:780,h:244});
  recreation.landmarks.push({id:'pool-gate',name:'Pool gate · Open',x:533,y:690,radius:35,text:'The gate between the courts and pool is open! Walk down onto the deck. Chris is beside the lap pool; the water remains off limits.'});
- recreation.obstacles.push({x:315,y:744,w:86,h:175},{x:846,y:720,w:103,h:107},{x:557,y:754,w:391,h:76},{x:948,y:812,w:25,h:63},{x:573,y:852,w:118,h:54});
+ recreation.obstacles.push({x:315,y:734,w:86,h:194},{x:846,y:720,w:103,h:110},
+  {x:557,y:754,w:391,h:76},{x:948,y:812,w:52,h:63},{x:573,y:852,w:118,h:54},
+  {x:557,y:830,w:134,h:12},{x:846,y:830,w:102,h:40},
+  {x:365,y:945,w:510,h:195},{x:273,y:1025,w:92,h:115},{x:875,y:1025,w:110,h:115});
  recreation.hint+=' Rock Band is on the right/east street. Walk over a door diamond or click/tap it to travel.';
  SCENES.house.hint='Explore the Dino house. A Japanese sword lies in the central hallway. Look nearby to pick it up; the front door leads outside.';
  function road(scene,id,zones,arrival,arrivalDirection,position){

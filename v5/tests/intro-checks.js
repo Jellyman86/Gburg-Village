@@ -24,7 +24,7 @@ return async function checkIntro(page,{width=1280,height=900,touch=false,artifac
     image.onerror=()=>reject(new Error('Missing portrait '+id));image.src=CHARACTERS[id].portrait;
    })));
   });
-  assert(assets.length===14&&assets.every(a=>a.width===128&&a.height===128&&a.transparent&&a.visible),'Fourteen transparent, nonempty 128px portraits');
+  assert(assets.length===15&&assets.every(a=>a.width===128&&a.height===128&&a.transparent&&a.visible),'Fifteen transparent, nonempty 128px portraits');
   const frames=await page.evaluate(()=>{
    const frames=[];
    for(const time of [6,7.125,11.99,12]){

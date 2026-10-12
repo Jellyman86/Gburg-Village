@@ -59,7 +59,7 @@ return async function checkNavigation(page,{touch=false,artifactDir,width=1280,h
    }
    return edges;
   });
-  assert(topology.length===18,'All 18 zone transitions have reciprocal connections');
+  assert(topology.length===20,'All 20 zone transitions, including Five Guys HQ, have reciprocal connections');
   const expected={plaza:['district','north'],north:['plaza'],district:['neighborhood','plaza'],neighborhood:['district','recreation'],recreation:['neighborhood']};
   for(const [from,destinations] of Object.entries(expected)){
    const actual=topology.filter(edge=>edge.from===from&&expected[edge.to]).map(edge=>edge.to).sort();

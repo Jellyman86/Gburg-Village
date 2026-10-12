@@ -1,498 +1,403 @@
-// A presentation-only director: the caller owns story flags and party awards.
+// Story timing and presentation share the gameplay canvas; rewards stay in story-events.
 (() => {
  'use strict';
- const W=960,H=540,cache=new Map(),reduced=matchMedia('(prefers-reduced-motion: reduce)');
+ const reduced=matchMedia('(prefers-reduced-motion: reduce)'),cache=new Map(),images=new Map();
  const clamp=(n,a=0,b=1)=>Math.max(a,Math.min(b,n));
  const ease=n=>{n=clamp(n);return n*n*(3-2*n);};
  const shot=(seconds,stage,scene,camera,speaker,text,extra={})=>({seconds,stage,scene,camera,speaker,text,...extra});
- const room=[300,225,1.2],kitchen=[520,165,1.65],field=[480,345,1.9],pool=[358,815,1.65];
+ const room=[300,225,1],kitchen=[455,235,1],field=[480,345,1],pool=[390,835,1];
  const catalog={
   awakening:[
-   shot(3,'wake','cocoRoom',room,'coco',"What was that strange rumble?",{cue:'rumble'}),
+   shot(3,'wake','cocoRoom',room,'coco','What was that strange rumble?',{cue:'rumble'}),
    shot(3,'peek','cocoRoom',room,'coco',"I'm going to peek to see if there's anything outside."),
-   shot(3,'window','cocoRoom',[255,140,2.1],'coco','A DINOSAUR?!',{cue:'roar',shake:true}),
+   shot(3,'window','cocoRoom',[255,170,1],'coco','A DINOSAUR?!',{cue:'roar',shake:true}),
    shot(3,'alarm','cocoRoom',room,'coco','I NEED TO FIND CONNOR!')
   ],
   connor:[
    shot(3,'tablet','connorRoom',room,'coco',"CONNOR! THERE'S DINOSAURS!"),
    shot(3,'tablet','connorRoom',room,'connor',"That's not possible, Coco."),
    shot(3,'connor-roar','connorRoom',room,'connor',"...Okay. Let's get Dad.",{cue:'roar',shake:true}),
-   shot(3,'connor-join','connorRoom',room,'connor',"I'm coming with you!",{join:['connor'],cue:'join'})
+   shot(2,'connor-join','connorRoom',room,'connor',"I'm coming with you!")
   ],
   family:[
-   shot(3,'family','house',kitchen,'jason',"Is that the TV? Somebody turn down the dinosaur channel."),
-   shot(3,'family','house',kitchen,'peachy',"The internet is down. Of course it is."),
-   shot(3,'family-head','house',[390,165,1.65],'coco',"Dad! Mom! LOOK OUTSIDE!",{cue:'rumble'}),
-   shot(3,'coffee','house',[390,165,1.65],'peachy',"AAAAH! Jason, your coffee!",{cue:'roar',cues:[[.25,'scream'],[.9,'splash']],shake:true}),
-   shot(2,'family-join','house',[390,165,1.65],'jason',"Stay together. We're getting everyone to Market Square.",{join:['jason','peachy'],cue:'join'})
-  ],
-  gathering:[
-   shot(3,'reunion','plaza',[760,775,1.15],'coco',"Everyone's here. All fourteen of us! You're safe now."),
-   shot(3,'reunion','plaza',[760,775,1.15],'jason',"Five Guys could be our headquarters later. First, let's catch our breath."),
-   shot(3,'reunion','plaza',[760,775,1.15],'coco',"But why did that meteor bring dinosaurs? We're going to find out—together.")
+   shot(3,'family-approach','house',kitchen,'coco','Mom? Dad? Did you hear that?'),
+   shot(3,'family','house',kitchen,'jason','Is that the TV? Somebody turn down the dinosaur channel.'),
+   shot(3,'family','house',kitchen,'peachy','The internet is down. Of course it is.'),
+   shot(3,'family-head','house',kitchen,'coco','Dad! Mom! LOOK OUTSIDE!',{cue:'rumble'}),
+   shot(3,'coffee','house',kitchen,'peachy','AAAAH! Jason, your coffee!',{cue:'roar',cues:[[.25,'scream'],[.9,'splash']],shake:true}),
+   shot(2,'family-join','house',kitchen,'jason',"Stay together. We're getting everyone to Market Square.")
   ],
   montage:[
    shot(4,'soccer-panic','recreation',field,'ari','THAT IS NOT THE GOALIE!',{cue:'roar'}),
    shot(4,'swim-panic','recreation',pool,'chris',"...I picked the wrong day to swim."),
-   shot(4,'wrestle','district',[1615,930,1.8],'vito',"Hang on… I've got a situation here.",{cue:'rumble'}),
-   shot(2,'band-panic','rockband',[288,162,1.65],'mark',"Power's out! That was NOT our drum solo."),
-   shot(2,'tennis-panic','recreation',[700,590,1.8],'kate',"Adam! That's not a tennis ball!"),
-   shot(2,'street-panic','neighborhood',[430,815,1.4],'jaime',"Phones are down too! Brie, stay off the road!"),
-   shot(3,'shops-panic','district',[1420,730,.9],'coco',"No electricity. No internet. We have to find our friends ourselves."),
-   shot(3,'gather','plaza',[760,740,1.15],'coco',"We'll rescue everyone, then gather at Market Square. Nobody gets left behind!")
-  ]
+   shot(4,'wrestle','district',[1615,1045,1],'vito',"Hang on... I've got a situation here.",{cue:'rumble'}),
+   shot(2,'band-panic','rockband',[288,230,1],'mark','Power is out! That was NOT our drum solo.'),
+   shot(2,'tennis-panic','recreation',[700,590,1],'kate',"Adam! That's not a tennis ball!"),
+   shot(2,'street-panic','neighborhood',[480,800,1],'jaime','Phones are down too! Brie, stay off the road!'),
+   shot(3,'shops-panic','district',[1600,770,1],'coco','No electricity. No internet. We have to find our friends ourselves.'),
+   shot(3,'gather','plaza',[760,850,1],'coco',"We'll rescue everyone, then gather at Market Square. Nobody gets left behind!")
+  ],
+  gathering:[
+   shot(3,'reunion','plaza',[760,870,1],'coco',"Everyone's here. All fourteen of us! You're safe now."),
+   shot(3,'reunion','plaza',[760,870,1],'jason',"Five Guys is ready. Gary said he'd keep an eye on things."),
+   shot(3,'reunion','plaza',[760,870,1],'coco','Wait. Where is Gary going?')
+  ],
+  'gary-talk':[
+   shot(3,'gary-talk','hq',[200,350,1],'gary',"I've got supplies and water. You get the neighbors somewhere safe."),
+   shot(3,'gary-talk','hq',[200,350,1],'gary',"I'll handle the big stuff when everyone's accounted for.")
+  ],
+  gary:window.V5_GARY_FINALE.shots
  };
  const friends={
-  jeff:{scene:'recreation',camera:field,stage:'soccer',line:"The dinosaur stole our ball. That is absolutely a red card.",reply:"Come with us, Jeff. We'll get everyone somewhere safe."},
+  jeff:{scene:'recreation',camera:field,stage:'soccer',line:'The dinosaur stole our ball. That is absolutely a red card.',reply:"Come with us, Jeff. We'll get everyone somewhere safe."},
   ari:{scene:'recreation',camera:field,stage:'soccer',line:"Next time, I'm checking the goalie for claws.",reply:"We need your footwork, Ari. Let's go!"},
-  chris:{scene:'recreation',camera:pool,stage:'swim',line:"I was promised a quiet lap swim. Not flying reptiles.",reply:"Time to get out, Chris. We need you on dry land!"},
-  jaime:{scene:'recreation',camera:[100,340,1.65],stage:'skate',line:"I can outrun them. Stopping is the tricky part!",reply:"Skate with us, Jaime. We'll watch the corners."},
-  mark:{scene:'rockband',camera:[288,162,1.65],stage:'band',line:"No power, no Rock Band. Guess we're going acoustic.",reply:"Save the encore, Mark. Our friends need us."},
-  stephanie:{scene:'rockband',camera:[288,162,1.65],stage:'band',line:"I can scream louder than that dinosaur. Want a demonstration?",reply:"Let's save your voice for the rescue, Stephanie!"},
-  adam:{scene:'neighborhood',camera:[330,745,1.65],stage:'tennis',x:330,y:780,line:"That thing ate the tennis ball. I'm calling a let.",reply:"Game postponed, Adam. Come help us find everyone."},
-  kate:{scene:'north',camera:[767,985,1.65],stage:'tennis',x:767,y:1015,line:"I prefer doubles without a prehistoric opponent.",reply:"You're on our team now, Kate. Let's move!"},
-  brie:{scene:'plaza',camera:[465,775,1.65],stage:'yoga',line:"Breathe in. Breathe out. Ignore the enormous dinosaur.",reply:"That's impressive, Brie. Can we do the next pose somewhere safer?"},
-  vito:{scene:'district',camera:[1615,930,1.8],stage:'throw',line:"Oh boy, that was a tough one.",reply:"Remind me not to arm-wrestle you, Vito. Come with us!"}
+  chris:{scene:'recreation',camera:pool,stage:'swim',line:'I was promised a quiet lap swim. Not flying reptiles.',reply:'Time to get out, Chris. We need you on dry land!'},
+  jaime:{scene:'recreation',camera:[100,350,1],stage:'skate',line:'I can outrun them. Stopping is the tricky part!',reply:"Skate with us, Jaime. We'll watch the corners."},
+  mark:{scene:'rockband',camera:[288,240,1],stage:'band',line:"No power, no Rock Band. Guess we're going acoustic.",reply:'Save the encore, Mark. Our friends need us.'},
+  stephanie:{scene:'rockband',camera:[288,240,1],stage:'band',line:'I can scream louder than that dinosaur. Want a demonstration?',reply:"Let's save your voice for the rescue, Stephanie!"},
+  adam:{scene:'neighborhood',camera:[330,780,1],stage:'tennis',x:330,y:780,line:"That thing ate the tennis ball. I'm calling a let.",reply:'Game postponed, Adam. Come help us find everyone.'},
+  kate:{scene:'neighborhood',camera:[680,820,1],stage:'tennis',x:680,y:820,line:'I prefer doubles without a prehistoric opponent.',reply:"You're on our team now, Kate. Let's move!"},
+  brie:{scene:'neighborhood',camera:[480,800,1],stage:'yoga',line:'Breathe in. Breathe out. Ignore the enormous dinosaur.',reply:"That's impressive, Brie. Can we do the next pose somewhere safer?"},
+  vito:{scene:'district',camera:[1615,1045,1],stage:'throw',line:'Oh boy, that was a tough one.',reply:'Remind me not to arm-wrestle you, Vito. Come with us!'}
  };
- for(const [id,friend] of Object.entries(friends)){
-  const {scene,camera,stage,line,reply}=friend;
+ for(const [id,f] of Object.entries(friends)){
   catalog['recruit-'+id]=[
-   shot(id==='vito'?4:2.5,stage,scene,camera,id,id==='vito'?"Just… one… more… heave!":line,{friend:id,cue:id==='vito'?'rumble':null,cues:id==='vito'?[[2.75,'throw']]:[]}),
-   shot(2.5,stage==='throw'?'throw-after':stage,scene,camera,id,id==='vito'?line:reply,{friend:id,interlocutor:id!=='vito'}),
-   ...(id==='vito'?[shot(2,'throw-after',scene,camera,'coco',reply,{friend:id})]:[]),
-   shot(2,'recruit-join',scene,camera,'coco',"Let's go together!",{friend:id,join:[id],cue:'join',activity:stage})
+   shot(id==='vito'?5:3,f.stage,f.scene,f.camera,id,id==='vito'?'Just... one... more... heave!':f.line,{friend:id,cues:id==='vito'?[[3,'throw']]:[]}),
+   shot(3,f.stage==='throw'?'throw-after':f.stage,f.scene,f.camera,id,id==='vito'?f.line:f.reply,{friend:id,interlocutor:id!=='vito'}),
+   ...(id==='vito'?[shot(3,'throw-after',f.scene,f.camera,'coco',f.reply,{friend:id})]:[])
   ];
  }
  for(const [id,shots] of Object.entries(catalog)){
-  shots.forEach(s=>{Object.freeze(s.camera);if(s.join)Object.freeze(s.join);if(s.cues){s.cues.forEach(Object.freeze);Object.freeze(s.cues);}Object.freeze(s);});
-  catalog[id]=Object.freeze({shots:Object.freeze(shots),duration:shots.reduce((n,s)=>n+s.seconds,0)});
+  catalog[id]=Object.freeze({shots:Object.freeze(shots.map(s=>Object.freeze(s))),duration:shots.reduce((n,s)=>n+s.seconds,0)});
  }
  Object.freeze(catalog);
-
- const overlay=document.createElement('section');
- overlay.id='cinema';overlay.className='v5-cinema';overlay.hidden=true;
- overlay.setAttribute('role','dialog');overlay.setAttribute('aria-modal','true');overlay.setAttribute('aria-labelledby','v5-cinema-title');
- overlay.innerHTML='<div class="v5-cinema-panel"><header><h2 id="v5-cinema-title">A Gburg Village story</h2><button id="cinema-skip" type="button" data-cinema="skip">Skip scene</button></header><div class="v5-cinema-screen"><canvas id="cinema-canvas" width="960" height="540" role="img" aria-label="Cinematic story"></canvas><div class="v5-cinema-loading" hidden><p role="status" aria-live="polite"></p><button id="cinema-retry" type="button" data-cinema="retry" hidden>Retry artwork</button></div></div><div class="v5-cinema-dialogue" aria-live="polite" aria-atomic="true"><img width="128" height="128" alt=""><div><strong></strong><p id="cinema-dialogue"></p></div></div><footer><span class="v5-cinema-counter"></span><button id="cinema-next" type="button" data-cinema="next">Next ▸</button></footer><progress max="1" value="0" aria-label="Scene progress"></progress></div>';
- document.body.append(overlay);
- const canvas=overlay.querySelector('canvas'),ctx=canvas.getContext('2d');
- const portrait=overlay.querySelector('img'),speaker=overlay.querySelector('.v5-cinema-dialogue strong'),dialogue=overlay.querySelector('.v5-cinema-dialogue p');
- const loadingPanel=overlay.querySelector('.v5-cinema-loading'),loadingText=loadingPanel.querySelector('p');
- const retry=overlay.querySelector('[data-cinema="retry"]'),next=overlay.querySelector('[data-cinema="next"]'),skipButton=overlay.querySelector('[data-cinema="skip"]');
- const progress=overlay.querySelector('progress'),counter=overlay.querySelector('.v5-cinema-counter');
- let current=null,serial=0,raf=0,last=0,previousFocus=null,inerted=[],readiness=Promise.resolve();
-
+ const stageEl=document.getElementById('stage'),canvas=document.getElementById('game');
+ const bubble=document.createElement('div');bubble.id='story-bubble';bubble.hidden=true;
+ bubble.setAttribute('role','status');bubble.setAttribute('aria-live','polite');bubble.setAttribute('aria-atomic','true');
+ bubble.innerHTML='<strong></strong><p></p>';stageEl.append(bubble);
+ const loading=document.createElement('div');loading.id='story-loading';loading.hidden=true;
+ loading.innerHTML='<p role="status"></p><button id="story-retry" type="button" hidden>Retry artwork</button>';stageEl.append(loading);
+ const retry=loading.querySelector('button');
+ let host=null,current=null,serial=0,raf=0,last=0,readiness=Promise.resolve(),lastResult=null,ctx=null,points=[];
  function image(url){
-  if(!url)return Promise.reject(new Error('A required artwork reference is missing.'));
+  if(!url)return Promise.reject(new Error('Missing story artwork reference.'));
   if(cache.has(url))return cache.get(url);
   const promise=new Promise((resolve,reject)=>{
    const img=new Image(),timer=setTimeout(()=>fail(),12000);
-   function fail(){clearTimeout(timer);img.onload=img.onerror=null;reject(new Error('Could not load '+url));}
-   img.onload=()=>{clearTimeout(timer);img.onload=img.onerror=null;resolve(img);};
-   img.onerror=fail;img.src=url;
+   function fail(){clearTimeout(timer);cache.delete(url);reject(new Error('Could not load '+url));}
+   img.onload=()=>{clearTimeout(timer);images.set(url,img);resolve(img);};img.onerror=fail;img.src=url;
   });
-  cache.set(url,promise);promise.catch(()=>{if(cache.get(url)===promise)cache.delete(url);});
-  return promise;
+  cache.set(url,promise);return promise;
  }
- function requirements(event){
-  const urls=new Set(),humans=new Set(),dinosaurs=new Set();
-  for(const s of event){
-   urls.add(window.SCENES?.[s.scene]?.image);
-   humans.add(s.speaker);if(s.friend)humans.add(s.friend);humans.add('coco');
-   if(s.stage.startsWith('family'))['jason','peachy','connor'].forEach(id=>humans.add(id));
-   if(s.stage==='coffee') ['jason','peachy','connor'].forEach(id=>humans.add(id));
-   if(s.stage.startsWith('connor')||s.stage==='tablet')humans.add('connor');
-   if(s.stage.startsWith('soccer')||s.stage==='soccer') {humans.add('jeff');humans.add('ari');dinosaurs.add('raptor');}
-   if(s.stage.startsWith('swim')){humans.add('chris');dinosaurs.add('pterodactyl');urls.add('../v4/assets/characters/chris-swim.png');}
-   if(['wrestle','throw','throw-after','window','family-head','coffee','family-join'].includes(s.stage))dinosaurs.add('trex');
-   if(s.stage.startsWith('band')){humans.add('mark');humans.add('stephanie');}
-   if(s.stage.startsWith('tennis')){humans.add('adam');humans.add('kate');dinosaurs.add('triceratops');}
-   if(s.stage==='street-panic'){humans.add('jaime');humans.add('brie');}
-   if(s.stage==='gather') ['jason','peachy','connor'].forEach(id=>humans.add(id));
-   if(s.stage==='shops-panic') ['jason','peachy','connor'].forEach(id=>humans.add(id));
-   if(s.stage==='reunion') Object.keys(window.CHARACTERS).forEach(id=>humans.add(id));
-   if(s.join)s.join.forEach(id=>humans.add(id));
-  }
-  // Recruitment finales keep their original activity visible behind the banner.
-  for(const s of event)if(s.activity==='band'){humans.add('mark');humans.add('stephanie');}
-  for(const s of event)if(s.activity==='soccer'){humans.add('jeff');humans.add('ari');}
-  for(const s of event)if(s.activity==='tennis'){humans.add('adam');humans.add('kate');}
-  for(const id of humans){
-   const character=window.CHARACTERS?.[id];
-   urls.add(character?.sheet);urls.add(character?.portrait);
-   if(character?.emotions)urls.add(character.emotions.sheet);
-  }
-  for(const id of dinosaurs)urls.add('../v4/assets/dinosaurs/'+id+'.png');
-  return Array.from(urls);
+ function preload(){
+  const urls=new Set();
+  for(const clips of Object.values(window.V5_ACTION_ART))for(const clip of Object.values(clips))urls.add(clip.sheet);
+  if(CHARACTERS.coco.emotions)urls.add(CHARACTERS.coco.emotions.sheet);
+  return Promise.all([...urls].map(image));
  }
- function stopFrame(){cancelAnimationFrame(raf);raf=0;last=0;}
+ function requirements(shots){
+  const urls=new Set(shots.map(s=>SCENES[s.scene].image));
+  for(const s of shots){const scene=SCENES[s.scene];if(scene.overlay)urls.add(scene.overlay.image);}
+  for(const character of Object.values(CHARACTERS)){urls.add(character.sheet);if(character.emotions)urls.add(character.emotions.sheet);}
+  for(const clips of Object.values(window.V5_ACTION_ART))for(const clip of Object.values(clips))urls.add(clip.sheet);
+  urls.add(window.V5_WINDOW_ART.sheet);
+  for(const id of ['trex','raptor','triceratops','pterodactyl'])urls.add('../v4/assets/dinosaurs/'+id+'.png');
+  return [...urls];
+ }
+ function pause(){cancelAnimationFrame(raf);raf=0;last=0;}
  function schedule(){if(current&&!current.loading&&!current.error&&!document.hidden&&!raf)raf=requestAnimationFrame(tick);}
+ function cue(kind){if(kind&&!document.hidden)V4_SFX.play(kind);}
+ function enterShot(){
+  const s=current.shots[current.index];current.age=0;current.cueIndex=0;
+  current.speaker=s.interlocutor?'coco':s.speaker;current.scene=s.scene;
+  current.from=current.camera&&{...current.camera};current.transition=current.previousScene!==s.scene&&current.previousScene!==null;
+  current.previousScene=s.scene;current.focus=null;current.actors=[];
+  bubble.querySelector('strong').textContent=CHARACTERS[current.speaker].name;
+  bubble.querySelector('p').textContent=s.text;bubble.hidden=!s.text;
+  canvas.setAttribute('aria-label',SCENES[s.scene].name+'. '+CHARACTERS[current.speaker].name+': '+s.text);
+  cue(s.cue);
+ }
  async function prepare(token){
-  if(!current||current.token!==token)return;
-  const run=current;run.loading=true;run.error=null;stopFrame();
-  loadingPanel.hidden=false;retry.hidden=true;next.disabled=true;
-  loadingText.textContent='Loading the scene artwork…';
+  const run=current;if(!run)return;
+  run.loading=true;run.error=null;pause();loading.hidden=false;retry.hidden=true;
+  loading.querySelector('p').textContent='Preparing story artwork...';
   try{
-   if(!ctx)throw new Error('Canvas rendering is unavailable in this browser.');
-   ctx.fillStyle='#101a35';ctx.fillRect(0,0,W,H);
-   const urls=requirements(run.shots),images=await Promise.all(urls.map(image));
+   await Promise.all(requirements(run.shots).map(image));
    if(!current||current.token!==token)return;
-   run.images=new Map(urls.map((url,i)=>[url,images[i]]));run.loading=false;
-   loadingPanel.hidden=true;next.disabled=false;enterShot();
-   if(!document.hidden&&!run.error)next.focus({preventScroll:true});schedule();
+   run.loading=false;loading.hidden=true;enterShot();schedule();
   }catch(error){
    if(!current||current.token!==token)return;
-   run.loading=false;run.error=error.message;
-   loadingText.textContent='Artwork could not load. Check your connection, then retry; or skip this scene. '+error.message;
-   retry.hidden=false;if(!document.hidden)retry.focus();
-   throw error;
+   run.loading=false;run.error=error.message;loading.hidden=false;retry.hidden=false;
+   loading.querySelector('p').textContent='Artwork could not load. Check your connection and retry. '+error.message;
+   console.error('Story artwork failed:',error);throw error;
   }
  }
- function cue(kind){
-  if(!kind||document.hidden)return;
-  try{const value=window.V4_SFX?.play(kind);if(value?.catch)value.catch(()=>{});}catch(_error){/* Optional audio must never interrupt a scene. */}
+ function stageAll(s,measure=false){
+  stage(s);
+  const hero=current.context.player;
+  if(current.event!=='gary'&&s.scene===current.context.scene){
+   if(!current.actors.some(a=>a.id===hero.id))human(hero.id,hero.x,hero.y,{dir:hero.direction});
+   if(!measure)for(const actor of current.context.actors){
+    if(!current.actors.some(a=>a.id===actor.id))human(actor.id,actor.x,actor.y,{dir:actor.direction});
+   }
+  }
  }
- function enterShot(){
-  const s=current.shots[current.index],who=s.interlocutor?'coco':s.speaker;
-  current.speaker=who;
-  current.age=0;current.cueIndex=0;
-  current.joinBanner=s.join?banner(s.join):'';
-  speaker.textContent=window.CHARACTERS?.[who]?.name||who;
-  dialogue.textContent=current.joinBanner||s.text;dialogue.classList.toggle('v5-cinema-join',!!s.join);
-  portrait.src=window.CHARACTERS[who].portrait;portrait.alt=speaker.textContent+' portrait';
-  canvas.setAttribute('aria-label',window.SCENES[s.scene].name+'. '+speaker.textContent+': '+s.text+(s.join?' '+current.joinBanner:''));
-  counter.textContent=(current.index+1)+' / '+current.shots.length+' · Enter / Space: next · Esc: skip';
-  next.textContent=current.index===current.shots.length-1?'Finish ▸':'Next ▸';
-  cue(s.cue);draw();
+ function load(){readiness=prepare(current.token);readiness.catch(()=>{});}
+ retry.onclick=()=>{if(current&&!current.loading){current.index=0;current.age=0;current.elapsed=0;current.defeated.clear();current.actions.clear();load();}};
+ function account(s,age){
+  if(s.stage!=='gary-wave')return;
+  window.V5_GARY_FINALE.deathTimes.forEach((time,i)=>{
+   const id=s.wave*5+i;
+   if(age>=time&&!current.defeated.has(id)){current.defeated.add(id);cue('impact');}
+  });
  }
- function finish(skipped=false){
-  if(!current)return false;
-  const callback=current.callback,event=current.event;
-  current=null;serial++;stopFrame();overlay.hidden=true;
-  portrait.removeAttribute('src');loadingPanel.hidden=true;
-  document.removeEventListener('keydown',keys,true);
-  for(const [element,wasInert] of inerted)element.inert=wasInert;
-  inerted=[];if(previousFocus?.isConnected)previousFocus.focus({preventScroll:true});previousFocus=null;
-  document.dispatchEvent(new CustomEvent('v5-cinema-end',{detail:{event,skipped}}));
-  if(typeof callback==='function')callback({skipped});
-  return true;
- }
- function advance(){
-  if(!current||current.loading||current.error)return false;
-  const run=current;run.elapsed+=Math.max(0,run.shots[run.index].seconds-run.age);
-  if(run.index===run.shots.length-1)return finish(false);
-  run.index++;enterShot();last=0;return true;
- }
- function tick(now){
-  raf=0;if(!current||current.loading||current.error||document.hidden){last=0;return;}
-  const delta=last?Math.max(0,(now-last)/1000):0;last=now;
+ function advanceTime(delta){
+  if(!current||current.loading||current.error||document.hidden)return;
   current.age+=delta;current.elapsed+=delta;
-  // Carry any excess time across shots rather than extending montage timing.
   while(current&&current.age>=current.shots[current.index].seconds){
-   const overflow=current.age-current.shots[current.index].seconds;
-   if(current.index===current.shots.length-1){finish(false);return;}
+   const s=current.shots[current.index],overflow=current.age-s.seconds;account(s,s.seconds);
+   if(current.index===current.shots.length-1){finish();return;}
    current.index++;enterShot();current.age=overflow;
   }
-  const s=current.shots[current.index];
-  while(s.cues&&current.cueIndex<s.cues.length&&current.age>=s.cues[current.cueIndex][0])cue(s.cues[current.cueIndex++][1]);
-  draw();schedule();
- }
- function keys(event){
   if(!current)return;
-  if(event.key==='Tab'){
-   const buttons=Array.from(overlay.querySelectorAll('button')).filter(b=>!b.hidden&&!b.disabled);
-   const index=buttons.indexOf(document.activeElement),direction=event.shiftKey?-1:1;
-   buttons[(index+direction+buttons.length)%buttons.length].focus();
-  }else if(event.key==='Escape')finish(true);
-  else if(!event.repeat&&(event.key==='Enter'||event.key===' ')){
-   if(document.activeElement===retry&&!retry.hidden)retry.click();
-   else if(document.activeElement===skipButton)finish(true);
-   else advance();
-  }
-  event.preventDefault();event.stopImmediatePropagation();
+  const s=current.shots[current.index];account(s,current.age);
+  while(s.cues&&current.cueIndex<s.cues.length&&current.age>=s.cues[current.cueIndex][0])cue(s.cues[current.cueIndex++][1]);
  }
- skipButton.onclick=()=>finish(true);next.onclick=advance;
- function loadCurrent(){readiness=prepare(current.token);readiness.catch(()=>{});}
- retry.onclick=()=>{if(current&&!current.loading){skipButton.focus();loadCurrent();}};
- document.addEventListener('visibilitychange',()=>{if(document.hidden)stopFrame();else schedule();});
-
+ function fail(error){
+  if(!current)return;current.error=error.message;pause();loading.hidden=false;retry.hidden=false;
+  loading.querySelector('p').textContent='The story could not play. Retry artwork. '+error.message;console.error('Story presentation failed:',error);
+ }
+ function tick(now){raf=0;if(!current||document.hidden){last=0;return;}const delta=last?Math.max(0,(now-last)/1000):0;last=now;try{advanceTime(delta);}catch(error){fail(error);}schedule();}
+ function finish(){
+  if(!current)return;
+  const run=current;
+  if(run.event==='gary'&&run.defeated.size!==20)throw new Error('Gary must defeat exactly twenty dinosaurs before joining.');
+  lastResult={event:run.event,defeated:run.defeated.size,actions:[...run.actions],elapsed:run.elapsed};
+  host.release(run.context,run.scene,run.actors,run.camera);
+  current=null;serial++;pause();bubble.hidden=true;loading.hidden=true;
+  document.body.classList.remove('v5-story-active');
+  for(const [element,inert] of run.inerted)element.inert=inert;
+  canvas.setAttribute('aria-label',run.label);
+  document.dispatchEvent(new CustomEvent('v5-cinema-end',{detail:lastResult}));
+  run.callback?.(lastResult);
+ }
+ document.addEventListener('visibilitychange',()=>{if(document.hidden)pause();else schedule();});
+ document.addEventListener('keydown',event=>{
+  if(!current||event.ctrlKey||event.altKey||event.metaKey)return;
+  if(['screen-mode','story-retry'].includes(document.activeElement?.id)&&['Enter',' '].includes(event.key))return;
+  if(['Escape','Enter',' ','w','a','s','d','W','A','S','D','m','M','e','E','x','X','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(event.key)){
+   event.preventDefault();event.stopImmediatePropagation();
+  }
+ },true);
  function rect(color,x,y,w,h){ctx.fillStyle=color;ctx.fillRect(x,y,w,h);}
  function oval(color,x,y,rx,ry){ctx.fillStyle=color;ctx.beginPath();ctx.ellipse(x,y,rx,ry,0,0,Math.PI*2);ctx.fill();}
- function line(color,width,points){
-  ctx.strokeStyle=color;ctx.lineWidth=width;ctx.beginPath();
-  points.forEach(([x,y],i)=>i?ctx.lineTo(x,y):ctx.moveTo(x,y));ctx.stroke();
+ function path(list,u){
+  const lengths=list.slice(1).map((p,i)=>Math.hypot(p[0]-list[i][0],p[1]-list[i][1]));
+  let distance=clamp(u)*lengths.reduce((a,b)=>a+b,0);
+  for(let i=0;i<lengths.length;i++){
+   if(distance<=lengths[i]||i===lengths.length-1){const a=list[i],b=list[i+1],p=lengths[i]?clamp(distance/lengths[i]):1;
+    return {x:a[0]+(b[0]-a[0])*p,y:a[1]+(b[1]-a[1])*p,dir:Math.abs(b[0]-a[0])>Math.abs(b[1]-a[1])?(b[0]>a[0]?'right':'left'):(b[1]>a[1]?'down':'up')};}
+   distance-=lengths[i];
+  }
+  return {x:list[0][0],y:list[0][1],dir:'down'};
  }
- function label(text,x,y,size=24,color='#fff3ce'){
-  ctx.fillStyle=color;ctx.font='bold '+size+'px monospace';ctx.textAlign='center';ctx.fillText(text,x,y);
+ function actionClip(id,pose){
+  if(pose==='startle')pose='surprised';
+  const clip=window.V5_ACTION_ART[id]?.[pose];if(clip)return clip;
+  const emotion=CHARACTERS[id].emotions;
+  return emotion&&pose in emotion.rows?{...emotion,frameWidth:64,frameHeight:64,foot:CHARACTERS[id].foot,row:emotion.rows[pose]}:null;
  }
- function asset(url){return current.images.get(url);}
- function human(id,x,y,{dir='down',walk=false,pose='',scale=1,swim=false}={}){
-  const spec=window.CHARACTERS[id],emotion=!walk&&!swim?(pose==='startle'?'surprised':!pose&&current.speaker===id&&!current.joinBanner?'talk':null):null;
-  const emotions=emotion&&spec.emotions;
-  const img=asset(emotions?emotions.sheet:swim?'../v4/assets/characters/chris-swim.png':spec.sheet);
-  if(!img)throw new Error('Missing required character artwork: '+id);
-  const t=current.age;
-  const emotionFrame=emotions?(reduced.matches?(emotion==='surprised'?1:0):Math.floor(t*emotions.fps)):0;
-  const frame=emotions?(emotion==='surprised'?Math.min(emotionFrame,emotions.frames-1):emotionFrame%emotions.frames):walk?Math.floor(t*(spec.walkFPS||8))%(spec.frames||4):1;
-  const row=emotions?emotions.rows[emotion]:spec.rows[dir]+(walk?(spec.walkRowOffset||0):0);
-  const fw=spec.frameWidth||64,fh=spec.frameHeight||64,foot=spec.foot||{x:32,y:60};
-  const bob=reduced.matches?0:(pose==='startle'?Math.sin(clamp(t*2)*Math.PI)*9:pose==='dance'?Math.abs(Math.sin(t*8))*3:0);
-  ctx.save();ctx.translate(x,y-bob);ctx.scale(scale,scale);
-  oval(swim?'#b4f5fc66':'#091b3244',0,0,swim?17:13,4);
-  ctx.drawImage(img,frame*fw,row*fh,fw,fh,-foot.x,-foot.y,fw,fh);
-  if(pose==='startle'){
-   if(!emotions&&id!=='coco'){line('#f1c6a3',4,[[-10,-25],[-22,-39]]);line('#f1c6a3',4,[[10,-25],[22,-39]]);}
-   label('!',0,-68,16,'#ffe784');
+ function rotatePose(context,angle,scale=1){
+  if(!angle)return;
+  context.translate(0,-30*scale);context.rotate(angle);context.translate(0,30*scale);
+ }
+ function drawPose(context,id,pose,x,y,t,options={}){
+  const clip=actionClip(id,pose);if(!clip)return false;
+  const img=images.get(clip.sheet);if(!img)throw new Error('Unprepared action artwork: '+clip.sheet);
+  const frame=reduced.matches?(pose==='surprised'?Math.min(1,clip.frames-1):0):
+   clip.loop===false?Math.min(clip.frames-1,Math.floor(t*(clip.fps||6))):Math.floor(t*(clip.fps||6))%clip.frames;
+  context.save();context.translate(x,y-(options.lift||0));rotatePose(context,options.rotation,clip.scale||1);context.scale((options.flip?-1:1)*(clip.scale||1),clip.scale||1);
+  context.drawImage(img,frame*clip.frameWidth,(clip.row||0)*clip.frameHeight,clip.frameWidth,clip.frameHeight,-clip.foot.x,-clip.foot.y,clip.frameWidth,clip.frameHeight);
+  context.restore();return true;
+ }
+ function human(id,x,y,{dir='down',walk=false,pose='',lift=0,rotation=0,scale=1,poseTime=current.age}={}){
+  const c=CHARACTERS[id],t=current.age;
+  if((current.event.startsWith('recruit-')||current.event==='gary-talk')&&current.scene===current.context.scene&&id===current.context.player.id){
+   x=current.context.player.x;y=current.context.player.y;
   }
-  if(pose==='tablet'||pose==='phone'){
-   rect('#171e36',-12,-26,24,17);rect('#72cde8',-9,-23,18,11);
-   if(pose==='phone'){rect('#232734',-4,-23,8,14);rect('#ed7373',-2,-19,4,3);}
-   line('#e7c3a6',3,[[-14,-20],[-10,-18]]);line('#e7c3a6',3,[[14,-20],[10,-18]]);
-  }
-  if(pose==='guitar'){
-   oval('#dd7557',6,-19,10,6);line('#eed8ac',5,[[10,-21],[27,-39]]);line('#f3d0aa',3,[[-9,-27],[6,-19]]);
-  }
-  if(pose==='sing'){line('#aaa9ba',2,[[13,-31],[13,0]]);oval('#313646',13,-32,3,4);label('♪',24,-55,15,'#b2eafa');}
-  if(pose==='tennis'){
-   line('#ead5a3',2,[[15,-18],[23,-30]]);
-   ctx.strokeStyle='#b2e4f3';ctx.lineWidth=2;ctx.beginPath();ctx.ellipse(26,-36,6,9,.4,0,Math.PI*2);ctx.stroke();
-  }
-  if(pose==='skate'){rect('#7ae0dc',-14,-3,11,3);rect('#7ae0dc',4,-3,11,3);for(const a of [-12,-6,6,12])oval('#333844',a,2,2,2);}
-  if(pose==='yoga'){
-   line('#f0c3a3',4,[[-10,-27],[-20,-37],[-28,-23]]);
-   line('#f0c3a3',4,[[10,-27],[20,-37],[28,-23]]);
-   line('#474a72',5,[[-7,-7],[7,-17],[15,-6]]);
-  }
-  if(pose==='wrestle'){line('#efc6a3',5,[[-9,-26],[-23,-14]]);line('#efc6a3',5,[[9,-26],[30,-35]]);}
-  if(pose==='kick'){
-   line('#444b74',5,[[5,-10],[18,-7]]);rect('#e9ece0',16,-9,9,4);
+  current.actors.push({id,x,y,direction:dir,pose,lift});points.push([x,y-lift-58],[x,y]);
+  if(id==='gary'&&pose)current.actions.add(pose);
+  oval('#091b3244',x,y,13*scale,4*scale);
+  const expression=pose==='startle'?'surprised':pose||(!walk&&current.speaker===id?'talk':'');
+  const clip=actionClip(id,expression),flip=id==='gary'&&dir==='left'&&['attack','special'].includes(expression);
+  if(clip&&clip.frameWidth>64){const size=scale*(clip.scale||1);points.push([x+(flip?clip.foot.x-clip.frameWidth:-clip.foot.x)*size,y-lift-clip.foot.y*size],[x+(flip?clip.foot.x:clip.frameWidth-clip.foot.x)*size,y-lift+(clip.frameHeight-clip.foot.y)*size]);}
+  ctx.save();ctx.translate(x,y-lift);ctx.scale(scale,scale);
+  if(!drawPose(ctx,id,expression,0,0,poseTime,{rotation,flip})){
+   const img=images.get(c.sheet),row=c.rows[dir]+(walk?(c.walkRowOffset||0):0),frame=walk?Math.floor(t*(c.walkFPS||8))%c.frames:1;
+   rotatePose(ctx,rotation);ctx.drawImage(img,frame*64,row*64,64,64,-c.foot.x,-c.foot.y,64,64);
   }
   ctx.restore();
  }
- function dinosaur(kind,x,y,{dir='left',walk=false,scale=1,head=false,shadow=true}={}){
-  const img=asset('../v4/assets/dinosaurs/'+kind+'.png');if(!img)throw new Error('Missing required dinosaur artwork: '+kind);
-  const row={down:0,left:1,right:2,up:3}[dir]+(walk?4:0),frame=walk?Math.floor(current.age*7)%4:1;
-  ctx.save();ctx.translate(x,y);ctx.scale(scale,scale);
-  if(shadow&&!head)oval('#0a172d66',0,0,30,7);
-  if(head){
-   // Only the face/neck region enters the window, never the torso or legs.
-   ctx.drawImage(img,frame*128+(dir==='right'?68:8),row*128+54,52,45,-31,-54,62,54);
-  }else ctx.drawImage(img,frame*128,row*128,128,128,-64,-124,128,128);
+ function dinosaur(kind,x,y,{dir='left',walk=false,scale=1,id=null}={}){
+  if(id!==null)current.enemies.push({id,kind,x,y});
+  points.push([x,y-70*scale],[x,y]);
+  const image=images.get('../v4/assets/dinosaurs/'+kind+'.png'),row={down:0,left:1,right:2,up:3}[dir]+(walk?4:0),frame=walk?Math.floor(current.age*7)%4:1;
+  ctx.drawImage(image,frame*128,row*128,128,128,x-64*scale,y-124*scale,128*scale,128*scale);
+ }
+ function smoke(x,y,t,seed=0){
+  current.smoke.push(seed);
+  const fade=1-t/.8;ctx.save();ctx.globalAlpha=fade;
+  for(let i=0;i<8;i++){const angle=i*Math.PI/4+seed,size=6+Math.floor(t*12),px=Math.round(x+Math.cos(angle)*(8+t*30)),py=Math.round(y-25+Math.sin(angle)*(6+t*15));
+   rect(i%2?'#eee5cd':'#b1b6bf',px,py,size,size);}
   ctx.restore();
  }
- function dust(x,y,t){
-  for(let i=0;i<14;i++){
-   const a=i*2.4+t*2,r=18+(i%4)*9;
-   const w=36+(i%3)*4,h=24+(i%4)*4,color=i%2?'#d8c8a5ee':'#ab967dee';
-   const px=Math.round((x+Math.cos(a)*r-w/2)/4)*4,py=Math.round((y-25+Math.sin(a)*17-h/2)/4)*4;
-   rect(color,px+8,py,w-16,4);rect(color,px+4,py+4,w-8,4);
-   rect(color,px,py+8,w,h-16);
-   rect(color,px+4,py+h-8,w-8,4);rect(color,px+8,py+h-4,w-16,4);
-  }
-  label('POOF!',x,y-45,14,'#fff1bc');
- }
- function ball(x,y){oval('#112d3455',x,y+3,6,2);oval('#f1eee4',x,y-3,6,6);rect('#293748',x-2,y-5,4,4);}
- function pixelHead(x,y,w,h){
-  ctx.save();ctx.translate(x,y);ctx.scale(w/64,h/50);
-  ctx.fillStyle='#14271f';ctx.beginPath();
-  [[4,46],[4,18],[10,18],[10,10],[16,10],[16,6],[30,6],[30,9],[40,9],[40,15],[56,15],[56,18],[62,18],[62,30],[58,30],[58,39],[44,39],[44,43],[18,43],[18,46]].forEach(([px,py],i)=>i?ctx.lineTo(px,py):ctx.moveTo(px,py));
-  ctx.closePath();ctx.fill();
-  rect('#667647',8,21,25,23);rect('#819653',13,14,24,25);rect('#91a45f',18,10,12,24);
-  rect('#8b9856',33,19,25,19);rect('#a0aa68',38,19,20,8);
-  rect('#465a36',10,35,15,9);rect('#607442',20,38,24,4);
-  rect('#b3ba7c',16,14,7,4);rect('#53673b',12,25,5,4);rect('#677b43',23,34,4,4);
-  rect('#253626',26,14,15,5);rect('#f0c352',27,19,10,8);
-  rect('#fff0a5',28,19,4,3);rect('#172019',33,19,3,8);rect('#fff7d5',33,20,1,2);
-  rect('#263321',54,22,4,3);rect('#453128',32,29,28,9);rect('#1b211b',36,31,23,5);
-  for(const tooth of [36,44,52]){rect('#fff1ca',tooth,29,4,3);rect('#fff1ca',tooth+1,32,2,3);}
-  for(const tooth of [40,48,56]){rect('#f2dfb2',tooth,36,3,2);rect('#f2dfb2',tooth+1,34,1,2);}
-  rect('#c2b282',31,38,24,2);rect('#344b30',8,40,6,4);
+ function blast(x,y,tx,ty,t,seed){
+  ctx.save();ctx.strokeStyle='#54c9ff';ctx.lineWidth=7;ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(tx,ty);ctx.stroke();
+  ctx.strokeStyle='#eaffff';ctx.lineWidth=2;ctx.stroke();
+  for(let i=0;i<5;i++)rect('#d5ffff',x+(tx-x)*i/5+Math.sin(t*30+i+seed)*3,y+(ty-y)*i/5-2,4,4);
   ctx.restore();
  }
- function windowView(x,y,w,h,progress){
+ function windowView(x,y,w,h,t){
+  const art=window.V5_WINDOW_ART,img=images.get(art.sheet),frame=reduced.matches?1:Math.floor(t*5)%art.frames;
+  const width=Math.max(w*1.7,h*1.1*art.frameWidth/art.frameHeight),height=width*art.frameHeight/art.frameWidth,slide=ease(t/.6);
   ctx.save();ctx.beginPath();ctx.rect(x,y,w,h);ctx.clip();
-  rect('#254657',x,y,w,h);rect('#42776b',x,y+h*.67,w,h*.33);
-  oval('#08162499',x+w*.62,y+h*.95,36+progress*18,9);
-  pixelHead(x+w*(.55-.58*progress),y+h*.04,w*1.07,h*.94);
-  ctx.restore();line('#e7cea2',4,[[x,y+h],[x,y],[x+w,y],[x+w,y+h],[x,y+h]]);
-  line('#c9b38d',2,[[x+w*.16,y],[x+w*.16,y+h]]);
- }
- function windowCloseup(s){
-  const progress=s.stage==='coffee'?1:ease(current.age/.7);
-  const x=40,y=60,w=395,h=295;
-  rect('#0a1422ee',x-9,y-9,w+18,h+43);
-  windowView(x,y,w,h,progress);
-  label(s.stage==='window'?"OUTSIDE COCO'S WINDOW":'OUTSIDE THE LIVING ROOM WINDOW',x+w/2,y+h+25,14,'#fff0c9');
- }
- function heldDinosaur(x,y,t){
-  const lift=ease((t-1.2)/.65),launch=ease((t-2.75)/1.25);
-  ctx.save();ctx.translate(x+24+launch*650,y-28-launch*185);
-  ctx.rotate(-.12-.48*lift-launch*2);
-  // The short tapered tail and atlas creature share one moving/rotating frame.
-  ctx.fillStyle='#686849';ctx.beginPath();
-  [[0,0],[4,0],[4,-2],[10,-2],[10,0],[18,0],[18,2],[26,2],[26,6],[18,6],[18,4],[10,4],[10,2],[4,2],[4,1],[0,1]].forEach(([px,py],i)=>i?ctx.lineTo(px,py):ctx.moveTo(px,py));
-  ctx.closePath();ctx.fill();rect('#93906b',10,0,8,1);
-  dinosaur('trex',54,46,{dir:'right',scale:.62,shadow:false});
-  ctx.restore();
+  ctx.drawImage(img,frame*art.frameWidth,0,art.frameWidth,art.frameHeight,x+w*.5-width*.5+(1-slide)*w,y+h-height,width,height);
+  rect('#afddf51c',x,y,w,h);ctx.restore();
+  ctx.strokeStyle='#decba8';ctx.lineWidth=2;ctx.strokeRect(x,y,w,h);
+  rect('#e1d0b1',x+w*.5-1,y,2,h);points.push([x,y],[x+w,y+h]);
  }
  function coffee(x,y,t){
-  const fall=ease(t/1.2);
-  oval('#815029aa',x,y+3,18*fall+1,6*fall+1);
-  ctx.save();ctx.translate(x,y-24*(1-fall));ctx.rotate(fall*1.8);
-  rect('#ede9d9',-5,-8,10,9);line('#ede9d9',2,[[5,-6],[8,-6],[8,-1],[5,-1]]);ctx.restore();
-  if(t<1.6)for(let i=0;i<6;i++)rect('#ad6a36',x+(i-2.5)*7*fall,y-12*Math.sin(fall*Math.PI)-i%2*5,3,3);
+  const u=ease(t/1.2);oval('#815029aa',x,y+3,18*u+1,6*u+1);
+  ctx.save();ctx.translate(x,y-24*(1-u));ctx.rotate(u*1.8);rect('#eee9db',-4,-7,8,9);ctx.restore();
  }
- function banner(ids){
-  const names=ids.map(id=>window.CHARACTERS[id].name.toUpperCase());
-  return names.join(' AND ')+(ids.length===1?' JOINS':' JOIN')+' YOUR PARTY!';
- }
-
  function stage(s){
-  const t=current.age,u=clamp(t/s.seconds),motion=reduced.matches?0:Math.sin(t*3)*4;
-  const activity=s.stage==='recruit-join'&&s.activity==='throw'?'throw-after':s.activity||s.stage;
+  const t=current.age,u=clamp(t/s.seconds),activity=s.stage;
+  if(activity.startsWith('gary-')){window.V5_GARY_FINALE.stage(s,t,{human,dinosaur,smoke,blast,path,ease,reduced:reduced.matches,focus:(x,y)=>current.focus={x,y},context:current.context});return;}
   if(['wake','peek','window','alarm'].includes(activity)){
-   if(activity==='wake'){human('coco',304,302,{dir:'up'});label('…rumble…',256,250,12,'#f7dba5');}
-   else if(activity==='peek'){const p=ease(u);human('coco',304-47*p,302-98*p,{dir:'up',walk:p<.98});}
-   else if(activity==='window'){windowView(237,47,45,100,ease(u*2));human('coco',260,218,{dir:'up',pose:'startle'});}
-   else human('coco',260-125*ease(u),240+113*ease(u),{dir:'left',walk:true,pose:'startle'});
+   let x=260,y=218;
+   if(activity==='wake'){x=current.context.player.x;y=current.context.player.y;}
+   if(activity==='peek'){x=current.context.player.x+(260-current.context.player.x)*ease(u);y=current.context.player.y+(218-current.context.player.y)*ease(u);}
+   if(activity==='alarm'){const p=path([[260,218],[200,300],[130,350]],ease(u));x=p.x;y=p.y;}
+   if(activity==='window')windowView(239,37,40,90,t);
+   human('coco',x,y,{dir:activity==='peek'?'up':activity==='alarm'?'left':'down',walk:activity==='peek'||activity==='alarm',pose:activity==='window'?'startle':''});
   }else if(['tablet','connor-roar','connor-join'].includes(activity)){
-   human('connor',174,277,{pose:activity==='tablet'?'tablet':'startle',dir:'down'});
-   human('coco',122+45*ease(clamp(u/.45)),348,{walk:activity==='tablet'&&current.index===0&&u<.45,dir:'up'});
-   if(activity==='connor-roar')label('RRRROOOAAARR!',445,100,20,'#ffe6aa');
-  }else if(['family','family-head','coffee','family-join'].includes(activity)){
+   const sibling=V4_STORY.locations.connor,p=current.context.player;
+   human('connor',sibling.x,sibling.y,{pose:activity==='connor-roar'?'startle':''});
+   human('coco',p.x,p.y,{dir:'up'});
+   if(activity==='tablet'){rect('#182336',sibling.x-9,sibling.y-24,18,12);rect('#7ac5db',sibling.x-6,sibling.y-22,12,8);}
+  }else if(activity.startsWith('family')||activity==='coffee'){
    human('jason',410,200,{dir:'right',pose:activity==='coffee'?'startle':''});
-   human('peachy',520,200,{dir:'left',pose:activity==='family'?'phone':activity==='coffee'?'startle':''});
-   human('coco',430,293,{dir:'up',pose:activity==='family-head'||activity==='coffee'?'startle':''});human('connor',405,313,{dir:'up'});
-   if(activity==='family-head'||activity==='coffee'||activity==='family-join')windowView(215,18,90,85,activity==='family-head'?ease(u*2):1);
-   if(activity==='coffee')coffee(429,214,t);
-   else if(activity==='family') {rect('#eee3c9',422,177,8,10);rect('#624329',423,177,6,3);}
+   human('peachy',520,200,{dir:'left',pose:activity==='coffee'?'startle':''});
+   const p=activity==='family-approach'?path([[110,432],[180,432],[350,432],[395,300],[395,250]],ease(u)):{x:395,y:250,dir:'up'};
+   human('coco',p.x,p.y,{dir:p.dir,walk:activity==='family-approach',pose:activity==='family-head'||activity==='coffee'?'startle':''});
+   human('connor',p.x,p.y+32,{dir:'up',walk:activity==='family-approach',pose:activity==='coffee'?'startle':''});
+   if(['family-head','coffee','family-join'].includes(activity))windowView(394,43,27,61,t);
+   if(activity==='coffee')coffee(429,214,t);else rect('#eee9db',422,177,8,10);
   }else if(activity==='soccer'||activity==='soccer-panic'){
    const panic=activity==='soccer-panic',run=panic?ease(clamp((u-.55)/.45))*55:0;
-   human('jeff',385-run,345,{dir:panic?'left':'right',walk:panic&&run>0,pose:u<.3?'kick':panic&&u>.4?'startle':''});
-   human('ari',575-run,345,{dir:panic?'left':'left',walk:panic&&run>0,pose:panic&&u>.4?'startle':''});
-   ball(395+Math.min(u*1.7,1)*(panic?110:160),343-Math.sin(Math.min(u*1.7,1)*Math.PI)*15);
-   if(panic)dinosaur('raptor',510,340,{dir:'left',scale:.65});
-   else human('coco',470,397,{dir:'up'});
+   human('jeff',385-run,345,{dir:panic?'left':'right',walk:run>0,pose:panic&&u>.35&&u<.55?'startle':u<.3?'interact':''});
+   human('ari',575-run,345,{dir:'left',walk:run>0,pose:panic&&u>.35&&u<.55?'startle':''});
+   oval('#f1eee4',395+Math.min(u*1.7,1)*160,340,6,6);
+   if(panic)dinosaur('raptor',510,340,{scale:.65});else human('coco',470,397,{dir:'up'});
   }else if(activity==='swim'||activity==='swim-panic'){
-   if(s.stage==='recruit-join')human('chris',419,850,{dir:'down'});
-   else{
-    ctx.save();ctx.globalAlpha=.22;
-    human('chris',358,848,{swim:true,dir:'down'});ctx.restore();
-    human('chris',358,813+motion,{swim:true,dir:'up',walk:true});
-    for(let i=0;i<3;i++){ctx.strokeStyle='#c7ffff99';ctx.lineWidth=1;ctx.beginPath();ctx.ellipse(358,817,18+i*7+u*8,3+i*2,0,0,Math.PI*2);ctx.stroke();}
-    dinosaur('pterodactyl',310+u*115,750,{dir:'right',scale:.72});
-   }
-   if(activity==='swim')human('coco',422,813,{dir:'left'});
+   human('chris',358,813,{pose:activity==='swim-panic'?'surprised':''});dinosaur('pterodactyl',310+u*115,750,{dir:'right',scale:.72});
+   if(activity==='swim')human('coco',422,850,{dir:'left'});
   }else if(['wrestle','throw','throw-after'].includes(activity)){
-   const x=1615,y=1045;
-   human('vito',x,y,{pose:activity==='throw-after'?'':'wrestle',dir:'right'});
-   if(activity!=='throw-after'){
-    if(activity==='throw'&&t>=1.2){
-     heldDinosaur(x,y,t);
-     if(t<1.55)dust(x+20,y-9,t);
-    }else{dinosaur('trex',x+25,y+2,{scale:.75});dust(x+14,y-10,t);}
-   }
-   if(activity!=='wrestle')human('coco',x-60,y-8,{dir:'right',pose:activity==='throw'?'startle':''});
+   human('vito',1615,1045,{pose:activity==='wrestle'?'wrestle':activity==='throw-after'?'recover':t<1.5?'wrestle':'throw',dir:'right',poseTime:activity==='throw'&&t>=1.5?t-1.5:t});
+   if(activity!=='wrestle')human('coco',1555,1037,{dir:'right'});
   }else if(activity==='yoga'){
-   rect('#776dab',432,818,65,20);rect('#b1a0cc',435,820,59,2);
-   human('brie',465,825,{pose:'yoga'});human('coco',395,860,{dir:'right'});
-   label('breathe…',468,756,12,'#e3efd6');
+   human('brie',480,800,{pose:s.interlocutor?'stand':'yoga'});human('coco',415,825,{dir:'right'});
   }else if(activity==='skate'){
-   const x=100+Math.sin(u*Math.PI)*18;
-   human('jaime',x,340-35*ease(u),{walk:true,pose:'skate',dir:'up'});human('coco',153,358,{dir:'left'});
-   line('#cee9df77',2,[[x-9,360],[x-9,374]]);line('#cee9df77',2,[[x+9,360],[x+9,378]]);
+   human('jaime',100,350,{pose:'skate'});human('coco',153,370,{dir:'left'});
   }else if(activity==='band'||activity==='band-panic'){
-   human('mark',360,245,{pose:activity==='band-panic'?'startle':'guitar'});
-   human('stephanie',160,233,{pose:activity==='band-panic'?'startle':'sing'});
-   if(activity==='band')human('coco',237,277,{dir:'up'});
-   else {rect('#0b122b55',0,0,576,324);label('POWER LOST',288,60,15,'#f2d49a');}
+   human('mark',315,270,{pose:activity==='band-panic'?'startle':''});
+   human('stephanie',420,260,{pose:activity==='band-panic'?'startle':''});
+   if(activity==='band')human('coco',230,275,{dir:'right'});
   }else if(activity==='tennis'||activity==='tennis-panic'){
    if(s.scene==='recreation'){
-    human('adam',667,550,{pose:'tennis',dir:'down'});human('kate',711,638,{pose:'tennis',dir:'up'});
-    oval('#f7f29d',690,594+motion*4,4,4);
-    if(activity==='tennis-panic')dinosaur('triceratops',762,619,{scale:.65});
-    else human('coco',620,629,{dir:'right'});
-   }else{
-    const {x,y}=friends[s.friend];
-    human(s.friend,x,y,{pose:'tennis',dir:'left'});human('coco',x-55,y+30,{dir:'right'});
-    oval('#f7f29d',x+20,y-10+motion,4,4);
-   }
+    human('adam',667,550);human('kate',711,638,{pose:'startle'});dinosaur('triceratops',762,619,{scale:.65});
+   }else{const f=friends[s.friend];human(s.friend,f.x,f.y);human('coco',f.x-55,f.y+30,{dir:'right'});}
   }else if(activity==='street-panic'){
-   human('jaime',310+u*160,844,{pose:'skate',dir:'right',walk:true});
-   rect('#8176a6',440,799,58,19);human('brie',468,807,{pose:'yoga'});
-   label('NO SIGNAL',415,745,14,'#ffe3aa');
+   human('jaime',310+u*120,830,{walk:true,dir:'right'});human('brie',480,800,{pose:'yoga'});
   }else if(activity==='shops-panic'){
-   human('coco',1325+u*75,756,{dir:'right',walk:true});human('jason',1290+u*75,778,{walk:true,dir:'right'});
-   human('peachy',1458,765,{pose:'phone'});human('connor',1500,801,{pose:'startle'});
-   label('SHOPS CLOSED · NO POWER',1430,652,20,'#ffe1a0');
+   human('coco',1540+u*35,775,{walk:true,dir:'right'});human('jason',1500+u*35,797,{walk:true,dir:'right'});
+   human('peachy',1670,765);human('connor',1700,800,{pose:'startle'});
   }else if(activity==='gather'){
-   human('coco',720,742,{dir:'up'});human('connor',760,770,{dir:'left'});
-   human('jason',800,757,{dir:'left'});human('peachy',835,782,{dir:'left'});
-   label('MARKET SQUARE',765,623,22,'#ffe6a3');
+   human('coco',720,850);human('connor',760,880);human('jason',800,855);human('peachy',835,880);
   }else if(activity==='reunion'){
-   const others=Object.keys(window.CHARACTERS).filter(id=>id!=='coco');
-   others.forEach((id,i)=>human(id,635+(i%7)*43,780+Math.floor(i/7)*56,{dir:i<7?'down':'up'}));
-   human('coco',760,886,{dir:'up'});
-   label('EVERYONE ACCOUNTED FOR',765,690,19,'#ffe6a3');
-  }else if(activity==='recruit-join'){
-   // Quiet resolution, never repeat the throw or a panic animation under a join.
-   const x=s.camera[0],y=s.camera[1];
-   human(s.friend,x+32,y+28);human('coco',x-35,y+40,{dir:'right'});
+   for(const actor of current.context.actors)human(actor.id,actor.x,actor.y,{dir:actor.direction});
+   const hero=current.context.player;human(hero.id,hero.x,hero.y,{dir:hero.direction});
   }
  }
- function draw(){
-  try{renderFrame();}catch(error){
-   stopFrame();if(!current)return;
-   current.error=error.message;next.disabled=true;loadingPanel.hidden=false;retry.hidden=false;
-   loadingText.textContent='The cinematic could not render. Retry the scene or skip to continue. '+error.message;
-   console.error('V5 cinematic rendering failed:',error);
-  }
+ function cameraFor(s,width,height){
+  const scene=SCENES[s.scene],bounds=scene.viewBounds||scene.bounds;
+  const xs=points.map(p=>p[0]),ys=points.map(p=>p[1]),left=Math.min(...xs),right=Math.max(...xs),top=Math.min(...ys),bottom=Math.max(...ys);
+  const focus=current.focus||{x:(left+right)/2,y:bottom};
+  let scale=Math.min(1,width/(right-left+100),height/(bottom-top+145));
+  scale=Math.max(.3,scale);
+  if(s.returnView)return {...current.context.camera};
+  const worldW=width/scale,worldH=height/scale;
+  const x=worldW>=bounds.right-bounds.left?bounds.left+(bounds.right-bounds.left-worldW)/2:clamp(focus.x-worldW/2,bounds.left,bounds.right-worldW);
+  const y=worldH>=scene.height?(scene.height-worldH)/2:clamp(focus.y-worldH*.72,0,scene.height-worldH);
+  const target={x,y,scale},from=current.from||current.context.camera;
+  if(current.transition)return target;
+  const p=reduced.matches?1:ease(current.age/.8);
+  return {x:from.x+(x-from.x)*p,y:from.y+(y-from.y)*p,scale:from.scale+(scale-from.scale)*p};
  }
- function renderFrame(){
+ function placeBubble(){
+  const s=current.shots[current.index];if(!s.text){bubble.hidden=true;return;}
+  const actor=current.actors.find(a=>a.id===current.speaker);if(!actor){bubble.hidden=true;return;}
+  bubble.hidden=false;
+  const box=canvas.getBoundingClientRect(),ratioX=box.width/canvas.width,ratioY=box.height/canvas.height,c=current.camera;
+  const x=(actor.x-c.x)*c.scale*ratioX,head=(actor.y-64-(actor.lift||0)-c.y)*c.scale*ratioY;
+  const width=bubble.offsetWidth,height=bubble.offsetHeight,left=clamp(x-width/2,8,box.width-width-8);
+  let top=head-height-14,below=false;
+  if(top<8&&((actor.y-c.y)*c.scale*ratioY+height+22)<box.height){top=(actor.y-c.y)*c.scale*ratioY+18;below=true;}
+  top=clamp(top,8,Math.max(8,box.height-height-14));
+  bubble.style.left=left+'px';bubble.style.top=top+'px';bubble.style.setProperty('--tail-left',clamp(x-left,14,width-14)+'px');bubble.dataset.below=String(below);
+ }
+ function renderFrame(context,viewport){
   if(!current||current.loading||current.error)return;
-  const s=current.shots[current.index],im=asset(window.SCENES[s.scene].image),scene=window.SCENES[s.scene];
-  const [x,y,zoom]=s.camera,t=current.age;
+  ctx=context;const s=current.shots[current.index],scene=SCENES[s.scene];
+  current.actors=[];current.enemies=[];current.smoke=[];current.focus=null;points=[];
+  // Measure actor bounds using the same authored stage without painting off-screen.
+  ctx.save();try{ctx.translate(-100000,-100000);stageAll(s,true);}finally{ctx.restore();}
+  if(!points.length)points.push([s.camera[0],s.camera[1]]);
+  const target=cameraFor(s,viewport.width,viewport.height),now=performance.now(),blend=reduced.matches||current.transition?1:1-Math.exp(-Math.max(0,now-(current.renderedAt||now))/160);
+  current.renderedAt=now;
+  current.camera={x:current.camera.x+(target.x-current.camera.x)*blend,y:current.camera.y+(target.y-current.camera.y)*blend,scale:current.camera.scale+(target.scale-current.camera.scale)*blend};current.actors=[];current.enemies=[];current.smoke=[];
   ctx.save();
   try{
-   ctx.imageSmoothingEnabled=false;
-   rect('#101524',0,0,W,H);
-   const shake=s.shake&&!reduced.matches?Math.max(0,1-t/1.5):0;
-   ctx.translate(W/2+Math.sin(t*59)*5*shake,H/2+Math.cos(t*73)*3*shake);
-   ctx.scale(zoom,zoom);ctx.translate(-x,-y);
-   ctx.drawImage(im,0,0,scene.width,scene.height);stage(s);
+   ctx.imageSmoothingEnabled=false;rect('#17383b',0,0,viewport.width,viewport.height);
+   const c=current.camera,shake=s.shake&&!reduced.matches?Math.max(0,1-current.age/1.5):0;
+   ctx.translate(Math.sin(current.age*59)*3*shake,Math.cos(current.age*73)*2*shake);
+   ctx.scale(c.scale,c.scale);ctx.translate(-c.x,-c.y);
+   ctx.drawImage(images.get(scene.image),0,0,scene.width,scene.height);
+   if(scene.overlay){const o=scene.overlay;ctx.drawImage(images.get(o.image),...o.source,o.x,o.y,o.w,o.h);}
+   stageAll(s);
+   host.drawAmbient?.(s.scene);
   }finally{ctx.restore();}
-  if(s.stage==='window'||s.stage==='family-head'||s.stage==='coffee')windowCloseup(s);
-  rect('#090e2099',0,0,W,28);rect('#090e2099',0,H-28,W,28);
-  label(scene.name,480,20,14,'#ddd5c1');
-  if(s.join){
-   rect('#111d50ee',95,208,770,90);rect('#eedca5',95,208,770,3);rect('#eedca5',95,295,770,3);
-   label(current.joinBanner,480,260,s.join.length>1?25:29,'#fff0b8');
-  }
-  progress.value=clamp(current.elapsed/current.duration);
+  if(current.transition&&!reduced.matches&&current.age<.35)rect('#10282d'+Math.round((1-current.age/.35)*255).toString(16).padStart(2,'0'),0,0,viewport.width,viewport.height);
+  placeBubble();
  }
-
+ function render(context,viewport){try{renderFrame(context,viewport);}catch(error){fail(error);}}
  window.V5_CINEMA={
-  // Artwork is prepared per event, so this promise has no startup network work.
-  get ready(){return readiness;},
-  catalog,
-  get active(){return current!==null;},
-  get state(){
-   return current?{event:current.event,shot:current.index,shotIndex:current.index,age:current.age,elapsed:current.elapsed,duration:current.duration,loading:current.loading,error:current.error}
-    :{event:null,shot:-1,shotIndex:-1,age:0,elapsed:0,duration:0,loading:false,error:null};
-  },
-  play(eventId,onComplete){
-   if(current||!Object.prototype.hasOwnProperty.call(catalog,eventId))return false;
-   const {shots,duration}=catalog[eventId];
-   current={event:eventId,shots,index:0,age:0,elapsed:0,duration,loading:true,error:null,callback:onComplete,token:++serial,images:new Map()};
-   previousFocus=document.activeElement;
-   overlay.hidden=false;dialogue.textContent='Preparing the scene…';dialogue.classList.remove('v5-cinema-join');speaker.textContent='Gburg Village';portrait.removeAttribute('src');portrait.alt='';
-   document.getElementById('v5-cinema-title').textContent=eventId==='montage'?'Meanwhile, across the neighborhood…':'Gburg Village · '+(eventId.startsWith('recruit-')?'A friend in need':'Chapter One');
-   inerted=Array.from(document.body.children).filter(element=>element!==overlay).map(element=>[element,element.inert]);
-   for(const [element] of inerted)element.inert=true;
-   document.addEventListener('keydown',keys,true);skipButton.focus({preventScroll:true});
-   document.dispatchEvent(new CustomEvent('v5-cinema-start',{detail:{event:eventId,duration}}));
-   if(current)loadCurrent();return true;
-  },
-  next:advance,
-  skip(){return finish(true);}
+  attach(value){if(host)throw new Error('Cinematic host already attached.');host=value;},
+  catalog,render,drawPose,preload,
+  get ready(){return readiness;},get active(){return current!==null;},
+  get lastResult(){return lastResult&&{...lastResult,actions:[...lastResult.actions]};},
+  get state(){return current?{event:current.event,scene:current.scene,shot:current.index,shotIndex:current.index,age:current.age,elapsed:current.elapsed,duration:current.duration,loading:current.loading,error:current.error,
+   camera:current.camera&&{...current.camera},actors:current.actors.map(a=>({...a})),enemies:current.enemies.map(a=>({...a})),smoke:[...current.smoke],defeated:current.defeated.size,actions:[...current.actions]}:
+   {event:null,scene:null,shot:-1,shotIndex:-1,age:0,elapsed:0,duration:0,loading:false,error:null};},
+  play(event,onComplete){
+   if(current||!catalog[event])return false;
+   if(!host)throw new Error('Cinematic host is not attached.');
+   const context=host.capture(),controls=['party','help','open-menu','touch-controls','power','music-toggle'].map(id=>document.getElementById(id)).filter(Boolean);
+   current={event,shots:catalog[event].shots,index:0,age:0,elapsed:0,duration:catalog[event].duration,loading:true,error:null,token:++serial,callback:onComplete,context,
+    camera:{...context.camera},previousScene:context.scene,scene:context.scene,actors:[],enemies:[],smoke:[],defeated:new Set(),actions:new Set(),inerted:controls.map(el=>[el,el.inert]),label:canvas.getAttribute('aria-label')};
+   for(const element of controls)element.inert=true;
+   document.body.classList.add('v5-story-active');canvas.focus({preventScroll:true});
+   document.dispatchEvent(new CustomEvent('v5-cinema-start',{detail:{event,duration:current.duration}}));load();return true;
+  }
  };
 })();

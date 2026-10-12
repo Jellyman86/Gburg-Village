@@ -10,6 +10,7 @@ return async function checkOpening(page,{width=1280,height=900,touch=false,artif
    await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{id:1,x:box.x+box.width/2+(key==='d'?d:key==='a'?-d:0),y:box.y+box.height/2+(key==='s'?d:key==='w'?-d:0)}]});
   }else await page.keyboard.down(key);
   try{await page.waitForFunction(predicate,null,{timeout:8000});}
+  catch(error){if(artifactDir)await page.screenshot({path:artifactDir+'\\opening-blocked-'+width+'x'+height+'.png'});throw new Error('Raw '+key+' movement failed: '+JSON.stringify(await page.evaluate(()=>GAME.state.player)),{cause:error});}
   finally{if(touch)await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});else await page.keyboard.up(key);}
  }
  async function portal(id){
@@ -24,8 +25,7 @@ return async function checkOpening(page,{width=1280,height=900,touch=false,artif
  async function event(id){
   await page.waitForFunction(id=>V5_CINEMA.state.event===id&&!V5_CINEMA.state.loading,id);
   if(artifactDir)await page.screenshot({path:artifactDir+'\\opening-'+id+'-'+width+'x'+height+'.png'});
-  if(touch)await activate('#cinema-skip');
-  else await page.waitForFunction(id=>V5_EVENTS.state.completed.includes(id),id,{timeout:40000});
+  await page.waitForFunction(id=>V5_EVENTS.state.completed.includes(id),id,{timeout:40000});
  }
  try{
   await page.goto(page.url().split('/v5/')[0]+'/v5/');await page.waitForFunction(()=>GAME.ready&&V3_INTRO.state.ready);
@@ -41,11 +41,13 @@ return async function checkOpening(page,{width=1280,height=900,touch=false,artif
   await portal('downstairs');await event('family');
   await event('montage');
   assert(await page.evaluate(()=>V4_RPG.members.jason.joined&&V4_RPG.members.peachy.joined&&Object.values(V4_RPG.members).filter(member=>member.joined).length===4&&GAME.state.dinosaur===null),'Family recruits together; montage never resolves future rescues');
+  await move('s',()=>GAME.state.player.y>=400);await move('a',()=>GAME.state.player.x<=150);
+  await move('s',()=>GAME.state.player.y>=470);await move('a',()=>GAME.state.player.x<=125);
   await portal('to-neighborhood');
   assert(await page.evaluate(()=>GAME.state.scene==='neighborhood'&&GAME.state.input.keys.length===0&&GAME.state.input.joy.x===0),'Front door releases safely to real-time exploration');
   await activate('#help');await activate('#replay-intro');await activate('#intro-skip');
   assert(await page.evaluate(()=>!V5_CINEMA.active&&V5_EVENTS.state.completed.length===4&&Object.values(V4_RPG.members).filter(member=>member.joined).length===4),'Replay never repeats or resets completed story events');
   assert(errors.length===0&&failed.length===0,'Raw opening errors/assets: '+errors.concat(failed).join('; '));
-  return {rawOpening:touch?'actual joystick and taps, safe cinematic skips':'actual keyboard and clicks, full naturally timed story and montage',width,height,errors,failed};
+  return {rawOpening:touch?'actual joystick and taps, naturally timed unskippable story':'actual keyboard and clicks, full naturally timed story and montage',width,height,errors,failed};
  }finally{page.off('pageerror',onError);page.off('response',onResponse);}
 };

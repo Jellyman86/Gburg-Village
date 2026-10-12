@@ -63,15 +63,12 @@
    if(role==='sing'){
     const mouth=id==='coco'?-18:-35;
     if(images.instruments)c.drawImage(images.instruments,128,0,64,64,-15,mouth-13,32,32);
-    if(Math.sin(beat)>0){rect('#512d32',-2,mouth,4,3);rect('#f0c1ab',-1,mouth,2,1);}
    }else if(role==='guitar'||role==='bass'){
     c.save();c.translate(0,id==='connor'?-13:-23);c.rotate(.85);
     if(images.instruments)c.drawImage(images.instruments,role==='bass'?64:0,0,64,64,-25,-34,48,48);
-    rect('#f3d1ad',-7+Math.sin(beat)*2,0,4,4);c.restore();
+    c.restore();
    }else if(role==='drums'){
     c.strokeStyle='#ead0a2';c.lineWidth=3;c.beginPath();c.moveTo(-15,-22);c.lineTo(-27,-32-Math.sin(beat)*9);c.moveTo(12,-22);c.lineTo(24,-32+Math.sin(beat)*9);c.stroke();
-   }else{
-    c.strokeStyle='#eec4a1';c.lineWidth=4;c.beginPath();c.moveTo(-12,-25);c.lineTo(-23,-33-Math.sin(beat)*8);c.moveTo(12,-25);c.lineTo(22,-33+Math.sin(beat)*8);c.stroke();
    }
    c.restore();
    if(role==='drums'&&images.rockband)c.drawImage(images.rockband,697,234,111,104,697,234,111,104);

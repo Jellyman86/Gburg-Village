@@ -5,7 +5,7 @@
   peachy:[110,12,14,12,10],stephanie:[95,9,12,15,9],mark:[115,13,10,11,11],
   adam:[105,12,13,14,10],kate:[100,10,12,14,11],brie:[95,10,13,12,10],
   vito:[105,12,15,12,9],jaime:[100,10,17,13,9],chris:[115,13,14,11,11],
-  jeff:[110,12,13,14,11],ari:[100,11,15,15,10]
+  jeff:[110,12,13,14,11],ari:[100,11,15,15,10],gary:[160,20,18,18,18]
  };
  const members=Object.fromEntries(Object.keys(window.CHARACTERS).map(id=>{
   const [maxHP,strength,quickness,dexterity,defense]=profiles[id];

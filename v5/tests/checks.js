@@ -32,7 +32,7 @@ return async function checkV4(page,{width=1280,height=900,touch=false,cinema=fal
   await page.evaluate(()=>{for(const id of Object.keys(CHARACTERS))if(!V4_RPG.members[id].joined)V4_RPG.recruit(id);});
   await page.evaluate(()=>GAME.test.enterScene('plaza',[500,844.7265625]));
   const ids=await page.evaluate(()=>Object.keys(CHARACTERS));
-  assert(ids.length===14,'Complete ten existing plus four new characters');
+  assert(ids.length===15,'Original fourteen humans plus unlockable Gary');
   await page.locator('#open-menu').click();
   assert(await page.locator('#menu-roster button').count()===ids.length,'Full roster in menu');
   const origin=await page.evaluate(()=>GAME.state.player);
@@ -71,7 +71,7 @@ return async function checkV4(page,{width=1280,height=900,touch=false,cinema=fal
   const stopped=await page.evaluate(()=>GAME.state.player);
   await page.waitForTimeout(100);
   assert(await page.evaluate(actor=>GAME.state.player.x===actor.x&&GAME.state.player.y===actor.y,stopped),'No stuck movement after close');
-  results.push('14-character roster, portraits, safe switching, pause, keyboard tabs/focus/input reset');
+  results.push('15-character roster, portraits, safe switching, pause, keyboard tabs/focus/input reset');
 
   const model=await page.evaluate(()=>{
    const r=V4_RPG,check=(value,message)=>{if(!value)throw new Error(message);};

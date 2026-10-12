@@ -48,7 +48,7 @@ return async function checkRecreation(page,{screenshotPath}={}){
    return [[385,345],[575,345],[490,385],[1110,320],[1135,400],[1125,360]].map(([x,y])=>!!seen[Math.round(y/step)*w+Math.round(x/step)]);
   });
   assert(connected.every(Boolean),'Field and northeast dogs reachable from actual recreation entrance');
-  assert(await page.evaluate(()=>GAME.blocked(430,425)&&GAME.blocked(657,350)&&GAME.blocked(358,810)),'Benches and pool remain blocked for player');
+  assert(await page.evaluate(()=>!GAME.blocked(430,425)&&!GAME.blocked(657,350)&&GAME.blocked(358,810)),'Benches are decorative while pool water stays blocked');
   const initial=await page.evaluate(()=>GAME.state.recreation);
   await page.waitForTimeout(2700);
   const later=await page.evaluate(()=>GAME.state.recreation);
@@ -95,6 +95,6 @@ return async function checkRecreation(page,{screenshotPath}={}){
   const away=await page.evaluate(()=>GAME.state.recreation.clock);await page.waitForTimeout(100);
   assert(await page.evaluate(clock=>GAME.state.recreation.clock===clock,away),'Recreation activity pauses off-scene');
   assert(errors.length===0,'Browser errors: '+errors.join('; '));
-  return {assets,reachable:connected,passes:later.passes,roster:14,errors,results:['Foot-aligned transparent atlases, new portraits/sprites and dog/sword/swim assets','Reachable bench-lined field, protected benches/pool, animated soccer and ambient characters','Pause, active teammate replacement, soccer shot, sword equipment gating and off-scene suspension']};
+  return {assets,reachable:connected,passes:later.passes,roster:15,errors,results:['Foot-aligned transparent atlases, new portraits/sprites and dog/sword/swim assets','Reachable bench-lined field, decorative benches/protected water, animated soccer and ambient characters','Pause, active teammate replacement, soccer shot, sword equipment gating and off-scene suspension']};
  }finally{await page.unroute(routePattern);page.off('pageerror',onError);}
 };

@@ -5,7 +5,7 @@
  const sceneImages={},sceneOverlays={},scenes=window.SCENES; let changing=false;
  const keys=new Set(),sheets={},portraits={},buttons={},camera={x:0,y:0};
  const player={x:310,y:350,id:'coco',direction:'down',frame:1,moving:false,running:false,clock:0};
- let joining=null,pendingRecruit=null,viewScale=1;
+ let joining=null,pendingRecruit=null,viewScale=1,storyReturn=null;
  const storyBusy=()=>window.V5_EVENTS.active||window.V5_CINEMA.active;
  const arrivalPortals=new Set();
  const recreation=window.V4_RECREATION.create(),extraSheets={};
@@ -20,6 +20,11 @@
   const touchSpace=document.body.classList.contains('touch')?Math.min(140,canvas.height*.28)/viewScale:0;
   camera.x=Math.round(width>=worldWidth?bounds.left+(worldWidth-width)/2:clamp(player.x-width/2,bounds.left,bounds.right-width));
   camera.y=Math.round(height>=worldHeight+touchSpace?bounds.top+(worldHeight+touchSpace-height)/2:clamp(player.y-height*.57,bounds.top,bounds.bottom+touchSpace-height));
+  if(storyReturn){
+   const p=clamp((performance.now()-storyReturn.at)/700,0,1),e=p*p*(3-2*p),from=storyReturn.camera;
+   camera.x=from.x+(camera.x-from.x)*e;camera.y=from.y+(camera.y-from.y)*e;viewScale=from.scale+(viewScale-from.scale)*e;
+   if(p===1)storyReturn=null;
+  }
  }
  function resize(){
   const r=canvas.getBoundingClientRect(),scale=r.width<600?1.35:r.height<350?1.5:1.8;
@@ -211,7 +216,7 @@
   ctx.restore();
  }
 
- function landmarks(){return town.landmarks.filter(l=>(!l.pickup||!V4_RPG.discoveries[l.pickup])&&(l.id!=='dogs'||!V4_RPG.discoveries.dogs)).concat(V4_STORY.encounters(town.id));}
+ function landmarks(){return town.landmarks.filter(l=>(!l.pickup||!V4_RPG.discoveries[l.pickup])&&(l.id!=='dogs'||!V4_RPG.discoveries.dogs)).concat(V4_STORY.encounters(town.id,player.id));}
  function goThrough(portal){
   if(unicorn.riding){toast('Hop off the unicorn before entering another area.');return false;}
   if(!V5_EVENTS.canTravel(portal.to))return false;
@@ -245,17 +250,17 @@
   $('nearby').hidden=!nearest&&!ride&&!mounted;
   const phone=document.body.classList.contains('touch');
   $('nearby-text').textContent=mounted?(phone?'Tap Off to hop down':'Unicorn ride · Hop off when you like'):ride?(phone?'A unicorn! Tap Ride':'A unicorn! Hop on for a ride'):nearest?.name||'';
-  $('interact').textContent=mounted?'Off':ride?'Ride':nearest?.to?'Go':nearest?.pickup?'Take':nearest?.recruit?'Talk':'Look';$('interact').setAttribute('aria-label',mounted?'Dismount unicorn':ride?'Ride unicorn':nearest?.pickup?'Pick up '+window.V4_RPG.items[nearest.pickup].name:nearest?'Look at '+nearest.name:'Look around');
+  $('interact').textContent=mounted?'Off':ride?'Ride':nearest?.to?'Go':nearest?.pickup?'Take':nearest?.recruit||nearest?.npc?'Talk':'Look';$('interact').setAttribute('aria-label',mounted?'Dismount unicorn':ride?'Ride unicorn':nearest?.pickup?'Pick up '+window.V4_RPG.items[nearest.pickup].name:nearest?'Look at '+nearest.name:'Look around');
  }
  function showDialog(title,body,tag='MARKET SQUARE'){resetInput();$('dialog-title').textContent=title;$('dialog-body').textContent=body;$('dialog-tag').textContent=tag;$('world-actions').hidden=tag!=='HOW TO PLAY';if(!$('dialog').open)$('dialog').showModal();paintPower();}
  $('help').addEventListener('click',()=>{
   if(storyBusy()||window.V3_INTRO?.active)return;
-  showDialog("Coco's adventure","Find Connor next door, then go downstairs to Mom and Dad. Cinematics pause gameplay: Next / Enter advances a shot, and Skip scene / Escape completes its story rewards safely. Coco remains the story protagonist when you switch heroes. Rescue neighbors by talking at gold diamonds, then regroup at Market Square. WASD / arrows move, Shift runs, E / Space interacts, X uses your power. Menu / M / Escape pauses for stats, items, equipment and one equipped ability. On a phone, drag the joystick and hold Run with another thumb. Home connects to Shops and Courts/Pool/Playground; recreation returns only to Home. Shops connects to Home (bottom-right) and Market Square; Market Square connects to Shops and North Market. All trips are reversible. Indoors, dinosaurs appear only in cinematic window views. Find the sword downstairs and Barney and Rosie on the northeast recreation street. Flight and unicorn rides are harmless. This chapter is session-only: refreshing starts over. Expand fills the browser; iPhone Home Screen mode can hide browser chrome.","HOW TO PLAY");
+  showDialog("Coco's adventure","Find Connor next door, then go downstairs to Mom and Dad. Stories play in the game view with speech bubbles and pause movement. Only the meteor intro can be skipped. Coco remains the story protagonist when you switch heroes. Rescue neighbors by talking at gold diamonds, then regroup near the family in Market Square. Gary waits inside Five Guys HQ; he joins only after his big battle. WASD / arrows move, Shift runs, E / Space interacts, X uses your power. Menu / M / Escape pauses for stats, items, equipment and one equipped ability. On a phone, drag the joystick and hold Run with another thumb. Home connects to Shops and Courts/Pool/Playground; recreation returns only to Home. Shops connects to Home (bottom-right) and Market Square; Market Square connects to Shops and North Market. All trips are reversible. Indoors, dinosaurs appear only in cinematic window views. Find the sword downstairs and Barney and Rosie on the northeast recreation street. Flight and unicorn rides are harmless. This chapter is session-only: refreshing starts over. Expand fills the browser; iPhone Home Screen mode can hide browser chrome.","HOW TO PLAY");
  });
  function interact(){
   if(!loaded||changing||storyBusy()||joining||flight.state.active||window.V3_INTRO?.active||$('dialog').open||window.V4_MENU.active)return;updateNearby();
-  if(nearest?.recruit){
-   V5_EVENTS.encounter(nearest.recruit);return;
+  if(nearest?.recruit||nearest?.npc){
+   V5_EVENTS.encounter(nearest.recruit||nearest.npc);return;
   }
   if(nearest?.id==='dogs'){
    const result=V4_RPG.findDogs();
@@ -302,7 +307,7 @@
   const r=canvas.getBoundingClientRect(),x=(e.clientX-r.left)*canvas.width/r.width/viewScale+camera.x,y=(e.clientY-r.top)*canvas.height/r.height/viewScale+camera.y;
   const target=landmarks().filter(l=>Math.hypot(l.x-x,l.y-15-y)<23).sort((a,b)=>Math.hypot(a.x-x,a.y-15-y)-Math.hypot(b.x-x,b.y-15-y))[0];
   if(target?.to){goThrough(target);return;}
-  if(target){if(Math.hypot(target.x-player.x,target.y-player.y)<target.radius){if(target.pickup||target.recruit||target.id==='dogs')interact();else showDialog(target.name,target.text);}else toast('Walk closer to '+target.name+'.');}
+  if(target){if(Math.hypot(target.x-player.x,target.y-player.y)<target.radius){if(target.pickup||target.recruit||target.npc||target.id==='dogs')interact();else showDialog(target.name,target.text);}else toast('Walk closer to '+target.name+'.');}
  });
  function update(dt){
   if(!loaded||changing||window.V3_INTRO?.active||$('dialog').open||window.V4_MENU.active)return;
@@ -335,6 +340,8 @@
   const c=characters[actor.id],x=Math.round(actor.x),y=Math.round(actor.y);
   ctx.fillStyle=active?'#182b365c':'#182b3645';ctx.beginPath();ctx.ellipse(x,y,actor.id==='coco'?10:13,4,0,0,Math.PI*2);ctx.fill();
   if(active){ctx.strokeStyle='#f9df89';ctx.lineWidth=1;ctx.beginPath();ctx.ellipse(x,y+1,15,5,0,0,Math.PI*2);ctx.stroke();}
+  const blast=active&&actor.id==='gary'&&powers.state.casts.find(c=>c.owner==='gary'&&c.kind==='blaster'&&c.age<.5);
+  if(blast&&['left','right'].includes(actor.direction)&&V5_CINEMA.drawPose(ctx,'gary','attack',x,y,blast.age,{flip:actor.direction==='left'})){powers.drawActor(ctx,actor);return;}
   const pose=active?powers.pose(actor):{lift:0,rotation:0},saddle=active&&unicorn.riding?20:0;
   if(saddle)unicorn.draw(ctx,actor);
   const air=active?flight.view().lift:0;
@@ -344,7 +351,7 @@
   if(active)powers.drawActor(ctx,{...actor,y:actor.y-saddle});
  }
  function draw(){
-  if(!loaded)return;ctx.fillStyle='#17383b';ctx.fillRect(0,0,canvas.width,canvas.height);ctx.save();ctx.scale(viewScale,viewScale);ctx.translate(-camera.x,-camera.y);
+  if(!loaded)return;if(V5_CINEMA.active){V5_CINEMA.render(ctx,canvas);return;}ctx.fillStyle='#17383b';ctx.fillRect(0,0,canvas.width,canvas.height);ctx.save();ctx.scale(viewScale,viewScale);ctx.translate(-camera.x,-camera.y);
   if(town.viewBounds){const b=town.viewBounds;ctx.save();ctx.beginPath();ctx.rect(b.left,b.top,b.right-b.left,b.bottom-b.top);ctx.clip();ctx.drawImage(background,0,0,town.width,town.height);ctx.restore();}
   else ctx.drawImage(background,0,0,town.width,town.height);
   if(town.overlay&&sceneOverlays[town.id]){const o=town.overlay;ctx.drawImage(sceneOverlays[town.id],...o.source,o.x,o.y,o.w,o.h);}
@@ -378,8 +385,7 @@
   ambient.concat(dino?[dino]:[],joining?[joining]:[],player).sort((a,b)=>a.y-b.y).forEach(a=>{
    if(a===dino)drawDino();else if(a===squirrel)drawSquirrel();else if(a===unicornActor)unicorn.draw(ctx);
    else if(recreation.dogData[a.id]||a.swimming){
-    const rows={down:0,left:1,right:2,up:3},row=a.swimming?({down:0,up:1,left:2,right:3})[a.direction]:rows[a.direction]+4;
-    ctx.drawImage(a.swimming?extraSheets.swim:extraSheets[a.id],a.frame*64,row*64,64,64,Math.round(a.x)-32,Math.round(a.y)-60,64,64);
+    drawSmallActor(a);
    }else{ctx.save();if(a===joining)ctx.globalAlpha=1-Math.max(0,(a.age-.6)/.2);sprite(a,a===player);ctx.restore();}
   });
   if(town.id==='recreation'&&(!V4_RPG.members.jeff.joined||!V4_RPG.members.ari.joined))recreation.drawBall(ctx);
@@ -388,6 +394,10 @@
    ctx.drawImage(extraSheets.pterodactyl,bird.frame*128,row*128,128,128,Math.round(bird.x)-64,Math.round(bird.y)-124,128,128);
   }
   powers.drawAir(ctx);ctx.restore();
+ }
+ function drawSmallActor(a){
+  const rows={down:0,left:1,right:2,up:3},row=a.swimming?({down:0,up:1,left:2,right:3})[a.direction]:rows[a.direction]+4;
+  ctx.drawImage(a.swimming?extraSheets.swim:extraSheets[a.id],a.frame*64,row*64,64,64,Math.round(a.x)-32,Math.round(a.y)-60,64,64);
  }
  function frame(time){const dt=previous?Math.min((time-previous)/1000,.05):0;previous=time;update(dt);draw();requestAnimationFrame(frame);}
  async function enterScene(id,arrival,direction='down'){
@@ -399,7 +409,7 @@
   try{
    const img=sceneImages[id]||await loadImage(next.image);sceneImages[id]=img;
    if(next.overlay&&!sceneOverlays[id])sceneOverlays[id]=await loadImage(next.overlay.image);
-   const old=town;town=next;
+   const old=town;town=next;storyReturn=null;
    const x=arrival[0]*town.width/1000,y=arrival[1]*town.height/1000;
    if(blocked(x,y)){town=old;throw new Error('The entrance needs more space.');}
    dinoHome=town.indoor?null:dinoHomes[id]||null;dino=town.indoor?null:dinosaurs[id]||null;
@@ -417,14 +427,23 @@
  function loadImage(path){return new Promise((resolve,reject)=>{const img=new Image();img.onload=()=>resolve(img);img.onerror=()=>reject(new Error('Could not load '+path));img.src=window.EMBEDDED_ASSETS?.[path]||path;});}
  Promise.all([loadImage(town.image).then(img=>{background=img;sceneImages.cocoRoom=img;}),...ids.map(id=>loadImage(characters[id].sheet).then(img=>{sheets[id]=img;})),
   ...Object.entries({...Object.fromEntries(Object.entries(recreation.dogData).map(([id,data])=>[id,data.sheet])),...Object.fromEntries(['trex','raptor','triceratops','pterodactyl'].map(id=>[id,'../v4/assets/dinosaurs/'+id+'.png'])),swim:'../v4/assets/characters/chris-swim.png',sword:'../v4/assets/items/sword-slash.png',swordIcon:window.V4_RPG.items.sword.image}).map(([id,path])=>loadImage(path).then(img=>{extraSheets[id]=img;}))
- ]).then(()=>{
+ ,V5_CINEMA.preload()]).then(()=>{
   ids.forEach(id=>{const p=portraits[id].getContext('2d');p.imageSmoothingEnabled=false;p.drawImage(sheets[id],64,0,64,64,-8,-5,64,64);});
   loaded=true;$('loading').hidden=true;resize();updateNearby();paintPower();refreshParty();$('route-hint').textContent=town.hint;document.querySelector('.location small').textContent=town.name;if(!storyBusy())canvas.focus({preventScroll:true});
  }).catch(error=>{$('loading').innerHTML='';const message=document.createElement('b');message.textContent=error.message;const help=document.createElement('span');help.textContent='Extract the full ZIP, then open index.html or the standalone play.html.';$('loading').append(message,help);console.error(error);});
  resize();requestAnimationFrame(frame);
  // Read-only diagnostic state for repeatable browser checks.
- V5_EVENTS.attach({scene:()=>town.id,reset:resetInput,notify:toast,refresh:()=>{refreshParty();updateNearby();paintPower();}});
- window.GAME={get ready(){return loaded&&!changing;},get busy(){return storyBusy()||!!joining||!!pendingRecruit||flight.state.active;},get state(){return{scene:town.id,player:{...player}, actors:V4_STORY.actors(town.id,town.id==='recreation'?recreation.actors(player):[],player.id),joining:joining&&{...joining},story:V5_EVENTS.state,cinema:V5_CINEMA.state,companions:companions.state,flight:flight.state,recreation:recreation.state,powers:powers.state,unicorn:unicorn.state,dinosaur:dino&&{...dino},squirrel:{...squirrel},camera:{...camera,scale:viewScale},nearest:nearest?.id||null,viewport:{width:canvas.width,height:canvas.height},dialog:$('dialog').open,menu:window.V4_MENU.active,input:{joy:{...joy},touchRun,keys:[...keys]}};},select,blocked};
+ V5_CINEMA.attach({
+  capture:()=>({scene:town.id,player:{...player},actors:V4_STORY.actors(town.id,town.id==='recreation'?recreation.actors(player):[],player.id),camera:{...camera,scale:viewScale}}),
+  drawAmbient(scene){if(scene===town.id)companions.actors.forEach(drawSmallActor);},
+  release(context,scene,actors,view){
+   const hero=scene===town.id&&actors.find(a=>a.id===player.id);
+   if(hero){if(blocked(hero.x,hero.y))throw new Error('The story ended outside a walkable area.');Object.assign(player,{x:hero.x,y:hero.y,direction:hero.direction});}
+   resetInput();storyReturn={at:performance.now(),camera:scene===town.id&&view?view:context.camera};updateCamera();updateNearby();canvas.focus({preventScroll:true});
+  }
+ });
+ V5_EVENTS.attach({scene:()=>town.id,atMeeting:()=>Math.hypot(player.x-768,player.y-865)<150,reset:resetInput,notify:toast,refresh:()=>{refreshParty();updateNearby();paintPower();}});
+ window.GAME={get ready(){return loaded&&!changing;},get busy(){return storyBusy()||!!joining||!!pendingRecruit||flight.state.active;},get state(){return{scene:town.id,player:{...player}, actors:V4_STORY.actors(town.id,town.id==='recreation'?recreation.actors(player):[],player.id),joining:joining&&{...joining},story:V5_EVENTS.state,cinema:V5_CINEMA.state,companions:companions.state,flight:flight.state,recreation:recreation.state,powers:powers.state,unicorn:unicorn.state,dinosaur:dino&&{...dino},squirrel:{...squirrel},camera:V5_CINEMA.active&&V5_CINEMA.state.camera||{...camera,scale:viewScale},nearest:nearest?.id||null,viewport:{width:canvas.width,height:canvas.height},dialog:$('dialog').open,menu:window.V4_MENU.active,input:{joy:{...joy},touchRun,keys:[...keys]}};},select,blocked};
 })();
 
 
@@ -438,7 +457,8 @@
  button.style.cssText='position:absolute;top:10px;right:10px;z-index:3;min-height:44px;padding:8px 12px;background:#17383bee;border-color:#d3b16d;font:12px system-ui;border-radius:6px;touch-action:manipulation';
  stage.append(button);
  const Audio=window.AudioContext||window.webkitAudioContext;
- let enabled=true,context=null,buffer=null,source=null,offset=0,startedAt=0;
+ let enabled=true,context=null,buffer=null,source=null,offset=0,startedAt=0,generation=0,sourceMode='village';
+ const buffers={},offsets={village:0,battle:0};
  try{enabled=localStorage.getItem('village-music')!=='off';}catch(_){}
  function paint(){
   const playing=!!source&&context.state==='running';
@@ -447,36 +467,48 @@
   button.setAttribute('aria-label',!Audio?'Music is unavailable in this browser':playing?'Turn background music off':!enabled?'Turn background music on':'Start background music');
   button.disabled=!Audio;
  }
- function compose(){
-  const rate=22050,beat=60/92,duration=16*4*beat;
+ function compose(mode){
+  const battle=mode==='battle',rate=22050,beat=60/(battle?164:92),duration=16*4*beat;
   const result=context.createBuffer(1,Math.round(duration*rate),rate),data=result.getChannelData(0);
   function note(midi,at,length,volume,voice){
    const frequency=440*Math.pow(2,(midi-69)/12),start=Math.round(at*rate),count=Math.floor(length*rate);
    for(let i=0;i<count;i++){
     const t=i/rate,phase=2*Math.PI*frequency*t;
     const envelope=Math.min(1,t/.018)*Math.pow(1-i/count,2)*Math.exp(-t*(voice==='pad'?.3:2.4));
-    const wave=Math.sin(phase)+(voice==='bell'?.24*Math.sin(phase*2):voice==='pluck'?.15*Math.sin(phase*3):0);
+    const wave=Math.sin(phase)+(voice==='brass'?.3*Math.sin(phase*3)+.12*Math.sin(phase*5):voice==='bell'?.24*Math.sin(phase*2):voice==='pluck'?.15*Math.sin(phase*3):0);
     data[(start+i)%data.length]+=wave*envelope*volume;
    }
   }
-  const chords=[[48,52,55,59],[43,47,50,57],[45,48,52,55],[41,45,48,52],[48,52,55,59],[43,47,50,57],[41,45,48,52],[43,47,50,55]];
-  const melody=[[76,79,83,79],[74,71,69,67],[72,76,79,76],[77,76,72,69],[79,83,84,83],[79,74,71,69],[77,76,72,76],[74,71,67,null],[76,79,83,86],[83,79,74,71],[72,76,81,79],[77,76,72,null],[79,83,84,79],[74,79,83,81],[77,76,72,69],[71,74,67,null]];
+  const chords=battle?[[41,44,48,53],[37,41,44,49],[39,43,46,51],[36,40,43,48]]:
+   [[48,52,55,59],[43,47,50,57],[45,48,52,55],[41,45,48,52],[48,52,55,59],[43,47,50,57],[41,45,48,52],[43,47,50,55]];
+  const melody=battle?Array.from({length:16},(_,bar)=>[[65,68,72,75],[73,72,68,65],[67,70,74,77],[72,67,64,60]][bar%4]):
+   [[76,79,83,79],[74,71,69,67],[72,76,79,76],[77,76,72,69],[79,83,84,83],[79,74,71,69],[77,76,72,76],[74,71,67,null],[76,79,83,86],[83,79,74,71],[72,76,81,79],[77,76,72,null],[79,83,84,79],[74,79,83,81],[77,76,72,69],[71,74,67,null]];
+  function drum(at,snare){
+   const start=Math.round(at*rate),count=Math.floor(rate*.16);
+   for(let i=0;i<count;i++){const t=i/rate,noise=Math.sin(i*127.1)*Math.sin(i*311.7),wave=snare?noise:Math.sin(2*Math.PI*(90-240*t)*t);
+    data[(start+i)%data.length]+=wave*Math.exp(-t*30)*(snare?.075:.14);}
+  }
   for(let bar=0;bar<16;bar++){
-   const chord=chords[bar%8],at=bar*4*beat;
+   const chord=chords[bar%chords.length],at=bar*4*beat;
    chord.forEach(n=>note(n,at,4.5*beat,.055,'pad'));
    note(chord[0]-12,at,2.7*beat,.12,'pad');
    [0,2,1,3,0,2,1,3].forEach((n,i)=>note(chord[n]+12,at+i*.5*beat,.85*beat,.095,'pluck'));
-   melody[bar].forEach((n,i)=>{if(n!==null)note(n,at+i*beat,1.7*beat,.13,'bell');});
+   melody[bar].forEach((n,i)=>{if(n!==null)note(n,at+i*beat,(battle?.9:1.7)*beat,battle?.095:.13,battle?'brass':'bell');});
+   if(battle)for(let i=0;i<8;i++)drum(at+i*.5*beat,i%4===2);
   }
   return result;
  }
  function stop(){
-  if(source){offset=(context.currentTime-startedAt+offset)%buffer.duration;source.stop();source.disconnect();source=null;}
+  generation++;
+  if(source){offset=(context.currentTime-startedAt+offset)%buffer.duration;offsets[sourceMode]=offset;source.stop();source.disconnect();source=null;}
   paint();
  }
  async function start(){
-  if(window.V3_INTRO?.active||window.V5_CINEMA?.active)return;
-  if(window.V3_INTRO?.active||!Audio||!enabled||document.hidden||(source&&context.state==='running'))return;
+  const battle=window.V5_CINEMA?.state.event==='gary',mode=battle?'battle':'village';
+  if(window.V3_INTRO?.active||(window.V5_CINEMA?.active&&!battle)||!Audio||!enabled||document.hidden)return;
+  if(source&&context.state==='running'&&sourceMode===mode)return;
+  if(source)stop();
+  const token=++generation;
   try{
    if(!context){context=new Audio();context.addEventListener('statechange',paint);}
    // Resume immediately inside the gesture; iOS may require a started buffer too.
@@ -485,8 +517,8 @@
    unlock.buffer=context.createBuffer(1,1,context.sampleRate);
    unlock.connect(context.destination);unlock.onended=()=>unlock.disconnect();unlock.start(0);
    await resuming;
-   if(!enabled||document.hidden||source||window.V5_CINEMA?.active||window.V3_INTRO?.active){paint();return;}
-   if(!buffer)buffer=compose();
+   if(token!==generation||!enabled||document.hidden||source||window.V3_INTRO?.active||(window.V5_CINEMA?.active&&window.V5_CINEMA.state.event!=='gary')){paint();return;}
+   buffer=buffers[mode]||(buffers[mode]=compose(mode));sourceMode=mode;offset=offsets[mode];
    source=context.createBufferSource();source.buffer=buffer;source.loop=true;
    source.connect(context.destination);startedAt=context.currentTime;source.start(0,offset);paint();
   }catch(error){console.warn('Music can be retried with the music button.',error);paint();}
@@ -504,14 +536,15 @@
  document.addEventListener('click',gesture,{passive:true,capture:true});
  document.addEventListener('keydown',gesture);
  document.addEventListener('visibilitychange',()=>{
-  if(document.hidden){stop();if(context)context.suspend().catch(()=>{});}
+  if(document.hidden){stop();if(context)context.suspend().catch(error=>console.warn('Could not pause music:',error));}
   else if(context&&enabled)start();
  });
  document.addEventListener('v3-intro-start',stop);
  document.addEventListener('v3-intro-end',start);
- document.addEventListener('v5-cinema-start',stop);
- document.addEventListener('v5-cinema-end',start);
- window.addEventListener('pagehide',()=>{stop();if(context)context.suspend().catch(()=>{});});
+ document.addEventListener('v5-cinema-start',event=>{stop();if(event.detail.event==='gary')start();});
+ document.addEventListener('v5-cinema-end',()=>{stop();start();});
+ window.addEventListener('pagehide',()=>{stop();if(context)context.suspend().catch(error=>console.warn('Could not suspend music:',error));});
  window.addEventListener('pageshow',()=>{if(context&&enabled)start();});
+ window.V5_MUSIC={get state(){return {enabled,mode:source?sourceMode:null,playing:!!source&&context?.state==='running'};}};
  paint();
 })();

@@ -16,6 +16,7 @@
   chris:{name:'Water beam',label:'Water',kind:'water-beam',cooldown:.9,duration:.75,range:220,width:9,extendSpeed:700},
   jeff:{name:'Throw baseball',label:'Baseball',kind:'baseball',cooldown:.6,duration:1.4,speed:285},
   ari:{name:'Soccer volley',label:'Volley',kind:'soccer',cooldown:.6,duration:1.4,speed:265},
+  gary:{name:'Patriot blaster',label:'Blast',kind:'blaster',cooldown:.65,duration:.8,range:260,width:11,extendSpeed:800},
   sword:{name:'Sword slash',label:'Slash',kind:'sword',cooldown:.6,duration:.45,range:55}
  }).map(([id,power])=>[id,Object.freeze(power)])));
  const directions={down:{x:0,y:1},left:{x:-1,y:0},right:{x:1,y:0},up:{x:0,y:-1}};
@@ -35,7 +36,7 @@
    for(const cast of casts){
     const power=definitions[cast.id],previous=cast.age;cast.age+=dt;
     if(!projectile(power)&&cast.kind!=='wave'&&actor?.id===cast.owner){cast.x=actor.x;cast.y=actor.y;}
-    if(cast.kind==='water-beam'){
+    if(cast.kind==='water-beam'||cast.kind==='blaster'){
      const reach=Math.min(power.range,Math.max(0,cast.age-.08)*power.extendSpeed);
      cast.length=0;
      for(let distance=2;distance<=reach;distance+=2){
@@ -159,7 +160,7 @@
   function drawAir(ctx){
    for(const cast of casts){
     const power=definitions[cast.id];
-    if(cast.kind==='water-beam'){
+    if(cast.kind==='water-beam'||cast.kind==='blaster'){
      const length=cast.length||0;if(length===0)continue;
      ctx.save();ctx.globalAlpha=Math.min(1,(power.duration-cast.age)/.2);
      ctx.translate(Math.round(cast.x),Math.round(cast.y)-24-cast.lift);ctx.rotate(Math.atan2(cast.dy,cast.dx));

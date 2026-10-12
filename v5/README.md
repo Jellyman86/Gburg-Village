@@ -15,14 +15,22 @@ through relative URLs rather than copying a second asset library.
 - A 24-second invasion montage introduces the soccer field, pool, Vito's
   wrestling teaser and neighborhood panic without resolving those rescues.
 - Each missing friend has a distinct discovery scene. Vito throws his dinosaur
-  by the tail; Brie keeps doing yoga. All fourteen humans become playable.
-- Rescued friends wait in Market Square. Bringing the entire party there closes
-  the chapter and hints at Five Guys as a future headquarters and the meteor
-  mystery. Those future systems are not implemented yet.
+  by the tail; Brie keeps doing yoga. The original fourteen humans become playable.
+  Brie and Kate wait near home.
+- Five Guys HQ is a walkable interior off Market Square. Gary talks there but
+  does not join yet. The central table and counters remain solid; aisles are open.
+- Gather the original fourteen near the Market Square meeting point. Gary
+  then leaves HQ and heads to North Market for four waves of five dinosaurs:
+  flips, a rooftop leap, blasts and twenty individual smoke disappearances.
+  After sitting, drinking water and saying "God bless the USA.", he becomes the
+  fifteenth playable hero with his Patriot blaster. The meteor mystery continues.
 
 Coco remains the narrative protagonist when another unlocked hero is selected.
-Cinematics pause movement, combat, travel and character switching. Their
-completion and skip paths share the same one-shot story rewards.
+Cinematics pause movement, combat, travel and character switching. They use the
+existing gameplay canvas, supplied action poses and small character-anchored
+speech bubbles, not a separate portrait/framed cinematic window. Objectives
+and nonessential controls hide without changing the viewport size. Rewards
+are one-shot; Gary requires all twenty dinosaur defeats.
 
 ## Controls
 
@@ -30,10 +38,10 @@ WASD / arrows move; Shift runs; E / Space interacts; X uses the equipped power.
 M / Escape opens the RPG menu outside a cinematic. Touch uses the joystick,
 Run and interaction buttons.
 
-During a cinematic, **Next / Enter / Space** advances a shot and **Skip scene /
-Escape** completes the current event safely. Skipping the parents' scene still
-starts the montage; skip that separately if desired. Hidden tabs pause story
-timers. Reduced-motion mode removes camera shake and decorative bouncing.
+**Only the main meteor intro can be skipped.** Later story scenes play
+automatically; Enter, Space and Escape do not advance or bypass them.
+Hidden tabs pause story timers. Reduced-motion mode removes camera shake,
+flips and decorative bouncing.
 Intro replay never resets recruitment or repeats completed chapter events.
 
 Expand and Home Screen mode retain the V4 desktop/phone behavior. Physical
@@ -47,12 +55,20 @@ grabs you, not during approach, rejected grabs, release or escape.
 ## Implementation and limits
 
 - [Story placement](src/story.js), [story events](src/story-events.js) and the
-  [cinematic director](src/cinema.js) are separate from the core game loop.
+  [cinematic director](src/cinema.js) and [Gary finale](src/gary-finale.js) are
+  separate from the core game loop.
 - Existing `V4_*` implementation globals are retained internally for the reused
   RPG/menu/companion modules. They run only on this separate page.
-- Window dinosaurs and cinematic props are presentation overlays, not indoor
-  combat actors. Supplied sprites, portraits and backgrounds are reused; small
-  tablet, coffee, ball, dust and action overlays are original Canvas art.
+- The supplied three-state dinosaur head is masked behind bedroom/kitchen
+  window frames, not drawn as a blocky substitute. Uploaded reactions, yoga,
+  Gary actions and the cinematic-only Vito/dinosaur sheet are processed into
+  transparent derivatives by [the artwork tool](tools/process-story-art.ps1).
+  [Action metadata](src/action-art.js) records real frame counts: single-pose
+  uploads stay single poses. No fake character arms/legs are added.
+  Vito's regular walking sprite/portrait remains unchanged. Small tablet,
+  coffee, ball, energy-beam and smoke effects remain original Canvas art.
+- Gary's epic battle score is original Web Audio synthesis and respects the
+  existing music preference, mute controls and hidden-tab pause.
 - Story flags, stats, equipment and recruitment are **session-only**. Refreshing
   starts over. Saves, XP rewards/leveling, combat damage and the endgame remain
   future increments.
@@ -60,8 +76,10 @@ grabs you, not during approach, rejected grabs, release or escape.
   retained. No Tiled pipeline or shared deployment configuration was added.
 - The recreation east street uses wider, overlapping road/sidewalk regions
   around its bends, making the dog encounter and Rock Band approach easier.
-  Pool water and buildings remain inaccessible; the existing door and return
-  arrival stay in the same positions.
+  Park/playground/court approaches and open gates are wider; benches are purely
+  decorative. Pool water, buildings, closed fences and HQ furniture retain
+  collision. The Rock Band door/return positions and outdoor route graph remain.
+- Wardrobe and new outfit generation are deferred.
 
 ## Coco emotion artwork
 
@@ -73,7 +91,8 @@ anchor are retained. The user-approved frames play when Coco speaks while
 standing still and reacts to the dinosaur in V5 cinematics. Moving characters
 retain their supplied walking frames. These first emotion poses deliberately
 face the camera so the small facial expressions are visible; other directional
-poses and characters remain future artwork increments. Reduced-motion mode
+poses retain their walking artwork; other supplied character reactions are
+listed separately in the action manifest. Reduced-motion mode
 uses a static pose instead of cycling the expression frames.
 
 [The drawing script](tools/draw-coco-emotions.ps1) reproduces the PNG and checks
@@ -86,24 +105,33 @@ never appear in the transparent sprite atlas.
 [Browser runner](tests/run.cjs) exercises desktop 1280x900, portrait 390x844 and
 landscape 844x390, including real keyboard and CDP touch controls.
 [Opening checks](tests/opening-checks.js) use unmodified gameplay and naturally
-timed desktop cutscenes. [Chapter checks](tests/chapter-checks.js) use
+timed keyboard and emulated-touch cutscenes. [Chapter checks](tests/chapter-checks.js) use
 response-only test hooks for collision-respecting routes and exact flight
 boundaries, never production position/time setters. Core regression fixtures
 start after the opening; real chapter tests do not bypass story prerequisites.
 [Story-state checks](tests/story-state.cjs) cover callback idempotence, ordered
-prerequisites, grouped recruitment and all fourteen playable characters.
+prerequisites, grouped recruitment, HQ-only Gary and his twenty-defeat unlock.
+[Scene-path checks](tests/scene-paths.cjs) verify all twenty reciprocal routes,
+arrival connectivity, gate widths, decorative benches and protected obstacles.
+[Gary choreography checks](tests/gary-finale.cjs) verify four five-enemy waves,
+twenty separate smoke disappearances, rooftop/flip/hit actions and the ending.
 [Audio-state checks](tests/sfx-state.cjs) verify the pickup screech's pitch
 sweeps, mute/visibility suppression and cancellation of pending cinematic audio.
 [Emotion checks](tests/emotion-checks.js) trace the actual PNG frames drawn in
-the cinematic canvas, checking all six poses, fixed foot anchors, original
-walking, safe story skips and static reduced-motion playback in all three layouts.
+the gameplay canvas, checking all six poses, fixed foot anchors, original
+walking, absent story skip controls and static reduced-motion playback.
 
 Run the existing browser harness with `PLAYWRIGHT_CORE` and `BROWSER_PATH`
 pointing to your installed Playwright package and Chromium. Optional
-`V4_ARTIFACT_DIR` is the inherited screenshot-output variable.
+`V4_ARTIFACT_DIR` is the inherited screenshot-output variable. Set optional
+`V5_TEST_SUITES` to comma-separated `core,display,recreation,content,intro,
+navigation,opening,chapter,emotions` selectors and `V5_TEST_LAYOUTS` to
+comma-separated `1280x900,390x844,844x390` for targeted runs.
 
 ```text
 node v5\tests\story-state.cjs
 node v5\tests\sfx-state.cjs
+node v5\tests\scene-paths.cjs
+node v5\tests\gary-finale.cjs
 node v5\tests\run.cjs
 ```

@@ -13,3 +13,5 @@ for(const id of Object.keys(window.CHARACTERS)){
  window.CHARACTERS[id].portrait=`../v4/assets/portraits/${id}.png`;
 }
 window.CHARACTERS.coco.emotions={sheet:'assets/characters/coco-emotions.png',frames:3,fps:6,rows:{talk:0,surprised:1}};
+window.CHARACTERS.gary={...window.CHARACTERS.jason,...window.V5_GARY_WALK,id:'gary',name:'Gary',
+ portrait:'assets/portraits/gary.png',speed:135,runSpeed:230,walkFPS:8,runFPS:12};
