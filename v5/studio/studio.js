@@ -93,7 +93,7 @@
  $('timeline').oninput=()=>seek(Number($('timeline').value));
  $('play').onclick=()=>{if(playing)stop();else{if(preview.state.elapsed>=definition().duration)preview.seek(0);playing=true;last=0;$('play').textContent='Pause';}};
  $('back-frame').onclick=()=>seek(preview.state.elapsed-1/30);$('next-frame').onclick=()=>seek(preview.state.elapsed+1/30);
- $('layout').onchange=layout;new ResizeObserver(layout).observe($('viewport'));
+ $('layout').onchange=layout;new ResizeObserver(()=>requestAnimationFrame(layout)).observe($('viewport'));
  $('seconds').onchange=()=>editShot(p=>p.seconds=Number($('seconds').value));
  $('text').onchange=()=>editShot(p=>p.text=$('text').value);
  $('speaker').onchange=()=>editShot(p=>p.speaker=$('speaker').value);

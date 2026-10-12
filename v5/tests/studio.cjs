@@ -18,8 +18,13 @@ const server=createStudioServer({root,dataPath});
   browser=await chromium.launch({headless:true,...(process.env.BROWSER_PATH?{executablePath:process.env.BROWSER_PATH}:{})});
   const context=await browser.newContext({viewport:{width:1440,height:1000}}),page=await context.newPage(),errors=[],failed=[];
   page.on('pageerror',error=>errors.push(error.message));page.on('response',response=>{if(response.status()>=400)failed.push(response.url());});
+  page.on('console',message=>{if(message.type()==='error'&&message.text().startsWith('Studio preview failed:'))errors.push(message.text());});
   await page.goto(url);await page.waitForFunction(()=>window.GBURG_STUDIO&&GBURG_STUDIO.state.preview.actors.length>0);
   const iframe=page.frames().find(frame=>frame.url().endsWith('preview.html'));
+  for(const width of [390,650,1100,820,1440]){
+   await page.setViewportSize({width,height:1000});await page.waitForTimeout(120);
+  }
+  assert(await iframe.locator('#preview-error').isHidden(),'Viewport resizing does not create observer errors');
   assert(await iframe.evaluate(()=>!window.GAME&&!window.V5_EVENTS&&!window.V4_RPG),'Preview has no gameplay or reward state');
   let previewedShots=0;
   for(const event of await iframe.evaluate(()=>Object.keys(V5_CINEMA.catalog))){

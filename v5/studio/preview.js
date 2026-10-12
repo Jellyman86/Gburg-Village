@@ -5,10 +5,12 @@
  function error(error){console.error('Studio preview failed:',error);errorEl.textContent=error.message;errorEl.hidden=false;}
  function resize(){
   const box=stage.getBoundingClientRect(),scale=box.width<600?1.35:box.height<350?1.5:1.8;
-  canvas.width=Math.max(200,Math.round(box.width/scale));canvas.height=Math.max(140,Math.round(box.height/scale));
+  const width=Math.max(200,Math.round(box.width/scale)),height=Math.max(140,Math.round(box.height/scale));
+  if(canvas.width!==width)canvas.width=width;
+  if(canvas.height!==height)canvas.height=height;
   if(V5_CINEMA.active)draw();
  }
- new ResizeObserver(resize).observe(stage);resize();
+ new ResizeObserver(()=>requestAnimationFrame(resize)).observe(stage);resize();
  function draw(){
   V5_CINEMA.render(ctx,canvas);
   const state=V5_CINEMA.state;
