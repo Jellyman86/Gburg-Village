@@ -68,9 +68,10 @@
   ],'Talk to Connor, then head downstairs to find Peachy and Jason.');
  interior('rockband','Rock Band house · Mark & Stephanie',576,324,'assets/scenes/rockband.png',
   [[45,160,490,140],[80,135,370,35]],[[235,190,145,50]],[
-   {id:'outside',name:'Outside · East of the pool',x:70,y:200,radius:42,to:'recreation',arrival:[895,670]}
+   {id:'outside',name:'Outside · East of the pool',x:70,y:200,radius:42,to:'recreation',arrival:[945,670]}
   ],'Talk to Mark and Stephanie. The door leads to the street on the right side of the recreation map.');
- recreation.landmarks.push({id:'rockband-house',name:'Rock Band house · Enter →',x:1125,y:840,radius:48,to:'rockband',arrival:[180,650]});
+ recreation.landmarks.push({id:'rockband-house',name:'Rock Band house · Enter →',x:1185,y:840,radius:48,to:'rockband',arrival:[180,650]});
+ recreation.walkable.push({x:1140,y:780,w:70,h:140});
  recreation.walkable.push({x:280,y:650,w:45,h:90},{x:275,y:700,w:37,h:244},{x:1030,y:640,w:44,h:128});
  recreation.walkable.push({x:513,y:640,w:47,h:96},{x:290,y:696,w:745,h:44});
  recreation.landmarks.push({id:'pool-gate',name:'Pool gate · Open',x:533,y:690,radius:35,text:'The gate between the courts and pool is open! Walk down onto the deck. Chris is beside the lap pool; the water remains off limits.'});
@@ -91,8 +92,9 @@
  road('district','to-plaza',[{x:1408,y:267,w:32,h:811,direction:'left'}],[895,762],'left');
  road('district','to-neighborhood',[{x:2330,y:1020,w:40,h:58,direction:'right'}],[120,905],'up',{x:2350,y:1049});
  road('neighborhood','to-district',[{x:106,y:1180,w:91,h:35,direction:'down'}],[700,966],'left',{x:150,y:1195});
- road('neighborhood','to-recreation',[{x:1049,y:1180,w:85,h:35,direction:'down'}],[80,180],'down',{x:1085,y:1195});
- road('recreation','to-neighborhood',[{x:60,y:170,w:77,h:30,direction:'up'}],[865,890],'up',{x:100,y:185,name:'↑ Main Street · Home'});
+ recreation.walkable.push({x:60,y:75,w:77,h:125});
+ road('neighborhood','to-recreation',[{x:1049,y:1180,w:85,h:35,direction:'down'}],[80,125],'down',{x:1085,y:1195});
+ road('recreation','to-neighborhood',[{x:60,y:100,w:77,h:30,direction:'up'}],[865,890],'up',{x:100,y:115,name:'↑ Main Street · Home'});
  plaza.hint='Follow the gold road arrows north to the roundabout or east to Main Street. Crossing the road exit travels automatically; diamonds remain clickable.';
  district.hint='Go west to Market Square, or take the bottom-right road to Home Neighborhood. Courts & Pool is reached through Home. Follow gold road arrows; there is no need to hit a diamond.';
  SCENES.neighborhood.hint='The south-left road leads to Main Street shops; the south-right road leads to Courts & Pool. Follow the loop to the green dinosaur and its front-door diamond.';

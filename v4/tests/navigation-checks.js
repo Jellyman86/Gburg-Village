@@ -66,8 +66,8 @@ return async function checkNavigation(page,{touch=false,artifactDir,width=1280,h
    assert(JSON.stringify(actual)===JSON.stringify(destinations.slice().sort()),'Exact outdoor connections: '+from);
   }
   const courtsExit=topology.find(edge=>edge.from==='recreation'&&edge.to==='neighborhood');
-  assert(courtsExit.x<200&&courtsExit.y<250,'Recreation Home diamond is top-left');
-  assert(topology.find(edge=>edge.from==='neighborhood'&&edge.to==='recreation').arrival[0]===80,'Home arrives on the matching northwest recreation road');
+  assert(courtsExit.x===100&&courtsExit.y===115,'Recreation Home diamond is farther north at the top-left crosswalk');
+  assert(JSON.stringify(topology.find(edge=>edge.from==='neighborhood'&&edge.to==='recreation').arrival)===JSON.stringify([80,125]),'Home arrives safely below the matching northwest recreation exit');
   const shopsHome=topology.find(edge=>edge.from==='district'&&edge.to==='neighborhood');
   assert(shopsHome.x>2200&&shopsHome.y>1000&&shopsHome.roads.length===1,'Shops has one bottom-right Home crossing');
   assert(await page.evaluate(()=>{
@@ -202,9 +202,12 @@ return async function checkNavigation(page,{touch=false,artifactDir,width=1280,h
     throw new Error('Diamond click/tap '+edge.from+'/'+edge.id+' failed from '+JSON.stringify(spot)+': '+JSON.stringify(await page.evaluate(()=>GAME.state)),{cause:error});
    }
   }
-  await page.evaluate(()=>GAME.test.enterScene('recreation',[80,180]));
+  await page.evaluate(()=>GAME.test.enterScene('recreation',[80,125]));
   const rock=await page.evaluate(()=>SCENES.recreation.landmarks.find(l=>l.id==='rockband-house'));
-  assert(rock.x>627,'Rock Band entrance on right side');
+  assert(rock.x===1185&&rock.y===840,'Rock Band entrance shifted right onto the clear street');
+  assert(await page.evaluate(()=>{const portal=SCENES.rockband.landmarks.find(l=>l.id==='outside');return Math.abs(portal.arrival[0]*SCENES.recreation.width/1000-1185)<1;}),'Rock Band return aligned with the visible street entrance');
+  await page.evaluate(()=>{GAME.test.position(1185,890);GAME.test.tick(0);});
+  if(artifactDir)await page.screenshot({path:artifactDir+'\\visible-rockband-door-'+width+'x'+height+'.png'});
   if(artifactDir)await page.screenshot({path:artifactDir+'\\connected-recreation-'+width+'x'+height+'.png'});
   assert(await page.evaluate(()=>V4_STORY.locations.mark.hint.includes('right/east')&&SCENES.recreation.landmarks.some(l=>l.to==='neighborhood')),'Roster hints and direct Home return updated');
   await activate('#open-menu');await page.keyboard.press('d');
