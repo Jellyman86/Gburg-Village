@@ -19,7 +19,7 @@
  [['to-district','← Main Street shops',120,870,'district',895,966],['to-house','Dinosaur house · Enter',713,276,'house',120,900],['to-recreation','Courts & pool →',865,880,'recreation',895,880]],
  'Follow the loop to the green dinosaur. Go at its front steps enters the house.'),
  recreation:make('recreation','Lakelands · Courts & Pool',1254,1254,
- [[48,125,61,848],[72,945,865,39],[888,570,42,405],[845,150,90,430],[105,125,775,44],[528,154,41,240],[207,344,657,43],[207,353,34,207],[230,515,578,45],[231,547,24,205],[405,545,30,208],[231,736,200,26],[614,543,26,44],[825,548,36,184],[224,905,660,69]],
+ [[48,125,61,848],[72,945,865,39],[105,125,775,44],[528,154,41,240],[207,344,657,43],[207,353,34,207],[230,515,578,45],[231,547,24,205],[405,545,30,208],[231,736,200,26],[614,543,26,44],[825,548,36,184],[224,905,660,69]],
  [['to-neighborhood','↑ Main Street · Home',80,148,'neighborhood',865,890]],
  'Explore the courts, pool and playground. The top-left street returns to Home; reach shops through Home.'),
  house:make('house','Home · Living floor',1448,1086,
@@ -33,6 +33,11 @@
  north.overlay={image:'../v3/assets/meteor-crater.png',x:587,y:200,w:360,h:205,source:[130,180,1300,670]};
  north.landmarks.push({id:'meteor',name:'The meteor crater',x:767,y:437,radius:55,text:'It landed right in the roundabout! Something prehistoric crawled out. Keep to the road around the broken island.'});
  const recreation=SCENES.recreation;
+ // Follow the east street's bends with overlapping road-and-sidewalk strips.
+ recreation.walkable.push(...[
+  [1045,190,115,100],[1060,275,135,175],[1090,440,135,285],
+  [1110,710,135,235],[1120,930,125,290]
+ ].map(([x,y,w,h])=>({x,y,w,h})));
  recreation.walkable.push({x:320,y:280,w:310,h:125},{x:615,y:290,w:80,h:87});
  recreation.obstacles.push({x:409,y:414,w:44,h:25},{x:647,y:320,w:21,h:63});
  recreation.landmarks.push({id:'soccer',name:'Jeff & Ari · Soccer field',x:490,y:385,radius:65,text:'Jeff and Ari are passing a soccer ball on the lawn beside the playground. Open Party to play as either friend.'});
@@ -71,7 +76,6 @@
    {id:'outside',name:'Outside · East of the pool',x:70,y:200,radius:42,to:'recreation',arrival:[945,670]}
   ],'Talk to Mark and Stephanie. The door leads to the street on the right side of the recreation map.');
  recreation.landmarks.push({id:'rockband-house',name:'Rock Band house · Enter →',x:1185,y:840,radius:48,to:'rockband',arrival:[180,650]});
- recreation.walkable.push({x:1140,y:780,w:70,h:140});
  recreation.walkable.push({x:280,y:650,w:45,h:90},{x:275,y:700,w:37,h:244},{x:1030,y:640,w:44,h:128});
  recreation.walkable.push({x:513,y:640,w:47,h:96},{x:290,y:696,w:745,h:44});
  recreation.landmarks.push({id:'pool-gate',name:'Pool gate · Open',x:533,y:690,radius:35,text:'The gate between the courts and pool is open! Walk down onto the deck. Chris is beside the lap pool; the water remains off limits.'});

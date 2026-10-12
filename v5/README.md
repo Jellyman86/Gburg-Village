@@ -58,6 +58,10 @@ grabs you, not during approach, rejected grabs, release or escape.
   future increments.
 - Existing road topology, sword, dogs, powers, unicorn and flight behavior are
   retained. No Tiled pipeline or shared deployment configuration was added.
+- The recreation east street uses wider, overlapping road/sidewalk regions
+  around its bends, making the dog encounter and Rock Band approach easier.
+  Pool water and buildings remain inaccessible; the existing door and return
+  arrival stay in the same positions.
 
 ## Coco emotion artwork
 

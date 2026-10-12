@@ -210,10 +210,30 @@ return async function checkNavigation(page,{touch=false,artifactDir,width=1280,h
   if(artifactDir)await page.screenshot({path:artifactDir+'\\visible-rockband-door-'+width+'x'+height+'.png'});
   if(artifactDir)await page.screenshot({path:artifactDir+'\\connected-recreation-'+width+'x'+height+'.png'});
   assert(await page.evaluate(()=>V4_STORY.locations.mark.hint.includes('right/east')&&SCENES.recreation.landmarks.some(l=>l.to==='neighborhood')),'Roster hints and direct Home return updated');
+  assert(await page.evaluate(()=>{
+   for(const [y,left,right] of [[350,1070,1185],[550,1100,1215],[800,1120,1235],[1050,1130,1235]]){
+    for(let x=left;x<=right;x+=5)if(GAME.blocked(x,y))return false;
+   }
+   return true;
+  }),'East street has at least 105px of usable width along both sidewalks near the dogs and Rock Band');
+  assert(await page.evaluate(()=>[[358,810],[898,763],[752,792],[960,840],[630,879],[1170,170],[1225,350],[1240,500],[1040,1030],[680,1050]].every(([x,y])=>GAME.blocked(x,y))),'Wider sidewalks do not open pool water, roadside houses or the clubhouse');
+  await stageApproach([1180,320]);
+  for(const [key,axis,value] of [
+   ['s','y',480],['d','x',1210],['s','y',760],['d','x',1225],
+   ['s','y',960],['a','x',1150],['w','y',340]
+  ]){
+   await start(key);
+   try{
+    await page.waitForFunction(({axis,value,positive})=>GAME.state.scene==='recreation'&&(positive?GAME.state.player[axis]>=value:GAME.state.player[axis]<=value),
+     {axis,value,positive:key==='s'||key==='d'},{timeout:4000});
+   }finally{await stop();}
+  }
+  assert(await page.evaluate(()=>GAME.state.scene==='recreation'&&!GAME.blocked(GAME.state.player.x,GAME.state.player.y)),'Actual keyboard/joystick run follows the east sidewalk bends from the dogs past Rock Band and back');
+  if(artifactDir)await page.screenshot({path:artifactDir+'\\widened-east-sidewalks-'+width+'x'+height+'.png'});
   await activate('#open-menu');await page.keyboard.press('d');
   assert(await page.evaluate(()=>GAME.state.scene==='recreation'&&GAME.state.menu),'Menu blocks movement-triggered travel');
   await activate('#close-menu');
   assert(errors.length===0&&failed.length===0,'Navigation errors/assets: '+errors.concat(failed).join('; '));
-  return {transitions:topology.length,roadLanes:lanes,touch,errors,failed,results:['Exact requested outdoor graph; every reciprocal route and arrival is collision-reachable','Top-left recreation Home exit and matching spawn; only bottom-right Shops Home crossing; no direct Shops/Recreation route','Full-road exits work at both edges and the middle; duplicate overview areas blocked','Exact arrivals without immediate bounce; clickable diamonds, re-armed doors and dinosaur-free interiors']};
+  return {transitions:topology.length,roadLanes:lanes,touch,errors,failed,results:['Exact requested outdoor graph; every reciprocal route and arrival is collision-reachable','Top-left recreation Home exit and matching spawn; only bottom-right Shops Home crossing; no direct Shops/Recreation route','Full-road exits work at both edges and the middle; duplicate overview areas blocked','Exact arrivals without immediate bounce; clickable diamonds, re-armed doors and dinosaur-free interiors','Wider east sidewalks with real keyboard/touch dog-to-Rock-Band roundtrip; water and buildings stay blocked']};
  }finally{await stop();await page.unroute(pattern);page.off('pageerror',onError);page.off('response',onResponse);}
 };
