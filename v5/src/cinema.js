@@ -4,74 +4,14 @@
  const reduced=matchMedia('(prefers-reduced-motion: reduce)'),cache=new Map(),images=new Map();
  const clamp=(n,a=0,b=1)=>Math.max(a,Math.min(b,n));
  const ease=n=>{n=clamp(n);return n*n*(3-2*n);};
- const shot=(seconds,stage,scene,camera,speaker,text,extra={})=>({seconds,stage,scene,camera,speaker,text,...extra});
- const room=[300,225,1],kitchen=[455,235,1],field=[480,345,1],pool=[390,835,1];
- const catalog={
-  awakening:[
-   shot(3,'wake','cocoRoom',room,'coco','What was that strange rumble?',{cue:'rumble'}),
-   shot(3,'peek','cocoRoom',room,'coco',"I'm going to peek to see if there's anything outside."),
-   shot(3,'window','cocoRoom',[255,170,1],'coco','A DINOSAUR?!',{cue:'roar',shake:true}),
-   shot(3,'alarm','cocoRoom',room,'coco','I NEED TO FIND CONNOR!')
-  ],
-  connor:[
-   shot(3,'tablet','connorRoom',room,'coco',"CONNOR! THERE'S DINOSAURS!"),
-   shot(3,'tablet','connorRoom',room,'connor',"That's not possible, Coco."),
-   shot(3,'connor-roar','connorRoom',room,'connor',"...Okay. Let's get Dad.",{cue:'roar',shake:true}),
-   shot(2,'connor-join','connorRoom',room,'connor',"I'm coming with you!")
-  ],
-  family:[
-   shot(3,'family-approach','house',kitchen,'coco','Mom? Dad? Did you hear that?'),
-   shot(3,'family','house',kitchen,'jason','Is that the TV? Somebody turn down the dinosaur channel.'),
-   shot(3,'family','house',kitchen,'peachy','The internet is down. Of course it is.'),
-   shot(3,'family-head','house',kitchen,'coco','Dad! Mom! LOOK OUTSIDE!',{cue:'rumble'}),
-   shot(3,'coffee','house',kitchen,'peachy','AAAAH! Jason, your coffee!',{cue:'roar',cues:[[.25,'scream'],[.9,'splash']],shake:true}),
-   shot(2,'family-join','house',kitchen,'jason',"Stay together. We're getting everyone to Market Square.")
-  ],
-  montage:[
-   shot(4,'soccer-panic','recreation',field,'ari','THAT IS NOT THE GOALIE!',{cue:'roar'}),
-   shot(4,'swim-panic','recreation',pool,'chris',"...I picked the wrong day to swim."),
-   shot(4,'wrestle','district',[1615,1045,1],'vito',"Hang on... I've got a situation here.",{cue:'rumble'}),
-   shot(2,'band-panic','rockband',[288,230,1],'mark','Power is out! That was NOT our drum solo.'),
-   shot(2,'tennis-panic','recreation',[700,590,1],'kate',"Adam! That's not a tennis ball!"),
-   shot(2,'street-panic','neighborhood',[480,800,1],'jaime','Phones are down too! Brie, stay off the road!'),
-   shot(3,'shops-panic','district',[1600,770,1],'coco','No electricity. No internet. We have to find our friends ourselves.'),
-   shot(3,'gather','plaza',[760,850,1],'coco',"We'll rescue everyone, then gather at Market Square. Nobody gets left behind!")
-  ],
-  gathering:[
-   shot(3,'reunion','plaza',[760,870,1],'coco',"Everyone's here. All fourteen of us! You're safe now."),
-   shot(3,'reunion','plaza',[760,870,1],'jason',"Five Guys is ready. Gary said he'd keep an eye on things."),
-   shot(3,'reunion','plaza',[760,870,1],'coco','Wait. Where is Gary going?')
-  ],
-  'gary-talk':[
-   shot(3,'gary-talk','hq',[200,350,1],'gary',"I've got supplies and water. You get the neighbors somewhere safe."),
-   shot(3,'gary-talk','hq',[200,350,1],'gary',"I'll handle the big stuff when everyone's accounted for.")
-  ],
-  gary:window.V5_GARY_FINALE.shots,
-  banquet:window.V5_BANQUET_FINALE.shots
- };
- const friends={
-  jeff:{scene:'recreation',camera:field,stage:'soccer',line:'The dinosaur stole our ball. That is absolutely a red card.',reply:"Come with us, Jeff. We'll get everyone somewhere safe."},
-  ari:{scene:'recreation',camera:field,stage:'soccer',line:"Next time, I'm checking the goalie for claws.",reply:"We need your footwork, Ari. Let's go!"},
-  chris:{scene:'recreation',camera:pool,stage:'swim',line:'I was promised a quiet lap swim. Not flying reptiles.',reply:'Time to get out, Chris. We need you on dry land!'},
-  jaime:{scene:'recreation',camera:[100,350,1],stage:'skate',line:'I can outrun them. Stopping is the tricky part!',reply:"Skate with us, Jaime. We'll watch the corners."},
-  mark:{scene:'rockband',camera:[288,240,1],stage:'band',line:"No power, no Rock Band. Guess we're going acoustic.",reply:'Save the encore, Mark. Our friends need us.'},
-  stephanie:{scene:'rockband',camera:[288,240,1],stage:'band',line:'I can scream louder than that dinosaur. Want a demonstration?',reply:"Let's save your voice for the rescue, Stephanie!"},
-  adam:{scene:'neighborhood',camera:[330,780,1],stage:'tennis',x:330,y:780,line:"That thing ate the tennis ball. I'm calling a let.",reply:'Game postponed, Adam. Come help us find everyone.'},
-  kate:{scene:'neighborhood',camera:[680,820,1],stage:'tennis',x:680,y:820,line:'I prefer doubles without a prehistoric opponent.',reply:"You're on our team now, Kate. Let's move!"},
-  brie:{scene:'neighborhood',camera:[480,800,1],stage:'yoga',line:'Breathe in. Breathe out. Ignore the enormous dinosaur.',reply:"That's impressive, Brie. Can we do the next pose somewhere safer?"},
-  vito:{scene:'district',camera:[1615,1045,1],stage:'throw',line:'Oh boy, that was a tough one.',reply:'Remind me not to arm-wrestle you, Vito. Come with us!'}
- };
- for(const [id,f] of Object.entries(friends)){
-  catalog['recruit-'+id]=[
-   shot(id==='vito'?5:3,f.stage,f.scene,f.camera,id,id==='vito'?'Just... one... more... heave!':f.line,{friend:id,cues:id==='vito'?[[3,'throw']]:[]}),
-   shot(3,f.stage==='throw'?'throw-after':f.stage,f.scene,f.camera,id,id==='vito'?f.line:f.reply,{friend:id,interlocutor:id!=='vito'}),
-   ...(id==='vito'?[shot(3,'throw-after',f.scene,f.camera,'coco',f.reply,{friend:id})]:[])
-  ];
- }
- for(const [id,shots] of Object.entries(catalog)){
-  catalog[id]=Object.freeze({shots:Object.freeze(shots.map(s=>Object.freeze(s))),duration:shots.reduce((n,s)=>n+s.seconds,0)});
- }
- Object.freeze(catalog);
+ const {catalog,friends}=window.V5_CINEMA_CATALOG;
+ const previewPage=document.body.hasAttribute('data-studio-preview');
+ let sceneEdits=V5_SCENE_EDITS.empty();
+ const editsReady=fetch('data/scene-edits.json?v=studio-v5-1',{cache:'no-cache'}).then(async response=>{
+  if(!response.ok)throw new Error('Could not load scene edits: HTTP '+response.status);
+  sceneEdits=V5_SCENE_EDITS.validate(await response.json(),catalog,CHARACTERS);
+ });
+ editsReady.catch(error=>console.error('Scene settings failed:',error));
  const stageEl=document.getElementById('stage'),canvas=document.getElementById('game');
  const bubble=document.createElement('div');bubble.id='story-bubble';bubble.hidden=true;
  bubble.setAttribute('role','status');bubble.setAttribute('aria-live','polite');bubble.setAttribute('aria-atomic','true');
@@ -104,7 +44,7 @@
   const urls=new Set();
   for(const clips of Object.values(window.V5_ACTION_ART))for(const clip of Object.values(clips))urls.add(clip.sheet);
   if(CHARACTERS.coco.emotions)urls.add(CHARACTERS.coco.emotions.sheet);
-  return Promise.all([...urls].map(image));
+  return Promise.all([editsReady,...[...urls].map(image)]);
  }
  function requirements(shots){
   const urls=new Set(shots.map(s=>sceneFor(s.scene).image));
@@ -118,8 +58,8 @@
   return [...urls];
  }
  function pause(){cancelAnimationFrame(raf);raf=0;last=0;}
- function schedule(){if(current&&!current.loading&&!current.error&&!document.hidden&&!raf)raf=requestAnimationFrame(tick);}
- function cue(kind){if(kind&&!document.hidden)V4_SFX.play(kind);}
+ function schedule(){if(current&&!current.preview&&!current.loading&&!current.error&&!document.hidden&&!raf)raf=requestAnimationFrame(tick);}
+ function cue(kind){if(kind&&!current?.preview&&!document.hidden)V4_SFX.play(kind);}
  function enterShot(){
   const s=current.shots[current.index];current.age=0;current.cueIndex=0;
   current.speaker=s.interlocutor?'coco':s.speaker;current.scene=s.scene;
@@ -129,13 +69,16 @@
   bubble.querySelector('p').textContent=s.text;bubble.hidden=!s.text;
   canvas.setAttribute('aria-label',sceneFor(s.scene).name+'. '+(s.text?CHARACTERS[current.speaker].name+': '+s.text:s.stage));
   cue(s.cue);
-  document.dispatchEvent(new CustomEvent('v5-cinema-shot',{detail:{event:current.event,stage:s.stage,music:s.music||null}}));
+  if(!current.preview)document.dispatchEvent(new CustomEvent('v5-cinema-shot',{detail:{event:current.event,stage:s.stage,music:s.music||null}}));
  }
  async function prepare(token){
   const run=current;if(!run)return;
   run.loading=true;run.error=null;pause();loading.hidden=false;retry.hidden=true;
   loading.querySelector('p').textContent='Preparing story artwork...';
   try{
+   await editsReady;
+   if(!current||current.token!==token)return;
+   if(!run.preview)Object.assign(run,V5_SCENE_EDITS.apply(catalog,run.event,sceneEdits));
    await Promise.all(requirements(run.shots).map(image));
    if(!current||current.token!==token)return;
    run.loading=false;loading.hidden=true;enterShot();schedule();
@@ -148,6 +91,7 @@
  }
  function stageAll(s,measure=false){
   stage(s);
+  if(current.preview)return;
   const hero=current.context.player;
   if(current.event!=='gary'&&s.scene===current.context.scene){
    if(!current.actors.some(a=>a.id===hero.id))human(hero.id,hero.x,hero.y,{dir:hero.direction});
@@ -205,7 +149,7 @@
  continueButton.onclick=()=>{if(current?.waitingReturn){try{finish();}catch(error){fail(error);}}};
  document.addEventListener('visibilitychange',()=>{if(document.hidden)pause();else schedule();});
  document.addEventListener('keydown',event=>{
-  if(!current||event.ctrlKey||event.altKey||event.metaKey)return;
+  if(!current||current.preview||event.ctrlKey||event.altKey||event.metaKey)return;
   if(['screen-mode','story-retry','story-continue'].includes(document.activeElement?.id)&&['Enter',' '].includes(event.key))return;
   if(['Escape','Enter',' ','w','a','s','d','W','A','S','D','m','M','e','E','x','X','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(event.key)){
    event.preventDefault();event.stopImmediatePropagation();
@@ -243,12 +187,14 @@
   context.restore();return true;
  }
  function human(id,x,y,{dir='down',walk=false,pose='',lift=0,rotation=0,scale=1,poseTime=current.age,swim=false}={}){
-  if(current.event.startsWith('recruit-')&&id!=='coco'&&id!==current.context.player.id&&V4_RPG.members[id].joined)return;
+  if(!current.preview&&current.event.startsWith('recruit-')&&id!=='coco'&&id!==current.context.player.id&&V4_RPG.members[id].joined)return;
   const c=CHARACTERS[id],t=current.age;
   if((current.event.startsWith('recruit-')||current.event==='gary-talk')&&current.scene===current.context.scene&&id===current.context.player.id){
    x=current.context.player.x;y=current.context.player.y;
   }
-  current.actors.push({id,x,y,direction:dir,pose,lift,swim});points.push([x,y-lift-58],[x,y]);
+  const baseX=x,baseY=y,offset=current.shots[current.index].actors?.[id];
+  if(offset){x+=offset.dx;y+=offset.dy;}
+  current.actors.push({id,x,y,baseX,baseY,direction:dir,pose,lift,swim});points.push([x,y-lift-58],[x,y]);
   if(id==='gary'&&pose)current.actions.add(pose);
   oval('#091b3244',x,y,13*scale,4*scale);
   const expression=swim?'':pose==='startle'?'surprised':pose||(!walk&&current.speaker===id?'talk':'');
@@ -362,6 +308,7 @@
  }
  function cameraFor(s,width,height){
   const scene=sceneFor(s.scene),bounds=scene.viewBounds||scene.bounds;
+  if(s.camera?.zoom!==undefined)return {scale:s.camera.zoom,x:s.camera.x-width/s.camera.zoom/2,y:s.camera.y-height/s.camera.zoom/2};
   const cityCamera=current.event==='banquet'&&V5_BANQUET_FINALE.camera(s,width,height);
   if(cityCamera)return cityCamera;
   const xs=points.map(p=>p[0]),ys=points.map(p=>p[1]),left=Math.min(...xs),right=Math.max(...xs),top=Math.min(...ys),bottom=Math.max(...ys);
@@ -373,6 +320,7 @@
   const x=worldW>=bounds.right-bounds.left?bounds.left+(bounds.right-bounds.left-worldW)/2:clamp(focus.x-worldW/2,bounds.left,bounds.right-worldW);
   const y=worldH>=scene.height?(scene.height-worldH)/2:clamp(focus.y-worldH*.72,0,scene.height-worldH);
   const target={x,y,scale},from=current.from||current.context.camera;
+  if(current.preview)return target;
   if(current.transition)return target;
   const p=reduced.matches?1:ease(current.age/.8);
   return {x:from.x+(x-from.x)*p,y:from.y+(y-from.y)*p,scale:from.scale+(scale-from.scale)*p};
@@ -384,10 +332,16 @@
   const box=canvas.getBoundingClientRect(),ratioX=box.width/canvas.width,ratioY=box.height/canvas.height,c=current.camera;
   const x=(actor.x-c.x)*c.scale*ratioX,head=(actor.y-64-(actor.lift||0)-c.y)*c.scale*ratioY;
   const width=bubble.offsetWidth,height=bubble.offsetHeight,left=clamp(x-width/2,8,box.width-width-8);
+  const placement=s.bubble?.placement||'auto';
   let top=head-height-14,below=false;
-  if(top<8&&((actor.y-c.y)*c.scale*ratioY+height+22)<box.height){top=(actor.y-c.y)*c.scale*ratioY+18;below=true;}
+  if(placement==='below'||placement==='auto'&&top<8&&((actor.y-c.y)*c.scale*ratioY+height+22)<box.height){top=(actor.y-c.y)*c.scale*ratioY+18;below=true;}
+  if(placement==='custom'){
+   bubble.style.left=clamp(s.bubble.x*box.width,8,Math.max(8,box.width-width-8))+'px';
+   top=s.bubble.y*box.height;below=top>head;
+  }else bubble.style.left=left+'px';
   top=clamp(top,8,Math.max(8,box.height-height-14));
-  bubble.style.left=left+'px';bubble.style.top=top+'px';bubble.style.setProperty('--tail-left',clamp(x-left,14,width-14)+'px');bubble.dataset.below=String(below);
+  const actualLeft=parseFloat(bubble.style.left);
+  bubble.style.top=top+'px';bubble.style.setProperty('--tail-left',clamp(x-actualLeft,14,width-14)+'px');bubble.dataset.below=String(below);
  }
  function renderFrame(context,viewport){
   if(!current||current.loading||current.error)return;
@@ -395,8 +349,8 @@
   current.actors=[];current.enemies=[];current.smoke=[];current.focus=null;points=[];
   // Measure actor bounds using the same authored stage without painting off-screen.
   ctx.save();try{ctx.translate(-100000,-100000);stageAll(s,true);}finally{ctx.restore();}
-  if(!points.length)points.push([s.camera[0],s.camera[1]]);
-  const target=cameraFor(s,viewport.width,viewport.height),now=performance.now(),blend=reduced.matches||current.transition?1:1-Math.exp(-Math.max(0,now-(current.renderedAt||now))/160);
+  if(!points.length)points.push([s.camera.x??s.camera[0],s.camera.y??s.camera[1]]);
+  const target=current.preview&&current.previewCamera||cameraFor(s,viewport.width,viewport.height),now=performance.now(),blend=current.preview||reduced.matches||current.transition?1:1-Math.exp(-Math.max(0,now-(current.renderedAt||now))/160);
   current.renderedAt=now;
   current.camera={x:current.camera.x+(target.x-current.camera.x)*blend,y:current.camera.y+(target.y-current.camera.y)*blend,scale:current.camera.scale+(target.scale-current.camera.scale)*blend};current.actors=[];current.enemies=[];current.smoke=[];
   ctx.save();
@@ -408,7 +362,7 @@
    ctx.drawImage(images.get(scene.image),0,0,scene.width,scene.height);
    if(scene.overlay){const o=scene.overlay;ctx.drawImage(images.get(o.image),...o.source,o.x,o.y,o.w,o.h);}
    stageAll(s);
-   host.drawAmbient?.(s.scene);
+   if(!current.preview)host.drawAmbient?.(s.scene);
   }finally{ctx.restore();}
   if(current.transition&&!reduced.matches&&current.age<.35)rect('#10282d'+Math.round((1-current.age/.35)*255).toString(16).padStart(2,'0'),0,0,viewport.width,viewport.height);
   if(current.event==='banquet'){
@@ -439,4 +393,35 @@
    document.dispatchEvent(new CustomEvent('v5-cinema-start',{detail:{event,duration:current.duration}}));load();return true;
   }
  };
+ if(previewPage){
+  function seek(seconds){
+   if(!current?.preview||current.loading)throw new Error('Open a preview before seeking.');
+   if(!Number.isFinite(seconds))throw new Error('Preview time must be finite.');
+   const elapsed=clamp(seconds,0,current.duration),time=Math.min(elapsed,current.duration-.00001);
+   let age=time,index=0;
+   while(index<current.shots.length-1&&age>=current.shots[index].seconds){age-=current.shots[index].seconds;index++;}
+   current.index=index;enterShot();current.age=age;current.elapsed=elapsed;
+   current.transition=false;current.renderedAt=0;
+   current.waitingReturn=current.event==='banquet'&&elapsed===current.duration;
+   ending.hidden=!current.waitingReturn;continueButton.disabled=true;
+  }
+  window.V5_CINEMA.preview={
+   async open(event,data,context){
+    if(!catalog[event])throw new Error('Unknown preview scene: '+event);
+    const settings=V5_SCENE_EDITS.validate(data,catalog,CHARACTERS),definition=V5_SCENE_EDITS.apply(catalog,event,settings);
+    pause();ending.hidden=true;
+    current={event,...definition,preview:true,index:0,age:0,elapsed:0,loading:true,error:null,token:++serial,context,
+     camera:{...context.camera},previousScene:null,scene:context.scene,actors:[],enemies:[],smoke:[],defeated:new Set(),actions:new Set()};
+    readiness=prepare(current.token);await readiness;
+    if(current?.preview)seek(0);
+   },
+   seek,
+   lockCamera(camera){if(current?.preview)current.previewCamera=camera&&{...camera};},
+   update(data){
+    if(!current?.preview)throw new Error('No preview is open.');
+    V5_SCENE_EDITS.validate(data,catalog,CHARACTERS);
+    const elapsed=current.elapsed;Object.assign(current,V5_SCENE_EDITS.apply(catalog,current.event,data));seek(elapsed);
+   }
+  };
+ }
 })();

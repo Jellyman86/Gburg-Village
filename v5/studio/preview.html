@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><base href="../"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Gburg scene preview</title><link rel="stylesheet" href="cinema.css?v=banquet-v5-1">
+<style>
+html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#17383b}
+#stage{position:relative;width:100%;height:100%;touch-action:none}
+#game{display:block;width:100%;height:100%;image-rendering:pixelated;touch-action:none}
+#story-bubble{pointer-events:auto;cursor:move;user-select:none}
+#preview-error{position:absolute;inset:10px;background:#401e24;color:white;padding:12px;font:16px system-ui;z-index:10}
+#preview-error[hidden]{display:none}
+</style></head><body data-studio-preview>
+<div id="stage"><canvas id="game" aria-label="Cutscene preview. Drag an actor or speech bubble to adjust its position."></canvas><p id="preview-error" role="alert" hidden></p></div>
+<script src="src/action-art.js?v=gary-cleanup-v5-1"></script>
+<script src="src/characters.js?v=world-story-v5-1"></script>
+<script src="src/map.js?v=banquet-v5-1"></script>
+<script src="src/scenes.js?v=world-story-v5-1"></script>
+<script src="src/story.js?v=world-story-v5-1"></script>
+<script src="src/gary-finale.js?v=world-story-v5-1"></script>
+<script src="src/banquet-finale.js?v=banquet-v5-1"></script>
+<script src="src/cinema-catalog.js?v=studio-v5-1"></script>
+<script src="src/scene-edits.js?v=studio-v5-1"></script>
+<script src="src/cinema.js?v=studio-v5-1"></script>
+<script src="studio/preview.js"></script></body></html>

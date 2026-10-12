@@ -131,6 +131,18 @@ unique frames, transparent outer margins and unchanged lower-body alignment.
 An optional `-PreviewPath` exports an enlarged contact sheet separately; labels
 never appear in the transparent sprite atlas.
 
+## Visual cutscene editor
+
+[Gburg Studio](studio/README.md) previews existing V5 story scenes with the
+same cinematic renderer. Start `.\v5\tools\Start-Studio.ps1` from the repository
+terminal and open http://127.0.0.1:5175/v5/studio/. Select shots directly,
+scrub/play/step/loop, drag actors and bubbles, edit text/timing, and preview
+desktop/phone layouts. Local Save writes [scene settings](data/scene-edits.json)
+that the real game reads after refresh; it does not publish automatically.
+The hosted editor uses JSON import/export instead of filesystem writes.
+Preview cannot recruit anyone or change story rewards. Sprite importing,
+new paths/animation authoring and audio preview remain future increments.
+
 ## Verification
 
 [Browser runner](tests/run.cjs) exercises desktop 1280x900, portrait 390x844 and
