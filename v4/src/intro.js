@@ -13,7 +13,7 @@
  const assets={plaza:'../assets/scene/neighborhood.png',district:'../v2/assets/district.webp',recreation:'../v2/assets/recreation.webp',north:'../v3/assets/north-market.png',room:'../v3/assets/window-room.png',crater:'../v3/assets/meteor-crater.png',rockband:'assets/scenes/rockband.png'};
  assets.plaza=window.TOWN.image;
  assets.bedroom='assets/scenes/coco-room.png';assets.instruments='assets/items/band-instruments.png';
- for(const id of ['trex','raptor','triceratops'])assets[id]='assets/dinosaurs/'+id+'.png';
+ for(const id of ['trex','raptor','triceratops'])assets[id]='assets/dinosaurs/'+id+'.png?v=cleanup-1';
  const load=src=>new Promise(resolve=>{const img=new Image();img.onload=()=>resolve(img);img.onerror=()=>{console.error('Opening artwork failed to load: '+src);resolve(null);};img.src=src;});
  Promise.all([...Object.entries(assets).map(async([id,url])=>images[id]=await load(url)),...Object.entries(CHARACTERS).map(async([id,v])=>sheets[id]=await load(v.sheet))]).then(()=>{ready=true;$('intro-start').disabled=false;$('intro-start').textContent='Play the opening';draw(0);});
  const clamp=(v,a=0,b=1)=>Math.max(a,Math.min(b,v));

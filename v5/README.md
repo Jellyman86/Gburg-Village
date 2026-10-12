@@ -94,6 +94,11 @@ grabs you, not during approach, rejected grabs, release or escape.
   original upload. Keep an editable Pixelorama project separately when making
   future hand edits. Frame dimensions, anchors and directional assignments are
   unchanged by this cleanup.
+- V5 shares the user's cleaned dinosaur walking sheets from V4 in gameplay,
+  the opening movie, story cinematics and Studio. The V4 artwork processor
+  preserves existing dinosaur PNGs unless `-RebuildDinosaurs` is explicitly
+  requested. Reload after exporting more hand edits; published updates version
+  image URLs as well as their loader scripts to avoid stale browser pixels.
 - Gary's epic battle score is original Web Audio synthesis and respects the
   existing music preference, mute controls and hidden-tab pause.
   The ending adds original happy cafe and dramatic organ-style scores plus

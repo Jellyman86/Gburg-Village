@@ -82,7 +82,7 @@ window.V5_WINDOW_ART = {
   sheet: 'assets/dinosaurs/window-head.png', frameWidth: 192, frameHeight: 192, frames: 3
 };
 window.V5_GARY_WALK = {
-  sheet: 'assets/characters/gary-walk.png?v=cleanup-1', frameWidth: 64, frameHeight: 64,
+  sheet: 'assets/characters/gary-walk.png?v=cleanup-2', frameWidth: 64, frameHeight: 64,
   foot: { x: 32, y: 60 }, frames: 4,
   rows: { down: 0, left: 1, right: 2, up: 3 }, walkRowOffset: 4
 };

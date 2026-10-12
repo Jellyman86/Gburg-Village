@@ -1,4 +1,4 @@
-param([switch]$Inspect)
+param([switch]$Inspect,[switch]$RebuildDinosaurs)
 $ErrorActionPreference = 'Stop'
 Add-Type -AssemblyName System.Drawing
 Add-Type -ReferencedAssemblies System.Drawing -TypeDefinition @'
@@ -170,10 +170,15 @@ $dinoRows=@{
 }
 $dinoSources=@{trex='Trex sprites.png';raptor='Raptor Sprites.png';triceratops='Triceratops Sprites.png';pterodactyl='pterodactyl Sprites.png'}
 foreach($id in $dinoRows.Keys){
+ $destination=Join-Path $assets "dinosaurs\$id.png"
+ if((Test-Path $destination) -and !$RebuildDinosaurs){
+  Write-Output "Preserving existing $id dinosaur sheet. -RebuildDinosaurs explicitly replaces it from the original upload."
+  continue
+ }
  $bands=$dinoRows[$id];$rows=@()
  $order=if($id -eq 'pterodactyl'){@(0,2,3,1,0,2,3,1)}else{@(0,2,3,1,0,4,5,1)}
  foreach($r in $order){$height=$bands[$r+1]-$bands[$r];$rows+=,@(0,$bands[$r],241,$height)}
- [VillageArt]::Atlas((Join-Path $inbox $dinoSources[$id]),(Join-Path $assets "dinosaurs\$id.png"),(Cells $rows),128,128,8,104,84)
+ [VillageArt]::Atlas((Join-Path $inbox $dinoSources[$id]),$destination,(Cells $rows),128,128,8,104,84)
 }
 [VillageArt]::Icon((Join-Path $inbox 'Sword Sprite.png'),(Join-Path $assets 'items\sword.png'),[System.Drawing.Rectangle]::new(630,10,200,200))
 [VillageArt]::Atlas((Join-Path $inbox 'Sword Action shots (I think).png'),(Join-Path $assets 'items\sword-slash.png'),(Cells (,@(0,0,418,160))),64,64,1,56,38)

@@ -56,6 +56,15 @@ Original uploads remain untouched in `../art inbox/` (the folder currently has a
 
 All 14 current humans now have supplied portraits; the placeholder fallback remains for future characters. [process-art.ps1](tools/process-art.ps1) preserves every original and reproducibly crops verified poses using measured alpha gaps. Run `powershell -File v4\tools\process-art.ps1` from the repository root (`-Inspect` reports alpha row bands).
 
+The four dinosaur PNGs include the user's Pixelorama cleanup. Normal processing
+preserves existing dinosaur sheets and only creates missing ones.
+`-RebuildDinosaurs` explicitly replaces all four from the original uploads,
+discarding manual edits. Keep editable Pixelorama projects separately.
+V4/V5 gameplay, opening movies and V5 Studio share these prepared sheets with
+versioned URLs; atlas dimensions, anchors and direction assignments are unchanged.
+Run `.\v4\tests\art-preservation.ps1` to verify the existing/missing/rebuild
+cases without exporting or touching the real artwork.
+
 - `assets/characters/{ari,jeff,jaime,chris}.png`: normalized transparent 256×512 atlases, 64px cells, idle directions down/left/right/up then walking directions, baseline y=60 with safe padding. Three supplied phases repeat as 0/1/2/1, not fabricated poses. Jaime uses the upload named `Jamie Sprites.png`.
 - `assets/characters/chris-swim.png`: swimming poses for ambient lap-pool animation.
 - `assets/companions/{barney,rosie}.png`: the two dogs' supplied idle/walk poses, scaled below human size.

@@ -54,7 +54,7 @@
   urls.add(window.V5_WINDOW_ART.sheet);
   if(shots.some(s=>s.stage.startsWith('swim')))urls.add('../v4/assets/characters/chris-swim.png');
   if(shots.some(s=>s.stage.startsWith('banquet-')))urls.add(window.V5_BANQUET_FINALE.meteorSheet);
-  for(const id of ['trex','raptor','triceratops','pterodactyl'])urls.add('../v4/assets/dinosaurs/'+id+'.png');
+  for(const id of ['trex','raptor','triceratops','pterodactyl'])urls.add('../v4/assets/dinosaurs/'+id+'.png?v=cleanup-1');
   return [...urls];
  }
  function pause(){cancelAnimationFrame(raf);raf=0;last=0;}
@@ -210,7 +210,7 @@
  function dinosaur(kind,x,y,{dir='left',walk=false,scale=1,id=null}={}){
   if(id!==null)current.enemies.push({id,kind,x,y});
   points.push([x,y-70*scale],[x,y]);
-  const image=images.get('../v4/assets/dinosaurs/'+kind+'.png'),row={down:0,left:1,right:2,up:3}[dir]+(walk?4:0),frame=walk?Math.floor(current.age*7)%4:1;
+  const image=images.get('../v4/assets/dinosaurs/'+kind+'.png?v=cleanup-1'),row={down:0,left:1,right:2,up:3}[dir]+(walk?4:0),frame=walk?Math.floor(current.age*7)%4:1;
   ctx.drawImage(image,frame*128,row*128,128,128,x-64*scale,y-124*scale,128*scale,128*scale);
  }
  function smoke(x,y,t,seed=0){
