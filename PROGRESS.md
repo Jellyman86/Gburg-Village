@@ -9,6 +9,7 @@ Updated: 2026-10-11. This is a lightweight handoff, not a detailed activity log.
 - Git commits and current files are authoritative for what actually exists. Check those before acting on the summary below.
 
 ## Latest verified playable game
+- Pickup-screech update: original quiet Web Audio pterodactyl screech is attached only to the successful-grab callback. Idle/approaching birds, rejected grabs, drops, escape and landing do not trigger it. V4 chapter/audio regressions passed at 1280x900, 390x844 and 844x390; V5 inherits the same effect. Deployment verification pending.
 - V4 feature preview: https://jellyman86.github.io/Gburg-Village/v4/
   - Published and live-browser verified on 2026-10-11. Feature commit: `a3a8ddb`.
   - Latest artwork/recreation deployment: `210c70b`, Pages deployment succeeded; live roster (14), eight portraits, Jeff's soccer power, new walking sheets and sword icon verified.

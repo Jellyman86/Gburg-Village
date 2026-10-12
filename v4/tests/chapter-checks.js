@@ -10,7 +10,8 @@ return async function checkChapter(page,{width=1280,height=900,touch=false,artif
  });
  await page.route(sfxPattern,async route=>{
   const response=await route.fetch(),source=await response.text();
-  await route.fulfill({response,body:source.replace('window.V4_SFX={','window.V4_SFX={test:{get voices(){return voices.size;},get audio(){return audio?.state;}},')});
+  await route.fulfill({response,body:source.replace('window.V4_SFX={','window.V4_SFX={test:{get voices(){return voices.size;},get audio(){return audio?.state;}},')+
+   "\nwindow.__pickupSounds=[];const originalPlay=V4_SFX.play;V4_SFX.play=kind=>{__pickupSounds.push(kind);return originalPlay(kind);};"});
  });
  const activate=async selector=>touch?page.locator(selector).tap():page.locator(selector).click();
  async function screenshot(name){if(artifactDir)await page.screenshot({path:artifactDir+'\\chapter-'+name+'-'+width+'x'+height+'.png'});}
@@ -122,11 +123,14 @@ return async function checkChapter(page,{width=1280,height=900,touch=false,artif
   await activate('#open-menu');await activate('[data-member="mark"]');await activate('#menu-play');
   assert(await page.evaluate(()=>GAME.state.player.id==='mark'),'Rescued friend playable through UI');
   const flightResult=await page.evaluate(()=>{
+   window.__pickupSounds.length=0;
    for(let i=0;i<410;i++)GAME.test.flightStep(.05);
+   if(__pickupSounds.includes('screech'))throw new Error('Idle/approaching bird must not screech');
    const before=GAME.state.player,hp=V4_RPG.members[before.id].hp;
    if(!GAME.test.grab())throw new Error('Eligible outdoor grab rejected');
    const origin=GAME.state.flight.origin;
    if(GAME.test.grab())throw new Error('Duplicate grab accepted');
+   if(__pickupSounds.filter(kind=>kind==='screech').length!==1)throw new Error('Successful pickup must screech exactly once; rejected grabs stay quiet');
    for(let i=0;i<28;i++)GAME.test.flightStep(.05);
    return {before,hp,origin,overview:GAME.state.camera.scale,lift:GAME.state.flight.lift};
   });
@@ -148,6 +152,7 @@ return async function checkChapter(page,{width=1280,height=900,touch=false,artif
   });
   assert(landed.bounce.scale===1&&landed.bounce.lift>0,'Camera cuts back for a small landing bounce: '+JSON.stringify(landed.bounce));
   assert(!landed.state.flight.active&&landed.state.player.x===flightResult.origin.x&&landed.state.player.y===flightResult.origin.y&&landed.hp===flightResult.hp&&!landed.again,'Exact harmless return; second grab blocked by cooldown');
+  assert(await page.evaluate(()=>__pickupSounds.filter(kind=>kind==='screech').length===1),'Drop, escape, landing and cooldown rejection never repeat the pickup screech');
   const cooldown=await page.evaluate(()=>{
    for(let i=0;i<380;i++)GAME.test.flightStep(.05);
    const early=GAME.test.grab();for(let i=0;i<25;i++)GAME.test.flightStep(.05);return {early,ready:GAME.test.grab()};

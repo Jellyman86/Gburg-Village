@@ -57,7 +57,7 @@
  let unicorn=window.FAMILY_UNICORN.create({blocked});
  const companions=window.V4_COMPANIONS.create({blocked});
  companions.enter(player);
- const flight=window.V4_FLIGHT.create({onGrab:()=>{resetInput();V4_SFX.play('lift');toast('A pterodactyl lift! Enjoy the view; you will land safely.');},onDrop:()=>{resetInput();V4_SFX.play('land');toast('A soft landing! You are fine.');}});
+ const flight=window.V4_FLIGHT.create({onGrab:()=>{resetInput();V4_SFX.play('screech');toast('A pterodactyl lift! Enjoy the view; you will land safely.');},onDrop:()=>{resetInput();V4_SFX.play('land');toast('A soft landing! You are fine.');}});
  flight.enter(town.id,player);
  new ResizeObserver(resize).observe($('stage'));
  function move(dx,dy){
