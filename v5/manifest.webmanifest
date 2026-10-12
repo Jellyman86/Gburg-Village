@@ -1,0 +1,9 @@
+{
+ "name": "Gburg Village V5 - Coco's Adventure",
+ "short_name": "Gburg V5",
+ "start_url": "./",
+ "scope": "./",
+ "display": "standalone",
+ "background_color": "#10282d",
+ "theme_color": "#17245e"
+}

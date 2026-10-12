@@ -1,6 +1,6 @@
 # Gburg Village — current development status
 
-Updated: 2026-10-11. This is a lightweight handoff, not a detailed activity log.
+Updated: 2026-10-12. This is a lightweight handoff, not a detailed activity log.
 
 ## Source of truth
 - Feature priorities and scope: [V4_PLAN.md](V4_PLAN.md).
@@ -9,7 +9,7 @@ Updated: 2026-10-11. This is a lightweight handoff, not a detailed activity log.
 - Git commits and current files are authoritative for what actually exists. Check those before acting on the summary below.
 
 ## Latest verified playable game
-- Pickup-screech update: original quiet Web Audio pterodactyl screech is attached only to the successful-grab callback. Idle/approaching birds, rejected grabs, drops, escape and landing do not trigger it. V4 chapter/audio regressions passed at 1280x900, 390x844 and 844x390; V5 inherits the same effect. Deployment verification pending.
+- Pickup-screech update is published/live verified: **`afbc9a9`**, [Pages run 38188410630](https://github.com/Jellyman86/Gburg-Village/actions/runs/38188410630) succeeded. Original quiet Web Audio screech is attached only to the successful-grab callback. V4 chapter/audio regressions passed in desktop and both phone layouts; live keyboard/touch controls confirmed a natural grab sounds exactly once and approach/release/escape stay quiet. V1-V3 public HTML is unchanged. V5 inherits the same effect.
 - V4 feature preview: https://jellyman86.github.io/Gburg-Village/v4/
   - Published and live-browser verified on 2026-10-11. Feature commit: `a3a8ddb`.
   - Latest artwork/recreation deployment: `210c70b`, Pages deployment succeeded; live roster (14), eight portraits, Jeff's soccer power, new walking sheets and sword icon verified.
@@ -63,10 +63,18 @@ Updated: 2026-10-11. This is a lightweight handoff, not a detailed activity log.
 - Restrained original Web Audio effects have a separate Help mute that cancels scheduled voices. Intro/chapter checks cover actual audio scheduling and cleanup; no physical-device listening is claimed.
 - Future backlog includes versioned saves, progression, dog bites, outfits, weight room and more content. No Tiled integration. See V4_PLAN.md.
 
+## V5 chapter preview
+- Isolated preview: https://jellyman86.github.io/Gburg-Village/v5/ (deployment verification pending). Developed on `v5-coco-story`; the exact pre-V5 V4 baseline remains on `v4-stable-before-v5`. V4 remains playable at its own URL, with only the separately requested pickup-screech change.
+- Coco's window investigation leads to normal room/hallway/Connor/stairs navigation, Connor's tablet scene, the kitchen dinosaur/coffee gag and grouped parent recruitment. A 24-second invasion montage introduces soccer, pool, Vito and neighborhood panic without resolving those rescues.
+- Fifteen separate one-shot story events cover the opening, ten other distinct recruit introductions and the Market Square reunion. Vito throws the supplied dinosaur by its tail; Brie does yoga. Rescued humans visibly wait in the square, excluding the currently played hero. Coco remains the narrative protagonist while all fourteen become playable.
+- Story prerequisites/objectives/rewards and the cinematic director are separate from the core gameplay loop. Next/Skip paths share completion rewards; replay preserves completed events. Window dinosaurs, tablet/coffee/ball/dust/action props and original pixel-head close-ups are cinematic overlays, not indoor simulation enemies.
+- All 24 browser suites passed across desktop 1280x900 and emulated touch 390x844/844x390, plus deterministic story/audio checks. Evidence includes naturally timed desktop scenes and the montage, unmodified keyboard/touch room navigation, all recruitments, exact rendered recruitment banners with readable 16px-minimum DOM text, modal focus/viewport checks, hidden-tab pause, grouped skips, collision-safe gathering positions, original menus/items/powers/dogs/flight and all 18 reciprocal routes/24 road lanes. No browser exceptions or failed assets. Screenshots inspected for dinosaur heads, Vito's tail throw, yoga, montage and phone notifications.
+- Reuses supplied prepared art from V4 without copying binary assets or changing originals/shared deployment configuration. No Tiled, saves, XP/leveling, damage, HQ systems or endgame were added. V5 is session-only; refreshing resets progress. Physical iPhone/Safari/audio feedback is still needed.
+
 ## Immediate next action for Copilot
 1. Inspect current refs/worktree and read `v4/README.md`; preserve the user's existing `V4_PLAN.md` edits and inbox originals.
 2. Collect physical iPhone/Safari and audio feedback; desktop touch emulation is not physical-device verification.
-3. Continue scoped art/content/collision updates against the connected rescue chapter, keeping the regression suite green and V1–V3 unchanged.
+3. Finish V5 deployment/live verification, then collect family feedback on the new chapter. Keep V1-V4 and their routes unchanged except explicitly requested older-version fixes.
 4. Saves/progression are future increments, not part of the current update. Keep inbox originals intact and use `v4/tools/process-art.ps1` for derivatives.
 
 ## Known limitations / caution
