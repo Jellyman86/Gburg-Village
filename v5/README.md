@@ -59,6 +59,20 @@ grabs you, not during approach, rejected grabs, release or escape.
 - Existing road topology, sword, dogs, powers, unicorn and flight behavior are
   retained. No Tiled pipeline or shared deployment configuration was added.
 
+## Emotion artwork prototype
+
+[Coco's first emotion sheet](assets/characters/coco-emotions.png) contains six
+transparent 64x64 frames: talking on row 0 and surprised on row 1, three frames
+per row. These are front-facing authored edits of her supplied walking sprite,
+not newly generated likenesses. Her original hair, clothing, legs and foot
+anchor are retained. The prototype is awaiting style approval and is **not yet
+used in gameplay or cinematics**.
+
+[The drawing script](tools/draw-coco-emotions.ps1) reproduces the PNG and checks
+unique frames, transparent outer margins and unchanged lower-body alignment.
+An optional `-PreviewPath` exports an enlarged contact sheet separately; labels
+never appear in the transparent sprite atlas.
+
 ## Verification
 
 [Browser runner](tests/run.cjs) exercises desktop 1280x900, portrait 390x844 and
