@@ -14,9 +14,10 @@
  }));
  const items=Object.freeze({
   sword:Object.freeze({id:'sword',name:'Japanese sword',slot:'weapon',strength:4,image:'../v4/assets/items/sword.png',description:'Find it in the Dino house. Strength +4. Equip to select Sword slash in Abilities.'}),
-  hamburger:Object.freeze({id:'hamburger',name:'Five Guys hamburger',heal:50,image:'assets/items/hamburger.png?v=combat-1',description:'Restore up to 50 HP to the selected character.'})
+  hamburger:Object.freeze({id:'hamburger',name:'Five Guys hamburger',heal:50,image:'assets/items/hamburger.png?v=combat-1',description:'Restore up to 50 HP to the selected character.'}),
+  grenade:Object.freeze({id:'grenade',name:'Grenade',image:'assets/items/grenade-icon.png?v=danger-1',description:'Find it north of Cinepolis on Main Street. Unlocks reusable Grenade toss in Abilities: a strong blast with a 0.6-second cooldown. No ammo or friendly fire.'})
  });
- const inventory={sword:0,hamburger:3},discoveries={sword:false,dogs:false};
+ const inventory={sword:0,hamburger:3,grenade:0},discoveries={sword:false,dogs:false,grenade:false};
  function recruit(id){
   const value=member(id);if(value.joined)return {ok:false,message:window.CHARACTERS[id].name+' is already in your party.'};
   value.joined=true;return {ok:true,message:window.CHARACTERS[id].name+' joined your party!'};
@@ -29,6 +30,13 @@
   if(discoveries.sword)return {ok:false,message:'You already found the Japanese sword.'};
   discoveries.sword=true;inventory.sword++;
   return {ok:true,message:'You found the Japanese sword! Open Menu > Equip to equip it, then choose Sword slash in Abilities.'};
+ }
+ function collectPickup(id){
+  if(id==='sword')return collectSword();
+  if(id!=='grenade')throw new Error('Unknown pickup: '+id);
+  if(discoveries.grenade)return {ok:false,message:'You already found the grenade.'};
+  discoveries.grenade=true;inventory.grenade++;
+  return {ok:true,message:'You found the grenade! Open Menu > Abilities and choose Grenade toss. It is reusable, with a 0.6-second cooldown and no friendly fire.'};
  }
  function member(id){if(!members[id])throw new Error('Unknown character: '+id);return members[id];}
  function stats(id){
@@ -65,8 +73,9 @@
   if(ability!==null&&!window.FAMILY_POWERS.definitions[ability])throw new Error('Unknown ability: '+ability);
   if(ability&&members[ability]&&!members[ability].joined)return {ok:false,message:'Find '+window.CHARACTERS[ability].name+' to unlock this ability.'};
   if(ability==='sword'&&value.equipment.weapon!=='sword')return {ok:false,message:'Equip the Japanese sword before selecting Sword slash.'};
+  if(ability==='grenade'&&!discoveries.grenade)return {ok:false,message:'Find the grenade north of Cinepolis first.'};
   value.ability=ability;
   return {ok:true,message:ability?window.FAMILY_POWERS.definitions[ability].name+' equipped.':'Special ability unequipped.'};
  }
- window.V4_RPG={members,items,inventory,discoveries,recruit,findDogs,collectSword,stats,equip,useItem,equipAbility};
+ window.V4_RPG={members,items,inventory,discoveries,recruit,findDogs,collectSword,collectPickup,stats,equip,useItem,equipAbility};
 })();

@@ -202,8 +202,8 @@
   if(clip&&clip.frameWidth>64){const size=scale*(clip.scale||1);points.push([x+(flip?clip.foot.x-clip.frameWidth:-clip.foot.x)*size,y-lift-clip.foot.y*size],[x+(flip?clip.foot.x:clip.frameWidth-clip.foot.x)*size,y-lift+(clip.frameHeight-clip.foot.y)*size]);}
   ctx.save();ctx.translate(x,y-lift);ctx.scale(scale,scale);
   if(swim||!drawPose(ctx,id,expression,0,0,poseTime,{rotation,flip})){
-   const img=images.get(swim?'../v4/assets/characters/chris-swim.png':c.sheet),row=swim?{down:0,up:1,left:2,right:3}[dir]:c.rows[dir]+(walk?(c.walkRowOffset||0):0),frame=walk?Math.floor(t*(c.walkFPS||8))%c.frames:1;
-   rotatePose(ctx,rotation);ctx.drawImage(img,frame*64,row*64,64,64,-c.foot.x,-c.foot.y,64,64);
+   const img=images.get(swim?'../v4/assets/characters/chris-swim.png':c.sheet),walking=characterWalkPose(c,dir,walk),row=swim?{down:0,up:1,left:2,right:3}[dir]:walking.row,frame=walk?Math.floor(t*(c.walkFPS||8))%c.frames:1;
+   rotatePose(ctx,rotation);if(!swim&&walking.flip)ctx.scale(-1,1);ctx.drawImage(img,frame*64,row*64,64,64,-c.foot.x,-c.foot.y,64,64);
   }
   ctx.restore();
  }

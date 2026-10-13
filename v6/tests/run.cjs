@@ -27,6 +27,7 @@ const server=http.createServer((req,res)=>{
   const openingCheck=new Function(fs.readFileSync(path.join(__dirname,'opening-checks.js'),'utf8'))();
   const emotionCheck=new Function(fs.readFileSync(path.join(__dirname,'emotion-checks.js'),'utf8'))();
   const combatCheck=new Function(fs.readFileSync(path.join(__dirname,'combat-checks.js'),'utf8'))();
+  const dangerCheck=new Function(fs.readFileSync(path.join(__dirname,'danger-checks.js'),'utf8'))();
   for(const options of [
    {width:1280,height:900,cinema:true},
    {width:390,height:844,touch:true},
@@ -50,6 +51,7 @@ const server=http.createServer((req,res)=>{
     if(selected('content'))console.log(JSON.stringify(await contentCheck(page,{touch:options.touch,artifactDir:process.env.V4_ARTIFACT_DIR})));
     if(selected('intro'))console.log(JSON.stringify(await introCheck(page,{...options,artifactDir:process.env.V4_ARTIFACT_DIR})));
     if(selected('navigation'))console.log(JSON.stringify(await navigationCheck(page,{...options,artifactDir:process.env.V4_ARTIFACT_DIR})));
+    if(selected('danger'))console.log(JSON.stringify(await dangerCheck(page,{...options,artifactDir:process.env.V4_ARTIFACT_DIR})));
     await page.unroute(storyPattern);
     if(selected('opening'))console.log(JSON.stringify(await openingCheck(page,{...options,artifactDir:process.env.V4_ARTIFACT_DIR})));
     if(selected('chapter'))console.log(JSON.stringify(await chapterCheck(page,{...options,artifactDir:process.env.V4_ARTIFACT_DIR})));

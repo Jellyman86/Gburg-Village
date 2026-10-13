@@ -21,14 +21,17 @@ vm.runInContext(fs.readFileSync(path.join(__dirname,'..','src','sfx.js'),'utf8')
  assert.deepEqual(oscillators.map(oscillator=>oscillator.frequency.values),[[1500,520],[950,1800],[1900,450]]);
  listeners['v5-cinema-end']();assert.equal(oscillators.every(oscillator=>oscillator.stopped),true);
  const signatures=[];
- for(const kind of ['compy','raptor','trex','triceratops','pterodactyl']){
+ for(const kind of ['compy','raptor','trex','triceratops','pterodactyl','dilophosaurus','ankylosaurus']){
   const before=oscillators.length;time+=300;
   assert.equal(await context.V4_SFX.play('hurt-'+kind),true);
   const voices=oscillators.slice(before);assert(voices.length>0,'Species creates actual oscillator voices');
   signatures.push(JSON.stringify(voices.map(v=>({wave:v.type,pitches:v.frequency.values}))));
  }
- assert.equal(new Set(signatures).size,5,'Every species has a distinct synthesized hurt sound');
+ assert.equal(new Set(signatures).size,7,'Every species has a distinct synthesized hurt sound');
+ for(const kind of ['player-hurt','faint','recover','strike','slash','wave','swirl','blast','explode','spit','dog-bite','whip']){
+  time+=300;assert.equal(await context.V4_SFX.play(kind),true,'Actual attack/reaction cue: '+kind);
+ }
  button.onclick();time+=300;assert.equal(await context.V4_SFX.play('screech'),false);
  button.onclick();context.document.hidden=true;time+=300;assert.equal(await context.V4_SFX.play('screech'),false);
- console.log(JSON.stringify({sfxState:'passed',checks:['recognizable original pitch sweeps','five distinct actual species oscillator profiles','cinematic end cancels queued resume','mute and hidden suppression','voice cleanup']}));
+ console.log(JSON.stringify({sfxState:'passed',checks:['recognizable original pitch sweeps','seven distinct actual species oscillator profiles','weapon/player/dog/spit cues','cinematic end cancels queued resume','mute and hidden suppression','voice cleanup']}));
 })().catch(error=>{console.error(error);process.exitCode=1;});

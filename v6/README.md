@@ -40,25 +40,53 @@ species-specific original synthesized hurt sound, respecting sound mute.
 | Wild pterodactyl | 38 | 0 | Retro smoke puff |
 | T-Rex | 110 | 2 | Reaction, collision-safe retreat and fade |
 | Triceratops | 100 | 3 | Reaction, collision-safe retreat and fade |
+| Dilophosaurus | 58 | 0 | Retro smoke puff |
+| Ankylosaurus | 130 | 6 | Reaction, collision-safe retreat and fade |
 
-Compies appear in the outdoor zones; a wild pterodactyl is separate from the
+Each outdoor zone has three additional compies, a Dilophosaurus and an
+Ankylosaurus; a wild pterodactyl is separate from the
 existing harmless lift/ride bird. Defeated dinosaurs stay defeated on map
 revisits. Smoke, sparks and numbers use a bounded 32-effect pool. Reduced motion
 holds damage numbers in place and reduces smoke motion/retreat shaking.
 
-The party is not injured by dinosaur tag; no death, punishment, XP awards or new
-progression system is introduced. The supplied hamburger icon uses the existing
-inventory item: heals 50 HP, consumes one, and never exceeds maximum HP.
+Wild dinosaurs now telegraph attacks; dodge contact strikes, the Ankylosaurus's
+tail swing and the Dilophosaurus's aimed, non-homing spit. Defense reduces
+damage. A red sprite outline, hurt sound and short notification indicate hits;
+player HP numbers appear **only in the party/stats menu**, not over gameplay.
+Brief stagger and 1.1 seconds of protection prevent repeated contact damage;
+switching heroes cannot bypass protection.
+
+At zero HP the current sprite tips over, a pixel-block black cover appears, and
+Gary patches you up at Five Guys. Only the fainted character is healed, without
+item/equipment/progress loss or early Gary recruitment. Gary has his own
+first-aid line when he faints. Failed scene loads display an explicit retry
+instead of pretending recovery succeeded. No XP or new save system is added.
+Hamburgers heal 50 HP, consume one, and never exceed maximum HP.
+
+Find the **grenade north of Cinepolis** on Main Street, then select Grenade toss
+in Menu -> Abilities. It is reusable, deals 34 base damage in a small blast and
+has a **0.6-second cooldown**, matching the sword/baseball/soccer cadence.
+The 0.85-second fuse is separate: successive tosses can overlap, each blast
+hits each target once, scenery blocks damage, and there is no ammo or friendly
+fire. Attacks use distinct original synthesized weapon cues.
+
+Barney and Rosie sit after one settled second, lie down after two and sleep
+after four. Movement or a nearby dinosaur wakes them. They occasionally chase
+and bite within a short leash, using the same enemy damage/defeat system, but
+cannot take damage. Gary's left-facing idle/walk mirrors his right-facing
+sheet; V6 carries an exact isolated copy of the user's cleaned Jeff sheet.
 
 Story/movie dinosaurs remain controlled exclusively by their scripts.
-Gameplay, knockback, defeat timers and bus animation pause during stories,
-menus, dialogs and flight.
+Gameplay, incoming damage, knockback, defeat timers and bus animation pause
+during stories, menus, dialogs and flight; hidden pages also pause combat.
 
 ## Artwork and Studio
 
 Existing cleaned sheets, portraits and backgrounds are shared from V4/V5;
-only four new derivatives are stored in [assets](assets/). Original uploads
-remain in the inbox. Run `.\v6\tools\process-combat-art.ps1 -ValidateOnly` to
+V6-specific dinosaur, item, Jeff and dog-pose sheets are stored in
+[assets](assets/). The user's hand-edited V6 Compy and Ankylosaurus sheets are
+used unchanged with fresh cache versions. Original uploads remain in the inbox.
+Run `.\v6\tools\process-combat-art.ps1 -ValidateOnly` to
 check dimensions, transparency and every frame. Generation preserves existing
 derivatives unless `-Rebuild` is explicit.
 
@@ -77,6 +105,12 @@ contexts. No map pipeline or shared deployment configuration is changed.
 
 ## Verification
 
+- `node v6\tests\danger.cjs`: defense/invulnerability/faint/retry/recovery,
+  telegraphs/spit, Gary mirroring, grenade cadence/overlapping blasts and dog
+  rest/bite/leash contracts.
+- `V6_TEST_SUITES=danger,combat node v6\tests\run.cjs`: real gameplay damage,
+  menu-only HP, hamburger healing, Five Guys recovery/failure retry, grenade
+  pickup/equipment, new encounters and actual dog/Gary frame drawing.
 - `node v6\tests\combat.cjs`: damage thresholds, armor/strength, all species,
   collision-safe knockback/retreat, single defeat, bounded effects, optional
   numbers, ability ownership/cooldowns/group hits/LOS and once-only bus.

@@ -19,6 +19,15 @@
   'hurt-triceratops':[[145,.16,.022,55],[90,.12,.014,60]],
   'hurt-pterodactyl':[[1350,.14,.013,640,'sawtooth']],
   'hurt-compy':[[920,.08,.012,1560],[1180,.07,.01,720]],
+  'hurt-dilophosaurus':[[740,.16,.016,230,'sawtooth'],[420,.1,.012,160]],
+  'hurt-ankylosaurus':[[85,.21,.023,45],[175,.15,.013,65]],
+  'player-hurt':[[360,.1,.023,120,'square'],[170,.12,.014,80]],
+  faint:[[330,.15,.018,220],[220,.18,.017,110],[110,.22,.016,55]],
+  recover:[[392,.12,.02],[523,.12,.02],[784,.2,.016]],
+  strike:[[150,.08,.024,55,'square']],slash:[[1050,.11,.012,240,'sawtooth']],
+  wave:[[400,.19,.012,900]],swirl:[[300,.22,.012,1100]],
+  blast:[[100,.14,.019,900,'sawtooth']],explode:[[120,.22,.025,38,'sawtooth'],[65,.18,.017,35]],
+  spit:[[580,.12,.012,160]],'dog-bite':[[190,.09,.018,85,'square']],
   puff:[[220,.12,.015,65]],retreat:[[160,.24,.017,80]],whip:[[700,.09,.014,120,'sawtooth']]};
  async function play(kind){
   if(!enabled||document.hidden||window.V3_INTRO?.active)return false;

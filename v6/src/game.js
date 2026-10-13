@@ -11,6 +11,11 @@
  const recreation=window.V4_RECREATION.create(),extraSheets={},flashSheets={};
  const reduced=matchMedia('(prefers-reduced-motion: reduce)');
  const combat=V6_COMBAT.create({blocked,onSound:kind=>V4_SFX.play(kind),showNumbers:V6_SETTINGS.values.damageNumbers,reduced:()=>reduced.matches});
+ const playerCombat=V6_PLAYER_COMBAT.create({getActor:()=>player,getMember:id=>V4_RPG.members[id],move,reduced:()=>reduced.matches,
+  onHit:hit=>{resetInput();V4_SFX.play('player-hurt');toast(characters[hit.id].name+' took damage! Check HP in Menu.');},
+  onFaint:()=>{resetInput();powers.clear();attacks.clear(encounterEnemies());combat.clearEffects();$('nearby').hidden=true;V4_SFX.play('faint');paintPower();},
+  onRecover:recoverPlayer});
+ const attacks=V6_ENEMY_ATTACKS.create({getActor:()=>player,blocked,onHit:(amount,source)=>playerCombat.damage(amount,source),onSound:kind=>V4_SFX.play(kind),isActive:()=>!playerCombat.locked});
  const gimmicks=V6_GIMMICKS.create({notify:toast,enabled:()=>V6_SETTINGS.values.busGag});
  function paintPreferences(){
   for(const [id,name,label] of [['damage-numbers','damageNumbers','Damage numbers'],['bus-gag','busGag','Bus gag']]){
@@ -51,6 +56,17 @@
  window.addEventListener('pointerdown',e=>{if(e.pointerType==='touch')touch();},{passive:true});
  function toast(message){$('toast').textContent=message;$('toast').classList.add('visible');clearTimeout(toastTimer);toastTimer=setTimeout(()=>$('toast').classList.remove('visible'),2400);}
  function resetInput(){keys.clear();joy={x:0,y:0};joyId=null;runId=null;touchRun=false;$('stick').style.transform='';$('run').classList.remove('active');player.moving=false;player.running=false;player.clock=0;player.frame=1;}
+ async function recoverPlayer(id){
+  $('recovery').hidden=false;$('recovery-message').textContent='Getting you safely to Five Guys…';$('recovery-retry').hidden=true;
+  const arrived=await enterScene('hq',[200/724*1000,450/543*1000],'up',true);
+  if(!arrived){
+   playerCombat.failed();$('recovery-message').textContent='Five Guys could not load. Your party and items are safe. Retry when ready.';$('recovery-retry').hidden=false;$('recovery-retry').focus();return;
+  }
+  playerCombat.recovered();$('recovery').hidden=true;V4_SFX.play('recover');
+  showDialog(id==='gary'?'Gary is back on his feet!':'Gary patched you up!',
+   id==='gary'?'Gary: "Good thing I keep an emergency first-aid kit here. Back on my feet!"':'Gary: "I found you unconscious and brought you back to Five Guys. I patched you up. Take a breath, grab a hamburger if you need one, and get back out there!"','FIVE GUYS · RECOVERY');
+ }
+ $('recovery-retry').addEventListener('click',()=>playerCombat.retry());
  document.addEventListener('v3-intro-start',resetInput);document.addEventListener('v3-intro-end',()=>{
   resetInput();
   V5_EVENTS.start();
@@ -63,7 +79,7 @@
  function select(id){
   if(!characters[id])throw new Error('Unknown character: '+id);
   if(!V4_RPG.members[id].joined){toast('Find '+characters[id].name+' to add them to your party.');return false;}
-  if(storyBusy()||window.V3_INTRO?.active||joining||pendingRecruit||flight.state.active){toast('Finish this moment before switching characters.');return false;}
+  if(playerCombat.locked||storyBusy()||window.V3_INTRO?.active||joining||pendingRecruit||flight.state.active){toast('Finish this moment before switching characters.');return false;}
   player.id=id;player.frame=1;player.clock=0;refreshParty();buttons[id].scrollIntoView({block:'nearest',inline:'nearest'});paintPower();$('status').textContent=characters[id].name+' · Ready for a walk';V4_SFX.play('select');canvas.focus({preventScroll:true});return true;
  }
  ids.forEach((id,i)=>{
@@ -76,7 +92,10 @@
  });
  function blocked(x,y,rx=8,ry=4){const b=town.bounds;if(x-rx<b.left||x+rx>b.right||y-ry<b.top||y+ry>b.bottom)return true;if(town.walkable){for(const [px,py] of [[x-rx,y-ry],[x+rx,y-ry],[x-rx,y+ry],[x+rx,y+ry]])if(!town.walkable.some(o=>px>=o.x&&px<=o.x+o.w&&py>=o.y&&py<=o.y+o.h)&&!(town.walkableEllipses||[]).some(o=>((px-o.x)/o.rx)**2+((py-o.y)/o.ry)**2<=1))return true;}if((town.blockedEllipses||[]).some(o=>((x-o.x)/(o.rx+rx))**2+((y-o.y)/(o.ry+ry))**2<1))return true;return town.obstacles.some(o=>x+rx>o.x&&x-rx<o.x+o.w&&y+ry>o.y&&y-ry<o.y+o.h);}
  let unicorn=window.FAMILY_UNICORN.create({blocked});
- const companions=window.V4_COMPANIONS.create({blocked});
+ const companions=window.V4_COMPANIONS.create({blocked,getEnemies:()=>activeEnemies(),clearLine:attacks.clearLine,onBite:(dog,target)=>{
+  const dx=target.x-dog.x,dy=target.y-dog.y,d=Math.hypot(dx,dy)||1;
+  combat.hit(target,{power:{kind:'bite',damage:6},x:dog.x,y:dog.y,dx:dx/d,dy:dy/d,owner:dog.id});V4_SFX.play('dog-bite');
+ }});
  companions.enter(player);
  const flight=window.V4_FLIGHT.create({onGrab:()=>{resetInput();V4_SFX.play('screech');toast('A pterodactyl lift! Enjoy the view; you will land safely.');},onDrop:()=>{resetInput();V4_SFX.play('land');toast('A soft landing! You are fine.');}});
  flight.enter(town.id,player);
@@ -88,11 +107,16 @@
   for(let i=0;i<steps;i++){if(!blocked(player.x+dx/steps,player.y,rx,ry))player.x+=dx/steps;if(!blocked(player.x,player.y+dy/steps,rx,ry))player.y+=dy/steps;}
  }
 
- // Harmless tag encounters now have dinosaur health; the party cannot be hurt.
  const dinoHomes={north:{x:923,y:408},plaza:{x:910,y:370},district:{x:1850,y:1050},neighborhood:{x:305,y:800},recreation:{x:680,y:460}};
  const dinoKinds={north:'raptor',plaza:'trex',district:'raptor',neighborhood:'triceratops',recreation:'trex'};
  const dinosaurs=Object.fromEntries(Object.entries(dinoHomes).filter(([id])=>!scenes[id].indoor).map(([id,h])=>[id,V6_COMBAT.init({...h,kind:dinoKinds[id],direction:'down',facing:1,clock:0,stars:0,mode:'wander',timer:7,target:null,turnTimer:0,moving:false,stunned:0})]));
- const extraHomes={north:[['compy',767,820],['compy',770,960]],plaza:[['compy',810,370]],district:[['compy',1700,750],['pterodactyl',2400,760]],neighborhood:[['compy',330,800]],recreation:[['compy',1000,180]]},extraEnemies={};
+ const extraHomes={
+  north:[['compy',767,820],['compy',770,960],['compy',767,650],['compy',767,1130],['compy',768,1270],['dilophosaurus',767,540],['ankylosaurus',767,1350]],
+  plaza:[['compy',810,370],['compy',300,370],['compy',650,370],['compy',1200,370],['dilophosaurus',1400,620],['ankylosaurus',950,795]],
+  district:[['compy',1700,750],['pterodactyl',2400,760],['compy',1700,370],['compy',2050,750],['compy',2200,1050],['dilophosaurus',2100,750],['ankylosaurus',2000,1050]],
+  neighborhood:[['compy',330,800],['compy',500,800],['compy',900,800],['compy',1090,1100],['dilophosaurus',950,800],['ankylosaurus',150,1050]],
+  recreation:[['compy',1000,180],['compy',100,550],['compy',1125,800],['compy',750,685],['dilophosaurus',100,900],['ankylosaurus',1125,450]]
+ },extraEnemies={};
  function prepareEnemies(id){
   if(extraEnemies[id]||!extraHomes[id])return;
   extraEnemies[id]=extraHomes[id].map(([kind,x,y])=>{
@@ -110,7 +134,7 @@
  function encounterEnemies(){return (dino?[dino]:[]).concat(extraEnemies[town.id]||[]);}
  function activeEnemies(){return encounterEnemies().filter(enemy=>!enemy.hidden);}
  let dinoHome=null,dino=null;
- let powers; function makePowers(){return window.FAMILY_POWERS.create({blocked,getTargets:()=>activeEnemies().filter(enemy=>enemy.alive),getActor:()=>player,getAbility:actor=>window.V4_RPG.members[actor.id].ability,getSwordImage:()=>extraSheets.sword,getTowelImage:()=>extraSheets.towel,onHit:(id,hit)=>{
+ let powers; function makePowers(){return window.FAMILY_POWERS.create({blocked,getTargets:()=>activeEnemies().filter(enemy=>enemy.alive),getActor:()=>player,getAbility:actor=>window.V4_RPG.members[actor.id].ability,getSwordImage:()=>extraSheets.sword,getTowelImage:()=>extraSheets.towel,getGrenadeImage:()=>extraSheets.grenade,onSound:kind=>V4_SFX.play(kind),onHit:(id,hit)=>{
   const alive=hit.target.alive;
   combat.hit(hit.target,{...hit,strength:V4_RPG.stats(hit.owner).strength});
   if(alive&&!hit.target.alive)toast(hit.target.mode==='retreat'?'That dinosaur has had enough! Watch it retreat.':'Poof! A little dinosaur defeated.');
@@ -120,17 +144,17 @@
   const power=window.FAMILY_POWERS.definitions[window.V4_RPG.members[player.id].ability];powerButton.hidden=!power;
   if(!power)return;
   const remaining=powers.cooldown(player.id),ready=remaining===0;
-  powerButton.disabled=!loaded||!ready||storyBusy()||$('dialog').open||window.V4_MENU.active||!!joining||flight.state.active;
+  powerButton.disabled=!loaded||!ready||playerCombat.locked||playerCombat.staggered||storyBusy()||$('dialog').open||window.V4_MENU.active||!!joining||flight.state.active;
   powerLabel.textContent=power.label;powerHint.textContent=ready?'X · Ready':remaining.toFixed(1)+'s';
   powerButton.setAttribute('aria-label',characters[player.id].name+': '+power.name+(ready?'. Ready.':'. Recharging.'));
  }
  function activatePower(){
-  if(!loaded||storyBusy()||joining||flight.state.active||window.V3_INTRO?.active||$('dialog').open||window.V4_MENU.active)return false;
+  if(!loaded||changing||document.hidden||playerCombat.locked||playerCombat.staggered||storyBusy()||joining||flight.state.active||window.V3_INTRO?.active||$('dialog').open||window.V4_MENU.active)return false;
   if(window.V4_RPG.members[player.id].ability==='sword'&&window.V4_RPG.members[player.id].equipment.weapon!=='sword'){
    toast('Equip the Japanese sword to use Sword slash.');return false;
   }
   const used=powers.activate({...player,powerHeight:unicorn.riding?20:0});
-  if(used){const scared=flight.scare(player);V4_SFX.play(window.FAMILY_POWERS.definitions[window.V4_RPG.members[player.id].ability].kind==='towel'?'whip':'power');toast(scared?'The pterodactyl got scared and flew away!':window.FAMILY_POWERS.definitions[window.V4_RPG.members[player.id].ability].name+'!');paintPower();}
+  if(used){const scared=flight.scare(player);V4_SFX.play(window.FAMILY_POWERS.definitions[window.V4_RPG.members[player.id].ability].sound);toast(scared?'The pterodactyl got scared and flew away!':window.FAMILY_POWERS.definitions[window.V4_RPG.members[player.id].ability].name+'!');paintPower();}
   return used;
  }
  powerButton.addEventListener('pointerdown',e=>{e.preventDefault();activatePower();canvas.focus({preventScroll:true});});
@@ -144,14 +168,14 @@
   if(!dino.alive)return;
   dino.stars+=dt;
   if(dino.stunned>0){dino.stunned=Math.max(0,dino.stunned-dt);dino.moving=false;return;}
+  if(dino.windup>0){dino.moving=false;return;}
   dino.timer-=dt;dino.turnTimer-=dt;
   const distance=Math.hypot(player.x-dino.x,player.y-dino.y);
   if(dino.mode==='chase'){
-   if(distance<23)dinoRest('Boop! A harmless dinosaur tag. Keep exploring!',dino);
-   else if(dino.timer<=0)dinoRest(null,dino);
+   if(dino.timer<=0)dinoRest(null,dino);
   }else if(dino.timer<=0&&distance<185){
    dino.mode='chase';dino.timer=5+Math.random()*2;dino.target=null;
-   if(dino.kind!=='compy')toast('A dinosaur wants to play tag. Run or use your power!');
+   if(dino.kind!=='compy')toast('A dinosaur is approaching. Dodge the warning ring or use your power!');
   }
   if(dino.mode==='wander'&&(!dino.target||dino.turnTimer<=0||
     Math.hypot(dino.target.x-dino.x,dino.target.y-dino.y)<12)){
@@ -167,7 +191,7 @@
   dino.moving=false;
   if(!target)return;
   const angle=Math.atan2(target.y-dino.y,target.x-dino.x);
-  const speed=dino.mode==='chase'?158:68,step=speed*dt;
+  const speed=(dino.mode==='chase'?158:68)*(dino.kind==='ankylosaurus'?.65:1),step=speed*dt;
   // Try nearby headings, checking small steps to respect all scenery.
   for(const turn of [0,.45,-.45,.9,-.9,1.4,-1.4,2,-2]){
    const dx=Math.cos(angle+turn)*step,dy=Math.sin(angle+turn)*step;
@@ -185,7 +209,8 @@
  }
  function drawDino(dino){
   const small=dino.kind==='compy',size=small?64:128,stride=Math.floor(dino.clock)%4;
-  const row=small?(!dino.alive?5:dino.flash>0?4:dino.moving?1:0):{down:0,left:1,right:2,up:3}[dino.direction]+(dino.moving?4:0);
+  const dilo=dino.kind==='dilophosaurus';
+  const row=small?(!dino.alive?5:dino.flash>0?4:dino.moving?1:0):dilo?(!dino.alive?6:dino.flash>0?5:dino.windup>0?3:dino.attackPose>0?4:dino.moving?(dino.mode==='chase'?2:1):0):{down:0,left:1,right:2,up:3}[dino.direction]+(dino.moving?4:0);
   ctx.save();ctx.translate(Math.round(dino.x),Math.round(dino.y));
   if(dino.mode==='retreat'){ctx.globalAlpha=Math.min(1,Math.max(0,(2.8-dino.defeatAge)/.4));if(dino.defeatAge<.4&&!reduced.matches)ctx.translate(Math.sin(dino.defeatAge*60)*2,0);}
   ctx.fillStyle='#182b3655';ctx.beginPath();ctx.ellipse(0,0,17,5,0,0,Math.PI*2);ctx.fill();
@@ -193,7 +218,7 @@
    ctx.fillStyle='#ffde87';ctx.font='bold 14px system-ui';ctx.textAlign='center';ctx.fillText('!',0,-90);
   }
   if(dino.stunned>0){ctx.fillStyle='#ffdf79';ctx.font='bold 11px system-ui';ctx.textAlign='center';for(let i=0;i<3;i++){const a=dino.stars*5+i*Math.PI*2/3;ctx.fillText('✦',Math.cos(a)*20,-90+Math.sin(a)*6);}}
-  if(small)ctx.scale(dino.facing<0?-1:1,1);
+  if(small||dilo)ctx.scale(dino.facing<0?-1:1,1);
   ctx.drawImage(extraSheets[dino.kind],stride*size,row*size,size,size,-size/2,4-size,size,size);
   if(dino.flash>0){ctx.save();ctx.globalAlpha=reduced.matches?.2:dino.flash/.16*.75;ctx.drawImage(flashSheets[dino.kind],stride*size,row*size,size,size,-size/2,4-size,size,size);ctx.restore();}
   combat.drawFeedback(ctx,dino);
@@ -295,11 +320,11 @@
  }
  function showDialog(title,body,tag='MARKET SQUARE'){resetInput();$('dialog-title').textContent=title;$('dialog-body').textContent=body;$('dialog-tag').textContent=tag;$('world-actions').hidden=tag!=='HOW TO PLAY';if(!$('dialog').open)$('dialog').showModal();paintPower();}
  $('help').addEventListener('click',()=>{
-  if(storyBusy()||window.V3_INTRO?.active)return;
-  showDialog("Coco's adventure","Find Connor next door, then go downstairs to Mom and Dad. Stories pause movement. Skip scene beside Expand fast-forwards the current cutscene with its normal one-time rewards. Coco remains the story protagonist when you switch heroes. Rescue neighbors at gold diamonds, then regroup near the family in Market Square. Gary waits inside Five Guys HQ and joins after his battle. The diamond north of the family meeting spot offers the Under the Lights banquet; Continue or Skip returns you as Gary. WASD / arrows move, Shift runs, E / Space interacts, X uses your power. Menu / M / Escape pauses for stats, items, equipment and one equipped ability. On a phone, drag the joystick and hold Run with another thumb. Home connects to Shops and Courts; Shops connects to Home and Market Square; Market Square connects to Shops and North Market. All trips are reversible. Indoors, dinosaurs appear only in cinematic window views. Find the sword downstairs and Barney and Rosie on the northeast recreation street. Attacks damage wild dinosaurs: small ones disappear in smoke, large ones retreat. Chris uses a short-range Towel Whip. Strength and the sword boost damage. Dinosaur tag, flight and unicorn rides remain harmless to your party. Help toggles damage numbers and the once-per-playthrough Main Street bus gag; these preferences are remembered. Gameplay progress is session-only: refreshing starts over. Expand fills the browser; iPhone Home Screen mode can hide browser chrome.","HOW TO PLAY");
+  if(playerCombat.locked||storyBusy()||window.V3_INTRO?.active)return;
+  showDialog("Coco's adventure","Find Connor next door, then go downstairs to Mom and Dad. Stories pause movement. Skip scene beside Expand fast-forwards the current cutscene with its normal one-time rewards. Coco remains the story protagonist when you switch heroes. Rescue neighbors at gold diamonds, then regroup near the family in Market Square. Gary waits inside Five Guys HQ and joins after his battle. The diamond north of the family meeting spot offers the Under the Lights banquet; Continue or Skip returns you as Gary. WASD / arrows move, Shift runs, E / Space interacts, X uses your power. Menu / M / Escape pauses for stats, items, equipment and one equipped ability. On a phone, drag the joystick and hold Run with another thumb. Home connects to Shops and Courts; Shops connects to Home and Market Square; Market Square connects to Shops and North Market. All trips are reversible. Indoors, dinosaurs appear only in cinematic window views. Find the sword downstairs, the reusable grenade north of Cinepolis, and Barney and Rosie on the northeast recreation street. Attacks damage wild dinosaurs: small ones disappear in smoke, large ones retreat. Chris uses a short-range Towel Whip. Strength and the sword boost damage. Wild dinosaurs warn before attacking; dodge their strikes and spit. A red flash and sound signal a hit. Check HP in Menu and heal with a hamburger. Fainting returns you safely to Five Guys without losing items or progress. Dogs rest when you stop, bite nearby dinosaurs and cannot be injured. Stories, flight and unicorn rides remain safe. Help toggles damage numbers and the once-per-playthrough Main Street bus gag; these preferences are remembered. Gameplay progress is session-only: refreshing starts over. Expand fills the browser; iPhone Home Screen mode can hide browser chrome.","HOW TO PLAY");
  });
  function interact(){
-  if(!loaded||changing||storyBusy()||joining||flight.state.active||window.V3_INTRO?.active||$('dialog').open||window.V4_MENU.active)return;updateNearby();
+  if(!loaded||changing||document.hidden||playerCombat.locked||storyBusy()||joining||flight.state.active||window.V3_INTRO?.active||$('dialog').open||window.V4_MENU.active)return;updateNearby();
   if(nearest?.event==='banquet'){
    if(unicorn.riding){toast('Hop off the unicorn before joining the banquet.');unicorn.interact(player);return;}
    V5_EVENTS.celebrate();return;
@@ -314,8 +339,8 @@
   }
   if(nearest?.to){if(unicorn.riding){toast('Hop off the unicorn before entering another area.');unicorn.interact(player);return;} goThrough(nearest);return;}
   if(nearest?.pickup){
-   const result=window.V4_RPG.collectSword();
-   if(result.ok){V4_SFX.play('pickup');showDialog('Japanese sword found!',result.message,'DINO HOUSE');}else toast(result.message);
+   const result=window.V4_RPG.collectPickup(nearest.pickup);
+   if(result.ok){V4_SFX.play('pickup');showDialog(window.V4_RPG.items[nearest.pickup].name+' found!',result.message,nearest.pickup==='sword'?'DINO HOUSE':'MAIN STREET');}else toast(result.message);
    updateNearby();return;
   }
   if(town.id==='plaza'&&(unicorn.riding||unicorn.nearby(player))){
@@ -335,27 +360,28 @@
  });
  $('replay-intro').addEventListener('click',close);
  const movementKeys=['KeyW','KeyA','KeyS','KeyD','ArrowUp','ArrowLeft','ArrowDown','ArrowRight','ShiftLeft','ShiftRight'];
- window.addEventListener('keydown',e=>{if(e.ctrlKey||e.altKey||e.metaKey||storyBusy()||joining||flight.state.active||$('dialog').open||window.V4_MENU.active||window.V3_INTRO?.active)return;if(movementKeys.includes(e.code)){e.preventDefault();keys.add(e.code);}if(['KeyE','Space'].includes(e.code)){e.preventDefault();if(!e.repeat)interact();}if(e.code==='KeyX'){e.preventDefault();if(!e.repeat)activatePower();}if(/^Digit[0-9]$/.test(e.code)&&!e.repeat){const digit=Number(e.code.slice(-1));select(ids[digit===0?9:digit-1]);}});
+ window.addEventListener('keydown',e=>{if(e.ctrlKey||e.altKey||e.metaKey||playerCombat.locked||storyBusy()||joining||flight.state.active||$('dialog').open||window.V4_MENU.active||window.V3_INTRO?.active)return;if(movementKeys.includes(e.code)){e.preventDefault();keys.add(e.code);}if(['KeyE','Space'].includes(e.code)){e.preventDefault();if(!e.repeat)interact();}if(e.code==='KeyX'){e.preventDefault();if(!e.repeat)activatePower();}if(/^Digit[0-9]$/.test(e.code)&&!e.repeat){const digit=Number(e.code.slice(-1));select(ids[digit===0?9:digit-1]);}});
  window.addEventListener('keyup',e=>keys.delete(e.code));
  const joyEl=$('joystick');
  function setJoy(e){const r=joyEl.getBoundingClientRect(),max=r.width*.34,dx=e.clientX-r.left-r.width/2,dy=e.clientY-r.top-r.height/2,len=Math.hypot(dx,dy),ratio=len>max?max/len:1,x=dx*ratio,y=dy*ratio;$('stick').style.transform=`translate(${x}px,${y}px)`;joy=len<max*.18?{x:0,y:0}:{x:x/max,y:y/max};}
- joyEl.addEventListener('pointerdown',e=>{if(storyBusy()||joyId!==null)return;e.preventDefault();joyId=e.pointerId;joyEl.setPointerCapture(e.pointerId);setJoy(e);});
+ joyEl.addEventListener('pointerdown',e=>{if(playerCombat.locked||storyBusy()||joyId!==null)return;e.preventDefault();joyId=e.pointerId;joyEl.setPointerCapture(e.pointerId);setJoy(e);});
  joyEl.addEventListener('pointermove',e=>{if(e.pointerId===joyId){e.preventDefault();setJoy(e);}});
  function endJoy(e){if(e.pointerId!==joyId)return;joyId=null;joy={x:0,y:0};$('stick').style.transform='';}
  ['pointerup','pointercancel','lostpointercapture'].forEach(type=>joyEl.addEventListener(type,endJoy));
- $('run').addEventListener('pointerdown',e=>{if(storyBusy()||runId!==null)return;e.preventDefault();runId=e.pointerId;$('run').setPointerCapture(e.pointerId);touchRun=true;$('run').classList.add('active');});
+ $('run').addEventListener('pointerdown',e=>{if(playerCombat.locked||storyBusy()||runId!==null)return;e.preventDefault();runId=e.pointerId;$('run').setPointerCapture(e.pointerId);touchRun=true;$('run').classList.add('active');});
  function endRun(e){if(e.pointerId!==runId)return;runId=null;touchRun=false;$('run').classList.remove('active');}
  ['pointerup','pointercancel','lostpointercapture'].forEach(type=>$('run').addEventListener(type,endRun));
  $('interact').addEventListener('click',interact);
  canvas.addEventListener('pointerdown',e=>{
-  canvas.focus({preventScroll:true});if(!loaded||changing||storyBusy()||joining||flight.state.active||$('dialog').open||window.V4_MENU.active||window.V3_INTRO?.active)return;
+  canvas.focus({preventScroll:true});if(!loaded||changing||playerCombat.locked||storyBusy()||joining||flight.state.active||$('dialog').open||window.V4_MENU.active||window.V3_INTRO?.active)return;
   const r=canvas.getBoundingClientRect(),x=(e.clientX-r.left)*canvas.width/r.width/viewScale+camera.x,y=(e.clientY-r.top)*canvas.height/r.height/viewScale+camera.y;
   const target=landmarks().filter(l=>Math.hypot(l.x-x,l.y-15-y)<23).sort((a,b)=>Math.hypot(a.x-x,a.y-15-y)-Math.hypot(b.x-x,b.y-15-y))[0];
   if(target?.to){goThrough(target);return;}
   if(target){if(Math.hypot(target.x-player.x,target.y-player.y)<target.radius){if(target.event==='banquet'){if(unicorn.riding){toast('Hop off the unicorn before joining the banquet.');unicorn.interact(player);return;}V5_EVENTS.celebrate();}else if(target.pickup||target.recruit||target.npc||target.id==='dogs')interact();else showDialog(target.name,target.text);}else toast('Walk closer to '+target.name+'.');}
  });
  function update(dt){
-  if(!loaded||changing||window.V3_INTRO?.active||$('dialog').open||window.V4_MENU.active)return;
+  if(!loaded||changing||document.hidden||window.V3_INTRO?.active||$('dialog').open||window.V4_MENU.active)return;
+  if(playerCombat.locked){playerCombat.update(dt);paintPower();return;}
   V5_EVENTS.check();
   if(storyBusy()){paintPower();return;}
   if(joining){
@@ -367,14 +393,17 @@
    paintPower();return;
   }
   if(flight.state.active){flight.update(dt,player,town);updateCamera();paintPower();return;}
+  playerCombat.update(dt);
   let x=joy.x+(keys.has('KeyD')||keys.has('ArrowRight')?1:0)-(keys.has('KeyA')||keys.has('ArrowLeft')?1:0),y=joy.y+(keys.has('KeyS')||keys.has('ArrowDown')?1:0)-(keys.has('KeyW')||keys.has('ArrowUp')?1:0);
   const length=Math.hypot(x,y);if(length>1){x/=length;y/=length;}
   const c=characters[player.id];player.running=touchRun||keys.has('ShiftLeft')||keys.has('ShiftRight');const oldX=player.x,oldY=player.y;
-  if(length>.01){player.direction=Math.abs(x)>Math.abs(y)?(x>0?'right':'left'):(y>0?'down':'up');const speed=unicorn.riding?(player.running?280:170):(player.running?c.runSpeed:c.speed);move(x*speed*dt,y*speed*dt);}
+  if(length>.01&&!playerCombat.staggered){player.direction=Math.abs(x)>Math.abs(y)?(x>0?'right':'left'):(y>0?'down':'up');const speed=unicorn.riding?(player.running?280:170):(player.running?c.runSpeed:c.speed);move(x*speed*dt,y*speed*dt);}
   player.moving=Math.hypot(player.x-oldX,player.y-oldY)>.01;
   if(checkZoneCrossing(oldX,oldY))return;
   if(player.moving){player.clock+=dt*(player.running?c.runFPS:c.walkFPS);player.frame=Math.floor(player.clock)%4;}else{player.clock=0;player.frame=1;}
   unicorn.update(dt,player);powers.update(dt);combat.update(dt,activeEnemies());
+  attacks.update(dt,activeEnemies());
+  if(playerCombat.locked){paintPower();return;}
   for(const enemy of activeEnemies())updateDino(dt,enemy,enemy===dino?dinoHome:enemy.home);
   gimmicks.update(dt,town,player,camera,canvas.width/viewScale);
   if(town.id==='plaza')updateSquirrel(dt);paintPower();
@@ -388,14 +417,18 @@
   const c=characters[actor.id],x=Math.round(actor.x),y=Math.round(actor.y);
   ctx.fillStyle=active?'#182b365c':'#182b3645';ctx.beginPath();ctx.ellipse(x,y,actor.id==='coco'?10:13,4,0,0,Math.PI*2);ctx.fill();
   if(active){ctx.strokeStyle='#f9df89';ctx.lineWidth=1;ctx.beginPath();ctx.ellipse(x,y+1,15,5,0,0,Math.PI*2);ctx.stroke();}
-  const blast=active&&actor.id==='gary'&&powers.state.casts.find(c=>c.owner==='gary'&&c.kind==='blaster'&&c.age<.5);
+  const faint=active&&playerCombat.locked;
+  const blast=active&&!faint&&actor.id==='gary'&&powers.state.casts.find(c=>c.owner==='gary'&&c.kind==='blaster'&&c.age<.5);
   if(blast&&['left','right'].includes(actor.direction)&&V5_CINEMA.drawPose(ctx,'gary','attack',x,y,blast.age,{flip:actor.direction==='left'})){powers.drawActor(ctx,actor);return;}
-  const pose=active?powers.pose(actor):{lift:0,rotation:0},saddle=active&&unicorn.riding?20:0;
+  const pose=faint?{lift:0,rotation:-Math.PI/2,frame:1}:active?powers.pose(actor):{lift:0,rotation:0},saddle=active&&unicorn.riding?20:0;
   if(saddle)unicorn.draw(ctx,actor);
   const air=active?flight.view().lift:0;
   ctx.save();ctx.translate(x,y-30-saddle-pose.lift-air);ctx.rotate(pose.rotation);
-  const row=c.rows[pose.direction||actor.direction]+(actor.moving?(c.walkRowOffset||0):0);
-  ctx.drawImage(sheets[actor.id],(pose.frame??actor.frame)*64,row*64,64,64,-c.foot.x,30-c.foot.y,64,64);ctx.restore();
+  const walking=characterWalkPose(c,pose.direction||actor.direction,!faint&&actor.moving);
+  if(walking.flip)ctx.scale(-1,1);
+  ctx.drawImage(sheets[actor.id],(pose.frame??actor.frame)*64,walking.row*64,64,64,-c.foot.x,30-c.foot.y,64,64);
+  if(active&&!faint&&playerCombat.state.flash>0){ctx.strokeStyle='#ff9686';ctx.lineWidth=2;ctx.strokeRect(-17,-28,34,56);}
+  ctx.restore();
   if(active)powers.drawActor(ctx,{...actor,y:actor.y-saddle});
  }
  function draw(){
@@ -414,7 +447,7 @@
   }
   landmarks().forEach(l=>{
    if(l.pickup){
-    if(!window.V4_RPG.discoveries[l.pickup])ctx.drawImage(extraSheets.swordIcon,l.x-16,l.y-34,32,32);
+    if(!window.V4_RPG.discoveries[l.pickup])ctx.drawImage(extraSheets[l.pickup+'Icon'],l.x-16,l.y-34,32,32);
     return;
    }
    ctx.fillStyle=nearest===l?'#ffeda6':'#eedba2';ctx.strokeStyle='#705b35';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(l.x,l.y-21);ctx.lineTo(l.x+5,l.y-15);ctx.lineTo(l.x,l.y-9);ctx.lineTo(l.x-5,l.y-15);ctx.closePath();ctx.fill();ctx.stroke();
@@ -425,7 +458,7 @@
     ctx.fillStyle='#fff0c6';ctx.fillText(l.name,l.x,l.y+17);
    }
   });
-  powers.drawGround(ctx);gimmicks.draw(ctx,extraSheets.bus,town.id);
+  powers.drawGround(ctx);attacks.drawGround(ctx,activeEnemies());gimmicks.draw(ctx,extraSheets.bus,town.id);
   const unicornActor=unicorn.state;
   const activity=town.id==='recreation'?recreation.actors(player):[];
   const ambient=V4_STORY.actors(town.id,activity,player.id).filter(a=>a.id!==joining?.id)
@@ -442,15 +475,20 @@
    const bird=flight.state.bird,row={down:0,left:1,right:2,up:3}[bird.direction]+4;
    ctx.drawImage(extraSheets.pterodactyl,bird.frame*128,row*128,128,128,Math.round(bird.x)-64,Math.round(bird.y)-124,128,128);
   }
-  powers.drawAir(ctx);combat.drawEffects(ctx);ctx.restore();
+  powers.drawAir(ctx);attacks.drawAir(ctx);combat.drawEffects(ctx);ctx.restore();playerCombat.drawCover(ctx,canvas.width,canvas.height);
  }
  function drawSmallActor(a){
+  if(a.pose&&extraSheets[a.id+'Poses']){
+   ctx.save();ctx.translate(Math.round(a.x),Math.round(a.y));if(a.pose==='attack'&&a.direction==='right')ctx.scale(-1,1);
+   ctx.drawImage(extraSheets[a.id+'Poses'],a.poseFrame*64,0,64,64,-32,-60,64,64);ctx.restore();return;
+  }
   const rows={down:0,left:1,right:2,up:3},row=a.swimming?({down:0,up:1,left:2,right:3})[a.direction]:rows[a.direction]+4;
   ctx.drawImage(a.swimming?extraSheets.swim:extraSheets[a.id],a.frame*64,row*64,64,64,Math.round(a.x)-32,Math.round(a.y)-60,64,64);
  }
  function frame(time){const dt=previous?Math.min((time-previous)/1000,.05):0;previous=time;update(dt);draw();requestAnimationFrame(frame);}
- async function enterScene(id,arrival,direction='down'){
+ async function enterScene(id,arrival,direction='down',recovery=false){
   if(changing||!scenes[id])return false;
+  if(playerCombat.locked&&!recovery)return false;
   if(!V5_EVENTS.canTravel(id))return false;
   if(joining||pendingRecruit||flight.state.active){toast('Finish this moment before entering another area.');return false;}
   changing=true;resetInput();$('stage').classList.add('transitioning');
@@ -458,7 +496,7 @@
   try{
    const img=sceneImages[id]||await loadImage(next.image);sceneImages[id]=img;
    if(next.overlay&&!sceneOverlays[id])sceneOverlays[id]=await loadImage(next.overlay.image);
-   town=next;storyReturn=null;
+   attacks.clear(encounterEnemies());town=next;storyReturn=null;
    const x=arrival[0]*town.width/1000,y=arrival[1]*town.height/1000;
    if(blocked(x,y)){town=old;throw new Error('The entrance needs more space.');}
    dinoHome=town.indoor?null:dinoHomes[id]||null;dino=town.indoor?null:dinosaurs[id]||null;
@@ -471,12 +509,12 @@
    $('route-hint').textContent=town.hint;document.querySelector('.location small').textContent=town.id==='plaza'?'Market Square · Afternoon':town.name;nearest=null;updateCamera();updateNearby();toast(town.name);
    return true;
   }catch(error){town=old;dino=oldDino;dinoHome=oldHome;background=oldBackground;Object.assign(player,oldPlayer);toast('Could not open this area. Try again.');console.error(error);return false;}
-  finally{changing=false;resetInput();$('stage').classList.remove('transitioning');V5_EVENTS.check();if(!storyBusy())canvas.focus({preventScroll:true});}
+  finally{changing=false;resetInput();$('stage').classList.remove('transitioning');if(!recovery)V5_EVENTS.check();if(!storyBusy())canvas.focus({preventScroll:true});}
  }
  $('return-plaza').addEventListener('click',()=>{if($('dialog').open)$('dialog').close();enterScene('plaza',[50,84.47265625].map(v=>v*10));});
  function loadImage(path){return new Promise((resolve,reject)=>{const img=new Image();img.onload=()=>resolve(img);img.onerror=()=>reject(new Error('Could not load '+path));img.src=window.EMBEDDED_ASSETS?.[path]||path;});}
  Promise.all([loadImage(town.image).then(img=>{background=img;sceneImages.cocoRoom=img;}),...ids.map(id=>loadImage(characters[id].sheet).then(img=>{sheets[id]=img;})),
-  ...Object.entries({...Object.fromEntries(Object.entries(recreation.dogData).map(([id,data])=>[id,data.sheet])),...Object.fromEntries(['trex','raptor','triceratops','pterodactyl'].map(id=>[id,'../v4/assets/dinosaurs/'+id+'.png?v=cleanup-1'])),compy:'assets/dinosaurs/compy.png?v=combat-1',towel:'assets/items/towel-whip.png?v=combat-1',bus:'assets/gimmicks/bus.png?v=combat-1',swim:'../v4/assets/characters/chris-swim.png',sword:'../v4/assets/items/sword-slash.png',swordIcon:window.V4_RPG.items.sword.image}).map(([id,path])=>loadImage(path).then(img=>{
+  ...Object.entries({...Object.fromEntries(Object.entries(recreation.dogData).map(([id,data])=>[id,data.sheet])),...Object.fromEntries(['trex','raptor','triceratops','pterodactyl'].map(id=>[id,'../v4/assets/dinosaurs/'+id+'.png?v=cleanup-1'])),...Object.fromEntries(['dilophosaurus','ankylosaurus'].map(id=>[id,'assets/dinosaurs/'+id+'.png?v=danger-2'])),barneyPoses:'assets/companions/barney-poses.png?v=danger-1',rosiePoses:'assets/companions/rosie-poses.png?v=danger-1',grenade:'assets/items/grenade.png?v=danger-1',grenadeIcon:V4_RPG.items.grenade.image,compy:'assets/dinosaurs/compy.png?v=danger-2',towel:'assets/items/towel-whip.png?v=combat-1',bus:'assets/gimmicks/bus.png?v=combat-1',swim:'../v4/assets/characters/chris-swim.png',sword:'../v4/assets/items/sword-slash.png',swordIcon:window.V4_RPG.items.sword.image}).map(([id,path])=>loadImage(path).then(img=>{
    extraSheets[id]=img;
    if(V6_COMBAT.species[id]){const flash=document.createElement('canvas');flash.width=img.width;flash.height=img.height;const paint=flash.getContext('2d');paint.drawImage(img,0,0);paint.globalCompositeOperation='source-atop';paint.fillStyle='#fff5dc';paint.fillRect(0,0,flash.width,flash.height);flashSheets[id]=flash;}
   }))
@@ -497,7 +535,7 @@
  });
  V5_EVENTS.attach({scene:()=>town.id,atMeeting:()=>Math.hypot(player.x-768,player.y-865)<150,atBanquet:()=>Math.hypot(player.x-768,player.y-760)<56,
   resumeGary(){if(!select('gary'))throw new Error('Gary could not resume after the banquet.');},reset:resetInput,notify:toast,refresh:()=>{refreshParty();updateNearby();paintPower();}});
- window.GAME={get ready(){return loaded&&!changing;},get busy(){return storyBusy()||!!joining||!!pendingRecruit||flight.state.active;},get state(){return{scene:town.id,player:{...player}, actors:V4_STORY.actors(town.id,town.id==='recreation'?recreation.actors(player):[],player.id),joining:joining&&{...joining},story:V5_EVENTS.state,cinema:V5_CINEMA.state,companions:companions.state,flight:flight.state,recreation:recreation.state,powers:powers.state,unicorn:unicorn.state,dinosaur:dino&&{...dino},enemies:encounterEnemies().map(enemy=>({...enemy})),combat:combat.state,gimmicks:gimmicks.state,squirrel:{...squirrel},camera:V5_CINEMA.active&&V5_CINEMA.state.camera||{...camera,scale:viewScale},nearest:nearest?.id||null,viewport:{width:canvas.width,height:canvas.height},dialog:$('dialog').open,menu:window.V4_MENU.active,input:{joy:{...joy},touchRun,keys:[...keys]}};},select,blocked};
+ window.GAME={get ready(){return loaded&&!changing;},get busy(){return playerCombat.locked||storyBusy()||!!joining||!!pendingRecruit||flight.state.active;},get state(){return{scene:town.id,player:{...player},playerCombat:playerCombat.state,incoming:attacks.state,actors:V4_STORY.actors(town.id,town.id==='recreation'?recreation.actors(player):[],player.id),joining:joining&&{...joining},story:V5_EVENTS.state,cinema:V5_CINEMA.state,companions:companions.state,flight:flight.state,recreation:recreation.state,powers:powers.state,unicorn:unicorn.state,dinosaur:dino&&{...dino},enemies:encounterEnemies().map(enemy=>({...enemy})),combat:combat.state,gimmicks:gimmicks.state,squirrel:{...squirrel},camera:V5_CINEMA.active&&V5_CINEMA.state.camera||{...camera,scale:viewScale},nearest:nearest?.id||null,viewport:{width:canvas.width,height:canvas.height},dialog:$('dialog').open,menu:window.V4_MENU.active,input:{joy:{...joy},touchRun,keys:[...keys]}};},select,blocked};
 })();
 
 

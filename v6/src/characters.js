@@ -14,4 +14,9 @@ for(const id of Object.keys(window.CHARACTERS)){
 }
 window.CHARACTERS.coco.emotions={sheet:'../v5/assets/characters/coco-emotions.png',frames:3,fps:6,rows:{talk:0,surprised:1}};
 window.CHARACTERS.gary={...window.CHARACTERS.jason,...window.V5_GARY_WALK,id:'gary',name:'Gary',
- portrait:'../v5/assets/portraits/gary.png',speed:135,runSpeed:230,walkFPS:8,runFPS:12};
+ portrait:'../v5/assets/portraits/gary.png',speed:135,runSpeed:230,walkFPS:8,runFPS:12,mirrorLeft:true};
+window.CHARACTERS.jeff.sheet='assets/characters/jeff.png?v=danger-1';
+window.characterWalkPose=(character,direction,moving)=>{
+ const flip=!!character.mirrorLeft&&direction==='left';
+ return {row:character.rows[flip?'right':direction]+(moving?(character.walkRowOffset||0):0),flip};
+};

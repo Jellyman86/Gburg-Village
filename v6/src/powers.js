@@ -17,11 +17,13 @@
   jeff:{name:'Throw baseball',label:'Baseball',kind:'baseball',cooldown:.6,duration:1.4,speed:285},
   ari:{name:'Soccer volley',label:'Volley',kind:'soccer',cooldown:.6,duration:1.4,speed:265},
   gary:{name:'Patriot blaster',label:'Blast',kind:'blaster',cooldown:.65,duration:.8,range:260,width:11,extendSpeed:800},
-  sword:{name:'Sword slash',label:'Slash',kind:'sword',cooldown:.6,duration:.45,range:55}
- }).map(([id,power])=>[id,Object.freeze({...power,damage:({punch:16,football:18,wave:12,kick:18,plane:16,martini:18,racket:18,turtle:20,salad:16,flip:20,tornado:16,towel:20,baseball:18,soccer:18,blaster:26,sword:24})[power.kind]})])));
+  sword:{name:'Sword slash',label:'Slash',kind:'sword',cooldown:.6,duration:.45,range:55},
+  grenade:{name:'Grenade toss',label:'Grenade',kind:'grenade',cooldown:.6,duration:1.45,range:80,speed:175}
+ }).map(([id,power])=>[id,Object.freeze({...power,damage:({punch:16,football:18,wave:12,kick:18,plane:16,martini:18,racket:18,turtle:20,salad:16,flip:20,tornado:16,towel:20,baseball:18,soccer:18,blaster:26,sword:24,grenade:34})[power.kind],
+  sound:({punch:'strike',kick:'strike',flip:'strike',racket:'slash',sword:'slash',towel:'whip',wave:'wave',tornado:'swirl',blaster:'blast'})[power.kind]||'throw'})])));
  const directions={down:{x:0,y:1},left:{x:-1,y:0},right:{x:1,y:0},up:{x:0,y:-1}};
  const projectile=power=>!!power.speed;
- function create({blocked,getTarget=()=>null,getTargets=()=>{const target=getTarget();return target?[target]:[];},onHit,getActor=()=>null,getAbility=actor=>actor.id,getSwordImage=()=>null,getTowelImage=()=>null}){
+ function create({blocked,getTarget=()=>null,getTargets=()=>{const target=getTarget();return target?[target]:[];},onHit,getActor=()=>null,getAbility=actor=>actor.id,getSwordImage=()=>null,getTowelImage=()=>null,getGrenadeImage=()=>null,onSound=()=>{}}){
   const cooldowns=Object.fromEntries(Object.keys(definitions).map(id=>[id,0])),casts=[];
   let serial=0;
   function activate(actor){
@@ -41,7 +43,20 @@
    for(const cast of casts){
     const power=definitions[cast.id],previous=cast.age;cast.age+=dt;
     if(!projectile(power)&&cast.kind!=='wave'&&actor?.id===cast.owner){cast.x=actor.x;cast.y=actor.y;}
-    if(cast.kind==='water-beam'||cast.kind==='blaster'){
+    if(cast.kind==='grenade'){
+     if(!cast.landed){
+      const distance=(Math.min(.65,Math.max(.1,cast.age))-Math.min(.65,Math.max(.1,previous)))*power.speed,steps=Math.max(1,Math.ceil(distance/3));
+      for(let i=0;i<steps&&distance>0;i++){
+       const x=cast.x+cast.dx*distance/steps,y=cast.y+cast.dy*distance/steps;
+       if(blocked(x,y,2,2)){cast.landed=true;break;}cast.x=x;cast.y=y;
+      }
+      if(cast.age>=.65)cast.landed=true;
+     }
+     if(cast.age>=.85&&!cast.exploded){
+      cast.exploded=true;onSound('explode');
+      for(const target of targets)if(target.alive!==false&&Math.hypot(target.x-cast.x,target.y-cast.y)<=power.range&&clearLine(cast,target))hit(cast,target);
+     }
+    }else if(cast.kind==='water-beam'||cast.kind==='blaster'){
      const reach=Math.min(power.range,Math.max(0,cast.age-.08)*power.extendSpeed);
      cast.length=0;
      for(let distance=2;distance<=reach;distance+=2){
@@ -172,6 +187,15 @@
   function drawAir(ctx){
    for(const cast of casts){
     const power=definitions[cast.id];
+    if(cast.kind==='grenade'){
+     const image=getGrenadeImage();
+     if(image){
+      const frame=cast.exploded?Math.min(3,Math.floor((cast.age-.85)/.15)):Math.floor(cast.age*12)%4;
+      const size=cast.exploded?128:32,height=cast.landed?8:18+Math.sin(Math.min(1,cast.age/.65)*Math.PI)*24;
+      ctx.drawImage(image,frame*64,cast.exploded?64:0,64,64,Math.round(cast.x)-size/2,Math.round(cast.y)-height-size/2,size,size);
+     }
+     continue;
+    }
     if(cast.kind==='water-beam'||cast.kind==='blaster'){
      const length=cast.length||0;if(length===0)continue;
      ctx.save();ctx.globalAlpha=Math.min(1,(power.duration-cast.age)/.2);
@@ -187,7 +211,7 @@
     ctx.translate(Math.round(cast.x),Math.round(cast.y-height));const spin=['football','baseball','salad','martini'].includes(cast.kind)?t*8:0;ctx.rotate(Math.atan2(cast.dy,cast.dx)+spin);drawProjectile(ctx,cast);if(cast.landed)spark(ctx,0,0,'#ffe9a8',7);ctx.restore();
    }
   }
-  return {activate,update,drawGround,drawActor,drawAir,pose,cooldown:id=>cooldowns[id]||0,
+  return {activate,update,drawGround,drawActor,drawAir,pose,clear:()=>casts.splice(0),cooldown:id=>cooldowns[id]||0,
    get state(){return {cooldowns:{...cooldowns},casts:casts.map(c=>({...c}))};}};
  }
  window.FAMILY_POWERS=Object.freeze({definitions,create});

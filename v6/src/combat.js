@@ -6,11 +6,13 @@
   raptor:Object.freeze({hp:48,armor:0,outcome:'puff',height:82,sound:'hurt-raptor'}),
   pterodactyl:Object.freeze({hp:38,armor:0,outcome:'puff',height:82,sound:'hurt-pterodactyl'}),
   trex:Object.freeze({hp:110,armor:2,outcome:'retreat',height:84,sound:'hurt-trex'}),
-  triceratops:Object.freeze({hp:100,armor:3,outcome:'retreat',height:82,sound:'hurt-triceratops'})
+  triceratops:Object.freeze({hp:100,armor:3,outcome:'retreat',height:82,sound:'hurt-triceratops'}),
+  dilophosaurus:Object.freeze({hp:58,armor:0,outcome:'puff',height:82,sound:'hurt-dilophosaurus'}),
+  ankylosaurus:Object.freeze({hp:130,armor:6,outcome:'retreat',height:82,sound:'hurt-ankylosaurus'})
  });
  function init(enemy){
   const profile=species[enemy.kind];if(!profile)throw new Error('Unknown combat dinosaur: '+enemy.kind);
-  Object.assign(enemy,{hp:profile.hp,maxHP:profile.hp,alive:true,hidden:false,flash:0,bar:0,knockX:0,knockY:0,defeatAge:0,stunned:0});
+  Object.assign(enemy,{hp:profile.hp,maxHP:profile.hp,alive:true,hidden:false,flash:0,bar:0,knockX:0,knockY:0,defeatAge:0,stunned:0,windup:0,attackPose:0,attackCooldown:1.2,aim:null});
   return enemy;
  }
  function create({blocked,onSound,showNumbers=true,reduced=()=>false}){
@@ -29,8 +31,8 @@
    const profile=species[enemy.kind],amount=Math.min(enemy.hp,Math.max(1,Math.round(power.damage+strength*.25-profile.armor)));
    const distance=Math.hypot(enemy.x-x,enemy.y-y);
    const direction=power.kind==='wave'||power.kind==='tornado'?{x:distance?(enemy.x-x)/distance:dx,y:distance?(enemy.y-y)/distance:dy}:{x:dx,y:dy};
-   enemy.hp-=amount;enemy.flash=.16;enemy.bar=2;enemy.stunned=.24;
-   const force=(power.kind==='towel'?190:power.kind==='sword'?170:135)*(profile.outcome==='retreat'?.65:1);
+   enemy.hp-=amount;enemy.flash=.16;enemy.bar=2;enemy.stunned=.24;enemy.windup=0;enemy.attackPose=0;enemy.aim=null;enemy.attackCooldown=Math.max(enemy.attackCooldown,1.2);
+   const force=(power.kind==='bite'?55:power.kind==='towel'?190:power.kind==='sword'?170:135)*(profile.outcome==='retreat'?.65:1);
    enemy.knockX=direction.x*force;enemy.knockY=direction.y*force;enemy.mode='wander';enemy.timer=4;enemy.target=null;enemy.moving=false;
    lastHit={kind:enemy.kind,amount,serial,owner};onSound(profile.sound);
    add({type:'spark',x:enemy.x,y:enemy.y-20,lifetime:.2});

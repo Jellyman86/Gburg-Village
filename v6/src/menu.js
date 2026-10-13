@@ -52,7 +52,7 @@
      const use=action('Use on '+character.name,()=>rpg.useItem(selected,item.id));use.dataset.item=item.id;
      use.disabled=!stats.joined||rpg.inventory[item.id]===0||stats.hp===stats.maxHP;
      row.append(use);
-     if(stats.hp===stats.maxHP)row.append(element('small','Full HP: no hamburger needed. Dinosaur tag is still harmless.'));
+     if(stats.hp===stats.maxHP)row.append(element('small','Full HP: no hamburger needed.'));
     }
     detail.append(row);
    }
@@ -73,7 +73,7 @@
     if(slot==='accessory')row.append(element('p','Accessory slot reserved for future items.'));
     detail.append(row);
    }
-   detail.append(element('p','Strength boosts real-time attack damage. Dinosaur encounters stay harmless to the party; XP and leveling are not enabled yet.','menu-note'));
+   detail.append(element('p','Strength boosts attack damage; defense softens incoming hits. At zero HP, Gary patches up the active hero at Five Guys without taking any items. XP and leveling are not enabled yet.','menu-note'));
   }else if(section==='Abilities'){
    detail.append(element('h3','One equipped ability'));
    const equipped=rpg.members[selected].ability;
@@ -83,9 +83,10 @@
     const button=action(power.name,()=>rpg.equipAbility(selected,id));
     button.disabled=!stats.joined||!!(rpg.members[id]&&!rpg.members[id].joined);
     if(id==='sword'&&stats.equipment.weapon!=='sword'){button.disabled=true;button.title='Requires equipped Japanese sword';}
+    if(id==='grenade'&&!rpg.discoveries.grenade){button.disabled=true;button.title='Find the grenade north of Cinepolis';}
     button.dataset.ability=id||'none';button.setAttribute('aria-pressed',String(equipped===id));list.append(button);
    }
-   detail.append(list,element('p','Relic-style slot: choose one power. X or the power button uses it in the world. Find the sword in the Dino house to unlock Sword slash. Jeff throws baseballs, Ari volleys soccer balls, Chris uses a short-range Towel Whip, and Jaime spins a skate tornado.','menu-note'));
+   detail.append(list,element('p','Relic-style slot: choose one power. X or the power button uses it in the world. Find the sword in the Dino house for Sword slash and the grenade north of Cinepolis for a reusable blast. Jeff throws baseballs, Ari volleys soccer balls, Chris uses a short-range Towel Whip, and Jaime spins a skate tornado.','menu-note'));
   }
   detail.append(element('p','Preview progress lasts for this play session only; local saves are the next milestone.','menu-note'));
  }
@@ -120,7 +121,7 @@
  });
  $('roster-count').textContent=String(Object.keys(roster).length);
  function open(){
-  if(!window.GAME?.ready||window.GAME?.state.joining||window.V5_CINEMA?.active||window.V5_EVENTS?.active||window.V3_INTRO?.active||$('dialog').open||dialog.open)return;
+  if(!window.GAME?.ready||window.GAME?.state.playerCombat.locked||window.GAME?.state.joining||window.V5_CINEMA?.active||window.V5_EVENTS?.active||window.V3_INTRO?.active||$('dialog').open||dialog.open)return;
   selected=window.GAME.state.player.id;section='Party';$('menu-message').textContent='';
   document.dispatchEvent(new Event('v4-menu-open'));render();dialog.showModal();tabs[0].focus();
  }

@@ -18,7 +18,7 @@ assert.equal(big.hp,0);assert.equal(big.mode,'retreat');assert.equal(engine.stat
 assert.equal(engine.hit(big,attack),false);assert.equal(engine.state.defeats,1);
 for(let i=0;i<60;i++){engine.update(.05,[big]);assert(big.x<20&&Math.abs(big.y)<=100,'Retreat remains collision-safe');}
 assert(big.hidden,'Large dinosaur finishes its retreat');
-for(const kind of ['compy','raptor','pterodactyl','triceratops']){
+for(const kind of ['compy','raptor','pterodactyl','triceratops','dilophosaurus','ankylosaurus']){
  const d=enemy(kind),fresh=combat.create({blocked:()=>false,onSound:s=>sounds.push(s)});
  while(d.alive)fresh.hit(d,attack);
  assert(sounds.includes(combat.species[kind].sound));

@@ -1,5 +1,6 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#17245e"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><title>Gburg Village · V6 · Dino Days</title><link rel="manifest" href="manifest.webmanifest"><link rel="stylesheet" href="style.css"><link rel="stylesheet" href="menu.css"><link rel="stylesheet" href="display.css"><link rel="stylesheet" href="chapter.css"><link rel="stylesheet" href="cinema.css?v=combat-v6-1">
+<link rel="stylesheet" href="danger.css?v=danger-2">
 <link rel="icon" href="../v4/assets/portraits/coco.png" type="image/png">
 <link rel="apple-touch-icon" href="../v4/assets/portraits/coco.png"></head>
 <body><main class="app">
@@ -9,6 +10,7 @@
 <div id="stage" class="stage"><canvas id="game" tabindex="0" aria-label="Explore using WASD, arrow keys, or the touch joystick. Hold Shift to run. E to interact. X for your special power."></canvas><div id="loading" class="loading"><b>Getting everyone ready…</b><span>Loading Coco's room</span></div><div id="area-label" class="area-label">COCO'S ROOM</div><div id="objective" class="objective" role="status"></div><div id="toast" class="toast" role="status" aria-live="polite"></div><div id="nearby" class="nearby" hidden><span id="nearby-text"></span><kbd>E</kbd></div>
 <div id="touch-controls" class="touch-controls"><div id="joystick" role="group" aria-label="Drag to move" class="joystick"><span class="joy-ring"></span><span id="stick" class="stick"></span></div><div class="touch-actions"><button id="run" aria-label="Hold to run">Run</button><button id="interact" aria-label="Interact with nearby place">Look</button></div></div>
 <button id="power" class="power-button" type="button" hidden disabled><span id="power-label">Power</span><small id="power-hint">X · Ready</small></button>
+<div id="recovery" hidden><p id="recovery-message" role="status"></p><button id="recovery-retry" type="button" hidden>Retry Five Guys</button></div>
 <dialog id="dialog"><button id="close-dialog" class="dialog-close" aria-label="Close">×</button><span id="dialog-tag" class="eyebrow">MARKET SQUARE</span><h2 id="dialog-title"></h2><p id="dialog-body"></p><div id="world-actions" hidden><p id="route-hint">Go north to the meteor roundabout, or east to Main Street.</p><p>For a browser-chrome-free view on iPhone: open this page in Safari, choose Share, then Add to Home Screen. Enable Open as Web App if offered, and launch the new icon. Expand alone cannot hide Safari's address bar.</p><div class="world-buttons"><button id="replay-intro" class="quiet" type="button">Replay intro</button><button id="return-plaza" class="quiet" type="button">Back to plaza</button><button id="damage-numbers" class="quiet" type="button" aria-pressed="true">Damage numbers: On</button><button id="bus-gag" class="quiet" type="button" aria-pressed="true">Bus gag: On</button></div></div><button id="continue" class="primary">Keep exploring</button></dialog></div>
 <footer><span id="status">Jason · Ready for a walk</span><span class="desktop-hint"><kbd>WASD</kbd> move <kbd>Shift</kbd> run <kbd>E</kbd> look <kbd>X</kbd> power <kbd>M / Esc</kbd> menu</span><span class="mobile-hint">Drag to move · Hold Run to hurry · Menu pauses</span></footer>
 </section></main>
@@ -20,28 +22,30 @@
 <footer class="menu-footer">Arrow keys choose tabs · Tab moves focus · Enter selects · Esc returns</footer>
 </dialog>
 <script src="src/action-art.js?v=sprite-cleanup-v5-1"></script>
-<script src="src/characters.js?v=world-story-v5-1"></script>
+<script src="src/characters.js?v=danger-1"></script>
 <script src="src/map.js?v=banquet-v5-1"></script>
-<script src="src/powers.js?v=world-story-v5-1"></script>
-<script src="src/combat.js?v=combat-v6-1"></script>
+<script src="src/powers.js?v=danger-2"></script>
+<script src="src/combat.js?v=danger-1"></script>
+<script src="src/player-combat.js?v=danger-1"></script>
+<script src="src/enemy-attacks.js?v=danger-1"></script>
 <script src="src/settings.js?v=combat-v6-1"></script>
 <script src="src/gimmicks.js?v=combat-v6-1"></script>
-<script src="src/rpg.js?v=world-story-v5-1"></script>
+<script src="src/rpg.js?v=danger-2"></script>
 <script src="src/story.js?v=world-story-v5-1"></script>
 <script src="src/story-events.js?v=banquet-v5-1"></script>
-<script src="src/menu.js?v=story-v5-1"></script>
+<script src="src/menu.js?v=danger-1"></script>
 <script src="src/unicorn.js"></script>
-<script src="src/scenes.js?v=world-story-v5-1"></script>
+<script src="src/scenes.js?v=danger-1"></script>
 <script src="src/recreation.js"></script>
-<script src="src/companions.js"></script>
+<script src="src/companions.js?v=danger-1"></script>
 <script src="src/flight.js"></script>
-<script src="src/sfx.js?v=banquet-v5-1"></script>
+<script src="src/sfx.js?v=danger-1"></script>
 <script src="src/gary-finale.js?v=world-story-v5-1"></script>
 <script src="src/banquet-finale.js?v=banquet-v5-1"></script>
 <script src="src/cinema-catalog.js?v=studio-v5-1"></script>
 <script src="src/scene-edits.js?v=studio-v5-1"></script>
-<script src="src/cinema.js?v=sprite-cleanup-v5-1"></script>
-<script src="src/game.js?v=sprite-cleanup-v5-1"></script>
-<script src="src/intro.js?v=sprite-cleanup-v5-1"></script>
+<script src="src/cinema.js?v=danger-1"></script>
+<script src="src/game.js?v=danger-2"></script>
+<script src="src/intro.js?v=danger-1"></script>
 <script src="src/display.js"></script>
 <script src="src/skip.js?v=combat-v6-1"></script></body></html>

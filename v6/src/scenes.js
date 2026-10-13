@@ -119,6 +119,7 @@
  road('plaza','to-north',[{x:584,y:280,w:79,h:32,direction:'up'}],[499,930],'up');
  road('north','to-plaza',[{x:703,y:1450,w:125,h:40,direction:'down'}],[620/1536*1000,335/1024*1000],'down');
  const district=SCENES.district;
+ district.landmarks.push({id:'grenade',name:'Grenade · North of Cinepolis',x:1900,y:370,radius:42,pickup:'grenade'});
  district.bounds.left=1400;
  district.viewBounds={...district.bounds};
  district.obstacles.push({x:2370,y:798,w:886,h:288});
