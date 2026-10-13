@@ -1,0 +1,9 @@
+{
+ "name": "Gburg Village V7 - Beyond the Meteor",
+ "short_name": "Gburg V7",
+ "start_url": "./",
+ "scope": "./",
+ "display": "standalone",
+ "background_color": "#10282d",
+ "theme_color": "#17245e"
+}

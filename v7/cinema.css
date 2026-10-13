@@ -1,0 +1,37 @@
+#story-bubble[hidden],#story-loading[hidden],#story-loading [hidden],#story-ending[hidden],#story-city-label[hidden]{display:none!important}
+#story-ending{
+ position:absolute;inset:0;z-index:7;display:flex;flex-direction:column;align-items:center;justify-content:center;
+ gap:24px;padding:20px;background:#050810;color:#fff5dc;text-align:center;
+}
+#story-ending h2{font:clamp(26px,5vw,48px)/1.2 Georgia,serif;margin:0}
+#story-continue{min-height:48px;padding:12px 18px;font:16px system-ui}
+#story-city-label{position:absolute;bottom:12px;left:14px;z-index:5;color:#fff5dc;font:600 17px system-ui;text-shadow:1px 2px 3px #000;pointer-events:none}
+#story-bubble{
+ position:absolute;z-index:5;max-width:min(280px,calc(100% - 16px));padding:9px 12px;
+ border:2px solid #483b38;border-radius:9px;background:#fff5dc;color:#202b36;
+ box-shadow:2px 3px 0 #0005;font:17px/1.3 system-ui,sans-serif;pointer-events:none;
+ overflow-wrap:anywhere;
+}
+#story-bubble strong{display:block;margin-bottom:3px;font-size:12px;color:#65503b;letter-spacing:.05em}
+#story-bubble p{margin:0}
+#story-bubble::after{
+ content:"";position:absolute;left:var(--tail-left,50%);bottom:-10px;
+ width:12px;height:12px;background:#fff5dc;border-right:2px solid #483b38;
+ border-bottom:2px solid #483b38;transform:translateX(-50%) rotate(45deg);
+}
+#story-bubble[data-below=true]::after{bottom:auto;top:-9px;transform:translateX(-50%) rotate(225deg)}
+#story-loading{
+ position:absolute;z-index:6;left:50%;top:12px;transform:translateX(-50%);
+ width:min(340px,calc(100% - 24px));padding:12px;background:#17383bf2;
+ border:1px solid #ebc577;border-radius:6px;font:14px/1.4 system-ui;text-align:center;
+}
+#story-loading p{margin:0 0 8px}
+#story-retry{min-height:44px;padding:8px 14px}
+body.v5-story-active #objective,body.v5-story-active #status,body.v5-story-active #area-label,
+body.v5-story-active #nearby,body.v5-story-active #toast,body.v5-story-active #touch-controls,
+body.v5-story-active #power,body.v5-story-active #music-toggle,
+body.v5-story-active .toolbar .party,body.v5-story-active .toolbar .location,
+body.v5-story-active #help,body.v5-story-active #open-menu,
+body.v5-story-active .desktop-hint,body.v5-story-active .mobile-hint{visibility:hidden;pointer-events:none}
+@media(max-height:550px){#story-bubble{max-width:min(320px,calc(100% - 16px));font-size:16px;padding:7px 10px}}
+@media(prefers-reduced-motion:reduce){#story-bubble{scroll-behavior:auto}}
