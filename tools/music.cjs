@@ -33,9 +33,12 @@ function readManifest(){
  return data;
 }
 
-// "Uptown_Girl_SNES_Game.m4a" -> id "uptown-girl", title "Uptown Girl". Windows " - Copy" duplicates are ignored.
+// "Uptown_Girl_SNES_Game.m4a" -> id "uptown-girl", title "Uptown Girl". Export suffixes (SNES, Game, Trimmed, Converted...) and
+// Windows " - Copy" duplicates are ignored.
 function idFor(fileName){
- return path.parse(fileName).name.replace(/\s*-\s*Copy(\s*\(\d+\))?$/i,'').replace(/[_\s-]*(SNES[_\s-]*(Style[_\s-]*)?Game|Converted)[_\s-]*/gi,' ').trim().toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
+ return path.parse(fileName).name.replace(/\s*-\s*Copy(\s*\(\d+\))?$/i,'').split(/[_\s-]+/)
+  .filter(word=>word&&!/^(snes|game|style|converted|trimmed|trim|loop|looped|edit|final|mix|version|v\d+|chiptune|8bit|16bit)$/i.test(word))
+  .join('-').toLowerCase().replace(/[^a-z0-9-]+/g,'').replace(/-+/g,'-').replace(/^-|-$/g,'');
 }
 const titleFor=id=>id.split('-').map(w=>w[0].toUpperCase()+w.slice(1)).join(' ');
 

@@ -23,9 +23,10 @@ return async function checkMusic(page,{width,height,touch,artifactDir}={}){
   const data=await page.evaluate(()=>V8_MUSIC_DATA);
   assert(Object.keys(data.tracks).length>=10&&data.characters.coco==='golden'&&data.places.jet[0]==='avicii-levels','Shipped music data is loaded');
   // Switching heroes switches themes; a hero without a theme falls back to the place playlist (synth village).
-  await page.evaluate(()=>{for(const id of ['connor','kate'])V4_RPG.members[id].joined=true;});
+  const plain=await page.evaluate(()=>Object.keys(CHARACTERS).find(id=>id!=='coco'&&!V8_MUSIC_DATA.characters[id]));assert(plain,'A hero without a shipped theme exists');
+  await page.evaluate(id=>{for(const member of ['connor',id])V4_RPG.members[member].joined=true;},plain);
   assert(await page.evaluate(()=>GAME.select('connor')),'Connor selected');await waitTrack('seven-nation-army','village');
-  assert(await page.evaluate(()=>GAME.select('kate')),'Kate selected');await waitTrack('synth:village','village');
+  assert(await page.evaluate(id=>GAME.select(id),plain),plain+' selected');await waitTrack('synth:village','village');
   assert(await page.evaluate(()=>__synthStarts>=1&&V8_MUSIC.state.reason==='place'),'Original village theme plays for a hero without a theme');
   assert(await page.evaluate(()=>GAME.select('coco')),'Coco again');await waitTrack('golden','village');
   // Options tab: now playing, toggles, volume, selects.

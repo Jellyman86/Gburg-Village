@@ -51,12 +51,26 @@
    "source": "Golden_SNES_Game.m4a",
    "sourceHash": "1ce457783ffcaca4e6084afd802a4de3e890d93830fd58d65b97ee27f8c52d1d"
   },
+  "just-cant-wait-to-be-king": {
+   "title": "I Just Can't Wait to Be King",
+   "file": "just-cant-wait-to-be-king.mp3",
+   "hash": "c6652a1d4ada10bcbb429c39aed60be876150a745043a4541316844123d9621e",
+   "source": "Just_Cant_Wait_To_Be_King_SNES_Trimmed.m4a",
+   "sourceHash": "341448aa6e4307a4558634ebed54bf53bcee0b5a4364b34a18c4efbfa5664a7f"
+  },
   "karma-chameleon": {
    "title": "Karma Chameleon",
    "file": "karma-chameleon.mp3",
    "hash": "30bbc9c784eb1401a81bab1f209ca82055512e6730b3b1f17bb7cf72623558e1",
    "source": "Karma_Chameleon_SNES_Game.m4a",
    "sourceHash": "a21a4cd17e3e1d23bd1b3cab548d1373f99ace4b7dd07e1e76cc3235ab549bbb"
+  },
+  "nirvana-smells-like-teen-spirit": {
+   "title": "Smells Like Teen Spirit",
+   "file": "nirvana-smells-like-teen-spirit.mp3",
+   "hash": "c61c6a41ce40a79042c2350985c110491be1e930137a101cf47309d38275e358",
+   "source": "Nirvana_Smells_Like_Teen_Spirit_SNES_Game.m4a",
+   "sourceHash": "5437199453dcba724ef4e6af2d77b9ea9a1517b0dbbcf2b703adaec64c1e4584"
   },
   "roses": {
    "title": "Roses",
@@ -99,6 +113,13 @@
    "hash": "041073ed4aca2ba2178a4a2c92978392aac2563a2e1d2e182d8ac6ace7db0d36",
    "source": "Uptown_Girl_SNES_Game.m4a",
    "sourceHash": "50158ace91a5b1dda650cca66fe360334075617f02d3fb1dbfc56c13872673f8"
+  },
+  "waka-waka": {
+   "title": "Waka Waka",
+   "file": "waka-waka.mp3",
+   "hash": "1dff467db5f6bf854be47e8add2cd0b3e566b82ab892c58ce9d45123a0f2a8e5",
+   "source": "Waka_Waka_SNES_Game.m4a",
+   "sourceHash": "06326e931be357987efd1b20f3e6aa3923680871bbc52ccd42d2dbf1edb3d907"
   }
  },
  "characters": {
@@ -109,7 +130,10 @@
   "jaime": "black-or-white",
   "connor": "seven-nation-army",
   "coco": "golden",
-  "adam": "karma-chameleon"
+  "adam": "karma-chameleon",
+  "chris": "nirvana-smells-like-teen-spirit",
+  "kate": "just-cant-wait-to-be-king",
+  "ari": "waka-waka"
  },
  "places": {
   "village": [],
