@@ -32,6 +32,19 @@ function readManifest(){
  return data;
 }
 
+// Add or update one entry (file/source/sourceHash) in art.json; hashes and sizes are filled by build().
+function upsert(id,fields){
+ const data=readManifest();
+ const current=data.assets[id]||{};
+ const entry={file:fields.file||current.file};
+ if(!entry.file)throw new Error('Entry needs a file: '+id);
+ if(fields.source!==undefined)entry.source=fields.source;else if(current.source!==undefined)entry.source=current.source;
+ if(fields.sourceHash!==undefined)entry.sourceHash=fields.sourceHash;else if(current.sourceHash!==undefined)entry.sourceHash=current.sourceHash;
+ data.assets[id]=entry;
+ fs.writeFileSync(manifestPath,JSON.stringify(data,null,1)+'\n');
+ return build({quiet:true});
+}
+
 function listAssetFiles(){
  const out=[];
  (function walk(dir){
@@ -83,29 +96,44 @@ function generate(data){
  return lines.join('\n');
 }
 
-const command=process.argv[2];
-if(command!=='build'&&command!=='check'){
- console.error('Usage: node tools/art.cjs build|check');
- process.exit(2);
+function analyze(){
+ const data=readManifest();
+ const {next,changes,unmanaged}=resolve(data);
+ const serialized=JSON.stringify(next,null,1)+'\n',generated=generate(next);
+ const same=(file,text)=>fs.existsSync(file)&&fs.readFileSync(file,'utf8').replace(/\r\n/g,'\n')===text;
+ return {next,changes,unmanaged,serialized,generated,
+  manifestStale:!same(manifestPath,serialized),
+  generatedStale:!same(generatedPath,generated)};
 }
-const data=readManifest();
-const {next,changes,unmanaged}=resolve(data);
-const serialized=JSON.stringify(next,null,1)+'\n',generated=generate(next);
-const manifestStale=fs.readFileSync(manifestPath,'utf8')!==serialized;
-const generatedStale=!fs.existsSync(generatedPath)||fs.readFileSync(generatedPath,'utf8')!==generated;
-const count=Object.keys(next.assets).length;
-if(command==='build'){
- if(manifestStale)fs.writeFileSync(manifestPath,serialized);
- if(generatedStale)fs.writeFileSync(generatedPath,generated);
- for(const line of changes)console.log('  '+line);
- console.log(`✔ art.json: ${count} assets${changes.length?`, ${changes.length} updated`:''}; src/art.js ${generatedStale?'regenerated':'unchanged'}.`);
- if(unmanaged.length)console.warn('⚠ Files in v8/assets without a manifest entry:\n  '+unmanaged.join('\n  '));
-}else{
- const problems=[];
- if(changes.length)problems.push('Stale manifest fields:\n  '+changes.join('\n  '));
- if(manifestStale&&!changes.length)problems.push('art.json formatting differs from tools/art.cjs output (run `npm run art:build`).');
- if(generatedStale)problems.push('v8/src/art.js is out of date (run `npm run art:build`).');
- if(unmanaged.length)problems.push('Files in v8/assets without a manifest entry:\n  '+unmanaged.join('\n  '));
- if(problems.length){console.error('✖ Art manifest check failed.\n'+problems.join('\n'));process.exit(1);}
+
+function build({quiet=false}={}){
+ const a=analyze(),count=Object.keys(a.next.assets).length;
+ if(a.manifestStale)fs.writeFileSync(manifestPath,a.serialized);
+ if(a.generatedStale)fs.writeFileSync(generatedPath,a.generated);
+ if(!quiet){
+  for(const line of a.changes)console.log('  '+line);
+  console.log(`✔ art.json: ${count} assets${a.changes.length?`, ${a.changes.length} updated`:''}; src/art.js ${a.generatedStale?'regenerated':'unchanged'}.`);
+ }
+ if(a.unmanaged.length)console.warn('⚠ Files in v8/assets without a manifest entry:\n  '+a.unmanaged.join('\n  '));
+ return a;
+}
+
+function check(){
+ const a=analyze(),count=Object.keys(a.next.assets).length,problems=[];
+ if(a.changes.length)problems.push('Stale manifest fields:\n  '+a.changes.join('\n  '));
+ if(a.manifestStale&&!a.changes.length)problems.push('art.json formatting differs from tools/art.cjs output (run `npm run art:build`).');
+ if(a.generatedStale)problems.push('v8/src/art.js is out of date (run `npm run art:build`).');
+ if(a.unmanaged.length)problems.push('Files in v8/assets without a manifest entry:\n  '+a.unmanaged.join('\n  '));
+ if(problems.length){console.error('✖ Art manifest check failed.\n'+problems.join('\n'));return false;}
  console.log(`✔ Art manifest: ${count} assets present with matching hashes and dimensions; src/art.js is current.`);
+ return true;
+}
+
+module.exports={readManifest,upsert,build,check,dimensions,sha256,manifestPath,assetRoot,live,root};
+
+if(require.main===module){
+ const command=process.argv[2];
+ if(command==='build')build();
+ else if(command==='check'){if(!check())process.exit(1);}
+ else{console.error('Usage: node tools/art.cjs build|check');process.exit(2);}
 }

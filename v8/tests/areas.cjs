@@ -1,5 +1,7 @@
 const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),vm=require('node:vm');
 const areas=require('../src/areas.js'),hawaii=require('../src/hawaii.js'),travel=require('../src/world-travel.js'),flyers=require('../src/world-flyers.js');
+const artManifest=require('../src/art.js');
+for(const def of hawaii.defs)assert(artManifest.has(def.art),'Area background is declared in the art manifest: '+def.id);
 const data=require('../data/world-grid.json'),world=travel.create(data),scenes={world:{world:true,width:travel.width,height:travel.height}};
 areas.install(hawaii.defs,scenes);
 const failures=[];

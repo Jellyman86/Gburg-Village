@@ -5,7 +5,7 @@
   arrival:to==='world'?[tx,ty]:arrival(tx,ty),arrivalDirection:direction,roads:[road]});
  const rect=(x,y,w,h,direction)=>({x,y,w,h,direction});
  const defs=[
-  {id:'hawaii-central',name:'Hawaii · Fountain Plaza',source:'Hawaii - Central Zone.png',image:'assets/scenes/hawaii-central.webp',width,height,
+  {id:'hawaii-central',name:'Hawaii · Fountain Plaza',art:'scene.hawaii-central',width,height,
    region:'Hawaii',music:'hawaii',worldSite:'hawaii',spawn:{x:725,y:960},
    paths:[[560,910,330,120],[590,815,275,130],[515,660,80,245],[850,660,85,250],
     [455,585,100,125],[910,585,110,125],[70,470,370,145],[1030,475,235,150],[650,40,145,260]],
@@ -21,7 +21,7 @@
    points:[{id:'hawaii-fountain',name:'Aloha · Fountain Plaza',x:720,y:340,radius:50,text:'Aloha! The south entrance returns to Earth and your parked jet. Explore the overlook to the north, beach to the east, and market to the west.'}],
    enemies:[{kind:'compy',x:430,y:500},{kind:'compy',x:985,y:515}],
    hint:'South returns to Earth. North: overlook. East: beach. West: market. Walk around the fountain and pavilion; water and planted beds are solid.'},
-  {id:'hawaii-west',name:'Hawaii · Tropical Market',source:'Hawaii - West Zone.png',image:'assets/scenes/hawaii-west.webp',width,height,
+  {id:'hawaii-west',name:'Hawaii · Tropical Market',art:'scene.hawaii-west',width,height,
    region:'Hawaii',music:'hawaii',worldSite:'hawaii',spawn:{x:1350,y:540},
    paths:[[1250,495,170,110],[600,50,160,260],[540,925,200,120]],
    polygons:[
@@ -37,7 +37,7 @@
    ],
    enemies:[{kind:'compy',x:1020,y:495},{kind:'dilophosaurus',x:485,y:635},{kind:'compy',x:660,y:735}],
    hint:'The east bridge returns to Fountain Plaza. Explore the shop paths and southern steps; buildings, water and planted beds block movement.'},
-  {id:'hawaii-east',name:'Hawaii · Waikiki Beach',source:'Hawaii - East Zone.png',image:'assets/scenes/hawaii-east.webp',width,height,
+  {id:'hawaii-east',name:'Hawaii · Waikiki Beach',art:'scene.hawaii-east',width,height,
    region:'Hawaii',music:'hawaii',worldSite:'hawaii',spawn:{x:140,y:520},
    paths:[[75,475,290,90],[575,300,200,95]],
    polygons:[
@@ -50,7 +50,7 @@
    points:[{id:'hawaii-beach',name:'Waikiki · Beach lookout',x:875,y:510,radius:45,text:'Turquoise water, distant Diamond Head, and a few prehistoric beach guests. The skyline is a view, not a walking route; stay on the sand.'}],
    enemies:[{kind:'compy',x:405,y:530},{kind:'compy',x:840,y:550}],
    hint:'The west boardwalk returns to Fountain Plaza. Walk the beach paths between the loungers. Ocean, rocky shoreline and distant skyline are not walkable.'},
-  {id:'hawaii-north',name:'Hawaii · Scenic Overlook',source:'Hawaii - North Zone.png',image:'assets/scenes/hawaii-north.webp',width,height,
+  {id:'hawaii-north',name:'Hawaii · Scenic Overlook',art:'scene.hawaii-north',width,height,
    region:'Hawaii',music:'hawaii',worldSite:'hawaii',spawn:{x:725,y:970},
    paths:[[645,880,150,170]],
    polygons:[

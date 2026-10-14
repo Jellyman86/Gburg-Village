@@ -20,18 +20,14 @@ Land near Hawaii's gold marker on clear ground, then walk to it and press **E / 
 
 ## Lightweight future-area workflow
 
-1. Preserve the supplied images in the inbox. Add a small definition modeled on [hawaii.js](src/hawaii.js): stable IDs, source filename, output image, dimensions, spawn, walking polygons/rectangles, solid scenery, exits/arrivals, dinosaur spawns, region, music and `worldSite`.
-2. Register the definitions with [areas.js](src/areas.js) and add the world destination. Area definitions automatically supply enemy spawns and region/map metadata; no separate combat implementation is needed.
-3. Run the image importer. It validates dimensions, generates optimized WebP copies and records source/output SHA-256 hashes in [area-art.json](data/area-art.json). Existing differing outputs require explicit `--rebuild`.
-4. Run focused connectivity and area/browser checks; inspect the actual screenshots. Paths still need to be traced against the artwork—AI-generated scenery is not automatically a reliable collision map.
+1. Import the background: `node tools/import-art.cjs scene <id>` picks the matching `Scene - ….png` from the art inbox, writes an optimized WebP to `assets/scenes/`, and declares `scene.<id>` in [data/art.json](data/art.json) with its inbox provenance.
+2. Add a small definition modeled on [hawaii.js](src/hawaii.js): stable id, `art: 'scene.<id>'`, dimensions, spawn, walking polygons/rectangles, solid scenery, exits/arrivals, dinosaur spawns, region, music and `worldSite`. The manifest guarantees the authored size matches the image.
+3. Register the definitions with [areas.js](src/areas.js) and add the world destination. Area definitions automatically supply enemy spawns and region/map metadata; no separate combat implementation is needed.
+4. `npm run test:quick` runs connectivity and browser checks; inspect the actual screenshots. Paths still need to be traced against the artwork—AI-generated scenery is not automatically a reliable collision map.
 
-The quickest route is the repository task runner (`npm install` once, then `npm run test:quick`, `npm run test:full`, `npm run serve`; see [docs/DEVELOPMENT.md](../docs/DEVELOPMENT.md)). The underlying scripts can also be run directly; `PLAYWRIGHT_CORE` and `BROWSER_PATH` may point to an already installed package/browser:
+Everything runs through the repository task runner (`npm install` once; see [docs/DEVELOPMENT.md](../docs/DEVELOPMENT.md) for the art import, test and preview commands). The underlying scripts can also be run directly; `PLAYWRIGHT_CORE` and `BROWSER_PATH` may point to an already installed package/browser:
 
 ```powershell
-node .\v8\tools\process-areas.cjs
-node .\v8\tools\process-areas.cjs --check
-# Alternate definition module exporting .defs:
-node .\v8\tools\process-areas.cjs --defs=C:\path\to\areas.js
 node .\v8\tests\areas.cjs
 node .\v8\tests\world.cjs
 $env:V8_TEST_SUITES='world,hawaii'

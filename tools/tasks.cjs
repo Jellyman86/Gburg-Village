@@ -112,7 +112,8 @@ const tasks={
  'check:archive'(){node('Frozen archive check',path.join(root,'tools','check-archive.cjs'));},
  'art:build'(){node('Art manifest build',path.join(root,'tools','art.cjs'),['build']);},
  'art:check'(){node('Art manifest',path.join(root,'tools','art.cjs'),['check']);},
- 'areas:check'(){node('Area art provenance',path.join(live,'tools','process-areas.cjs'),['--check'],resolvePlaywrightEnv());},
+ 'art:import'(){node('Import art',path.join(root,'tools','import-art.cjs'),args.filter(a=>a!==task),resolvePlaywrightEnv());},
+ 'art:provenance'(){node('Inbox provenance',path.join(root,'tools','import-art.cjs'),['check'],resolvePlaywrightEnv());},
  predeploy(){tasks['check:archive']();tasks['test:full']();},
  serve(){node('Local read-only server',path.join(live,'tools','server.cjs'));},
  env(){
@@ -130,16 +131,21 @@ const tasks={
    'check:archive  verify frozen V1-V7 folders match the archive/v1-v7 tag',
    'art:build      refresh hashes/dimensions in v8/data/art.json and regenerate v8/src/art.js',
    'art:check      verify every manifest asset exists with matching hash/size and art.js is current',
-   'areas:check    verify imported area art matches recorded inbox hashes (needs the art inbox)',
+   'art:import     import from the art inbox: -- sprite|portrait|scene|image|cells|check ... (see tools/import-art.cjs)',
+   'art:provenance verify imported files still match their inbox originals (skips when the inbox is absent)',
    'predeploy      check:archive + test:full',
    'serve          read-only local preview at http://127.0.0.1:5180/'+LIVE+'/',
    'env            print the Node/Playwright/browser the tasks will use'].join('\n'));
  }
 };
 
-if(!task||!tasks[task]){
- if(task)console.error('Unknown task: '+task+'\n');
- tasks.help();
- process.exit(task?1:0);
+module.exports={resolvePlaywrightEnv,LIVE,root,live};
+
+if(require.main===module){
+ if(!task||!tasks[task]){
+  if(task)console.error('Unknown task: '+task+'\n');
+  tasks.help();
+  process.exit(task?1:0);
+ }
+ if(task==='browser')tasks.browser(ALL_SUITES,ALL_LAYOUTS);else tasks[task]();
 }
-if(task==='browser')tasks.browser(ALL_SUITES,ALL_LAYOUTS);else tasks[task]();

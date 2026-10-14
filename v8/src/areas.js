@@ -22,7 +22,15 @@
    (scene.blockedPolygons||[]).some(p=>points.some(([px,py])=>contains(p,px,py)));
  }
  function create(def){
-  const {id,name,image,width,height,spawn,paths=[],polygons=[],obstacles=[],blockedPolygons=[],exits=[],points=[],enemies=[]}=def;
+  const {id,name,width,height,spawn,paths=[],polygons=[],obstacles=[],blockedPolygons=[],exits=[],points=[],enemies=[]}=def;
+  // Areas name their background by art id; the manifest supplies the URL and guarantees the authored size matches the file.
+  let image=def.image;
+  if(def.art){
+   if(!root.V8_ART)throw new Error('V8_ART must load before area definitions: '+id);
+   const entry=root.V8_ART.entry(def.art);
+   if(entry.width!==width||entry.height!==height)throw new Error(`Area ${id} is authored at ${width}x${height} but ${def.art} is ${entry.width}x${entry.height}`);
+   image=root.V8_ART.url(def.art);
+  }
   if(!id||!name||!image||!Number.isFinite(width)||!Number.isFinite(height)||width<=0||height<=0||!spawn)throw new Error('Invalid area definition: '+id);
   const scene={id,name,image,width,height,region:def.region,music:def.music,worldSite:def.worldSite,ambientFlight:false,
    bounds:{left:0,top:0,right:width,bottom:height},spawn:{...spawn},
