@@ -46,9 +46,9 @@ return async function checkMusic(page,{width,height,touch,artifactDir}={}){
   await page.locator('#menu-detail select[data-character="coco"]').selectOption('roses');await waitTrack('roses','village');
   await page.locator('#menu-detail select[data-character="coco"]').selectOption('__default');await waitTrack('golden','village');
   await page.evaluate(()=>{const v=document.getElementById('option-music-volume');v.value='30';v.dispatchEvent(new Event('input',{bubbles:true}));});
-  assert(await page.evaluate(()=>Math.abs(V8_MUSIC.state.level-.3)<.001&&Math.abs(V8_MUSIC.element.volume-V8_MUSIC.state.volume)<.001&&V8_MUSIC.state.volume<.05&&V8_MUSIC.gainFor(1)===.8&&V8_MUSIC.gainFor(.1)<.005),'Volume slider drives the audio element on a quiet-at-the-bottom curve');
+  assert(await page.evaluate(()=>Math.abs(V8_MUSIC.state.level-.3)<.001&&(V8_MUSIC.element.volume===1||Math.abs(V8_MUSIC.element.volume-V8_MUSIC.state.volume)<.001)&&V8_MUSIC.state.volume<.05&&V8_MUSIC.gainFor(1)===.8&&V8_MUSIC.gainFor(.1)<.005),'Volume slider drives the audio element on a quiet-at-the-bottom curve');
   await activate('#option-music-off');await page.waitForFunction(()=>V8_MUSIC.state.music==='off'&&!V8_MUSIC.state.playing);
-  assert(await page.evaluate(()=>document.getElementById('music-toggle').textContent.includes('Off')),'Stage toggle mirrors the menu');
+  assert(await page.evaluate(()=>!document.getElementById('music-toggle')),'No stage music button: music is always on and lives in Options');
   await activate('#option-music-themed');await waitTrack('golden','village');
   await activate('#close-menu');await page.waitForFunction(()=>!document.getElementById('rpg-menu').open);
   // Preferences persist across reloads; the rest of the menu is unaffected.

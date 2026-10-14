@@ -40,7 +40,11 @@ Local read-only preview: `node .\v8\tools\server.cjs`, then http://127.0.0.1:518
 
 ## Music
 
-Each hero has a theme that starts when you play as them; the jet plays *Levels*; Hawaii and the cutscenes keep their original themes until a playlist is assigned. **Options** offers a music mode — Off, On (place playlists) or Themed (hero themes) — volume, a track per place (or rotate a playlist) and an override for any hero's theme, all saved on your device. Tracks are MP3 and the original synthesized themes remain selectable. Shipped defaults: [data/music.json](data/music.json).
+Each hero has a theme that starts when you play as them; the jet plays *Levels*; Hawaii and the cutscenes keep their original themes until a playlist is assigned. Music is always on (after your first tap). **Options** offers the music mode — On (place playlists) or Themed (hero themes), with Off for silence — a music-only volume slider, a track per place (or rotate a playlist) and an override for any hero's theme, all saved on your device. Tracks are MP3 and the original synthesized themes remain selectable. Shipped defaults: [data/music.json](data/music.json).
+
+## Collision editor
+
+`npm run studio` opens Gburg Studio at http://127.0.0.1:5181/v8/studio/: every scene's walkable and blocked shapes, markers, road strips, spawn and bounds drawn over the real background, with a walk-test layer that shows exactly where the game blocks movement. Move, resize, add or delete shapes and Save; the game reads the result from [data/scene-geometry.json](data/scene-geometry.json) at load. The same page is published read-only as a viewer: https://jellyman86.github.io/Gburg-Village/v8/studio/.
 
 ## Limits and verification
 

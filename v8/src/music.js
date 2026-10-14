@@ -4,17 +4,13 @@
 (() => {
  'use strict';
  const stage=document.getElementById('stage');
- if(!stage||document.getElementById('music-toggle'))return;
+ if(!stage||window.V8_MUSIC)return;
  const data=window.V8_MUSIC_DATA||{root:'assets/music/',tracks:{},characters:{},places:{},characterPlaces:[]};
  const PLACES=['village','world','jet','hawaii','nyc','battle','cafe','omen'];
  const SYNTH={village:'Village theme',battle:'Battle theme',cafe:'Café theme',omen:'Omen theme',jet:'Jet theme',hawaii:'Hawaii theme'};
  const FALLBACK={world:'village',nyc:'village'};
  const CHARACTER_PLACES=new Set(data.characterPlaces&&data.characterPlaces.length?data.characterPlaces:['village','world','nyc']);
  const PREFS_KEY='gburg-v8-music',LEGACY_KEY='village-music';
- const button=document.createElement('button');
- button.id='music-toggle';button.type='button';button.className='quiet';
- button.style.cssText='position:absolute;top:10px;right:10px;z-index:3;min-height:44px;padding:8px 12px;background:#17383bee;border-color:#d3b16d;font:12px system-ui;border-radius:6px;touch-action:manipulation';
- stage.append(button);
  const AudioContextClass=window.AudioContext||window.webkitAudioContext;
 
  // Preferences --------------------------------------------------------------------------------------------------
@@ -81,16 +77,11 @@
 
  // Playback: one <audio> element for files (iOS unlocks it once), Web Audio for synthesized themes ------------------
  const audio=document.createElement('audio');audio.preload='auto';audio.setAttribute('aria-hidden','true');
- let context=null,gain=null,source=null,synthBuffer=null,synthStartedAt=0;
+ let context=null,gain=null,source=null,synthBuffer=null,synthStartedAt=0,mediaSource=null;
  const buffers={},positions={};
  let current=null,startCount=0,generation=0,fileStarted=false;
- function paint(){
-  const playing=isPlaying();
-  button.textContent=!enabled?'♫ Music: Off':playing?(prefs.characterMusic?'♫ Music: Themed':'♫ Music: On'):'♫ Tap for music';
-  button.setAttribute('aria-pressed',String(enabled));
-  button.setAttribute('aria-label',playing?'Turn background music off':!enabled?'Turn background music on':'Start background music');
-  document.dispatchEvent(new CustomEvent('v8-music-change',{detail:state()}));
- }
+ // Music is always on; Options (Menu) holds the mode and volume. Changes are broadcast for the menu's live "now playing".
+ function paint(){document.dispatchEvent(new CustomEvent('v8-music-change',{detail:state()}));}
  function isPlaying(){
   if(!current)return false;
   if(isSynth(current.track))return !!source&&context?.state==='running';
@@ -168,19 +159,24 @@
     const track=data.tracks[next.track];
     const url=data.root+track.file+'?v='+track.hash.slice(0,10);
     if(!audio.src.endsWith(url))audio.src=url;
-    audio.loop=next.loop;audio.volume=volume();
+    audio.loop=next.loop;
     const resume=positions[next.track]||0;
     const seek=()=>{try{if(resume>0&&Number.isFinite(audio.duration)&&resume<audio.duration-1)audio.currentTime=resume;}catch(_){}};
     if(audio.readyState>=1)seek();else audio.addEventListener('loadedmetadata',seek,{once:true});
+    // play() first so it sits inside the user gesture; then route the element through the shared gain node, because
+    // iOS ignores HTMLMediaElement.volume but honours Web Audio gain.
     const playing=audio.play();
     fileStarted=true;
+    const ctx=await ensureContext();
+    if(ctx&&!mediaSource){try{mediaSource=ctx.createMediaElementSource(audio);mediaSource.connect(gain);}catch(error){console.warn('Music volume falls back to element volume.',error);}}
+    audio.volume=mediaSource?1:volume();
     if(playing)await playing;
     if(token!==generation||!enabled){return;}
    }
    current=next;startCount++;paint();
   }catch(error){
    fileStarted=false;current=null;
-   if(error?.name!=='NotAllowedError')console.warn('Music could not start; tap the music button to retry.',error);
+   if(error?.name!=='NotAllowedError')console.warn('Music could not start; it retries on the next tap or key press.',error);
    paint();
   }
  }
@@ -194,12 +190,8 @@
  const sync=()=>{if(wantedPlace())start();else stop();};
 
  // Controls -------------------------------------------------------------------------------------------------------
- button.addEventListener('click',()=>{
-  if(enabled&&isPlaying()){enabled=false;stop();}
-  else{enabled=true;start();}
-  savePrefs();paint();
- });
- function gesture(event){if(!button.contains(event.target)&&!event.repeat)start();}
+ // Browsers only allow audio after a user gesture; any tap or key starts (or resumes) the right track automatically.
+ function gesture(event){if(!event.repeat)start();}
  // Capture sees joystick touches even when their handlers prevent default.
  document.addEventListener('pointerdown',gesture,{passive:true,capture:true});
  document.addEventListener('touchend',gesture,{passive:true,capture:true});
@@ -237,7 +229,7 @@
   },
   gainFor,
   // level: slider position 0..1 (perceptual curve); state.volume reports the resulting gain
-  setVolume(level){prefs.level=Math.min(1,Math.max(0,Number(level)||0));audio.volume=volume();if(gain)gain.gain.value=volume();savePrefs();paint();return prefs.level;},
+  setVolume(level){prefs.level=Math.min(1,Math.max(0,Number(level)||0));audio.volume=mediaSource?1:volume();if(gain)gain.gain.value=volume();savePrefs();paint();return prefs.level;},
   // pick: 'character' | '' (rotate) | track id | undefined (restore shipped default)
   setPlacePick(place,pick){
    if(!PLACES.includes(place))throw new Error('Unknown music place: '+place);

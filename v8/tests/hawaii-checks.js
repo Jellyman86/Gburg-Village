@@ -63,8 +63,8 @@ return async function checkHawaii(page,{width,height,touch,artifactDir}={}){
   const starts=await page.evaluate(()=>V5_MUSIC.state.startCount);
   await move(0,-1,250);await move(1,0,150);
   assert(await page.evaluate(n=>V5_MUSIC.state.startCount===n,starts),'Jet theme continues without restarting on movement/turns');
-  await activate('#music-toggle');assert(await page.evaluate(()=>!V5_MUSIC.state.enabled&&!V5_MUSIC.state.playing),'Music Off silences flight');
-  await activate('#music-toggle');await page.waitForFunction(()=>V5_MUSIC.state.mode==='jet'&&V5_MUSIC.state.playing);
+  await page.evaluate(()=>V8_MUSIC.setMode('off'));assert(await page.evaluate(()=>!V5_MUSIC.state.enabled&&!V5_MUSIC.state.playing),'Music Off silences flight');
+  await page.evaluate(()=>V8_MUSIC.setMode('themed'));await page.waitForFunction(()=>V5_MUSIC.state.mode==='jet'&&V5_MUSIC.state.playing);
   await page.evaluate(()=>GAME.test.position(V8_WORLD_FLYERS.homes[0].x,V8_WORLD_FLYERS.homes[0].y+120));
   const safe=await page.evaluate(()=>({x:GAME.state.player.x,y:GAME.state.player.y,hp:V4_RPG.members.coco.hp}));
   await page.waitForFunction(()=>GAME.test.flyers[0].mode==='follow',null,{timeout:15000});

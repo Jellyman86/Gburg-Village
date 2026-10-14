@@ -42,6 +42,8 @@ The task runner ([tools/tasks.cjs](../tools/tasks.cjs)) auto-detects a browser: 
 | `node tools/import-art.cjs …` | Import sprites/portraits/scenes from the art inbox (see Art workflow) | ~5 s |
 | `npm run art:provenance` | Confirm imported files still match their inbox originals (skips if no inbox) | <1 s |
 | `node tools/music.cjs import` / `npm run music:build` | Convert tracks from `Music/`; sync `music.json` → `music-data.js` (see Music workflow) | ~10 s |
+| `npm run studio` | Visual collision editor + game preview on localhost (see Collision editor) | — |
+| `npm run geometry:check` | Validate `scene-geometry.json` against the live scenes (runs inside `test:quick`) | <1 s |
 | `npm run serve` | Read-only local preview at http://127.0.0.1:5180/v8/ | — |
 
 Environment knobs honored by the suites: `V8_TEST_SUITES`, `V8_TEST_LAYOUTS`, `V8_TEST_ORIGIN`, `V8_ARTIFACT_DIR` (writes screenshots to an existing directory).
@@ -66,9 +68,26 @@ node tools/music.cjs check           # part of test:quick
 
 Places: `village`, `world`, `jet`, `hawaii`, `nyc` (exploration) and `battle`, `cafe`, `omen` (cutscenes). Track ids come from the file name (`Uptown_Girl_SNES_Game.m4a` → `uptown-girl`); edit `title` in the JSON if you want a different display name. Dropping a new file in `Music/` and running `import` adds it; it becomes selectable immediately and assignable in the JSON.
 
-In the game, **Menu → Options** shows what's playing and offers a three-way music mode — **Off**, **On** (place playlists only) or **Themed** (the active hero's theme where allowed) — plus volume, a pick per place (character theme / rotate playlist / a specific track / an original theme) and an override for each hero's theme. Those choices are saved on the device; the JSON stays the shipped default. The volume slider follows a perceptual curve (gain = 0.8 × position^2.5) so the low end is genuinely quiet next to the sound effects; the default position is 50 %.
+In the game, music is always on (it starts with the first tap or key, as browsers require) and there is no on-screen music button. **Menu → Options** shows what's playing and offers the music mode — **On** (place playlists only) or **Themed** (the active hero's theme where allowed), with **Off** available there for silence — plus volume, a pick per place (character theme / rotate playlist / a specific track / an original theme) and an override for each hero's theme. Those choices are saved on the device; the JSON stays the shipped default. The volume slider affects music only (sound effects have their own toggle under Help) and follows a perceptual curve (gain = 0.8 × position^2.5) so the low end is genuinely quiet; the default position is 50 %. MP3 playback is routed through the same Web Audio gain node as the original themes because iOS ignores `HTMLMediaElement.volume`.
 
 Audio notes: `.m4a` (AAC) does not decode in the open-source Chromium the tests use and OGG does not play on iPhone, so everything ships as MP3 (128 kbps; ~3 MB per track). `Music/` is git-ignored like the art inbox — keep your originals there.
+
+## Collision editor (Gburg Studio)
+
+```powershell
+npm run studio        # http://127.0.0.1:5181/v8/studio/   (game preview at http://127.0.0.1:5181/v8/)
+```
+
+The studio loads the game's own scene definitions and draws them over the real backgrounds: walkable shapes (green), blocked shapes (red), markers/exits (gold diamonds with their trigger radius), road strips (cyan arrows), bounds and spawn. Pick a scene from the dropdown, then:
+
+- **Select / move** — click a shape, drag it, drag the white handles to resize (corners/edges, ellipse radii, polygon points, marker radius). Alt+click a polygon edge adds a point; Delete removes the selection; arrows nudge; Ctrl+Z / Ctrl+Y undo/redo. The right panel shows exact numbers you can type.
+- **Drawing tools** — walkable/blocked rectangle, polygon (click points, Enter or click the first point to close), ellipse, marker (a new interaction spot with your own text), road strip (select an exit first; crossing the strip in its arrow direction triggers the exit).
+- **Walk test** layer — samples the real `V8_AREAS.blocked` function and tints blocked ground red, so you see exactly what the game will do, including the "no walkable shapes = everything inside bounds" rule.
+- **Save (Ctrl+S)** writes `v8/data/scene-geometry.json` and regenerates `v8/src/scene-geometry-data.js`; reload the game preview to walk it. Commit and push to publish. **Revert scene to code defaults** drops a scene's override.
+
+How it fits the game: [v8/src/scene-geometry.js](../v8/src/scene-geometry.js) applies the override document right after scenes are installed (`V8_GEOMETRY.apply(SCENES)` in `index.html`). A scene without an entry keeps the geometry defined in `map.js` / `scenes.js` / `hawaii.js`; the first time you save a scene, its whole collision set is data-driven from then on. Landmarks merge by id, so exits, pickups and story markers keep their behaviour while you move them. `npm run geometry:check` (inside `test:quick`) validates the data against the live scenes, and the geometry contract test proves extract → apply round-trips every scene with identical collision results. No Tiled involved.
+
+The studio page is also published read-only (https://jellyman86.github.io/Gburg-Village/v8/studio/) as a viewer; saving needs the local server.
 
 ## Branch, merge and deploy
 
@@ -111,7 +130,7 @@ Replacing an existing asset keeps its file name and refuses size changes unless 
 **Add a new scene**
 1. `node tools/import-art.cjs scene <id>` (creates `scene.<id>`; add `--width 724` to downscale an interior).
 2. Add a definition modeled on [v8/src/hawaii.js](../v8/src/hawaii.js) with `art: 'scene.<id>'` (spawn, walkable polygons/rectangles, obstacles, exits, interactions, enemies) and register it in [v8/index.html](../v8/index.html) with `V8_AREAS.install`. Kentlands interiors use the `interior()` helper in [scenes.js](../v8/src/scenes.js).
-3. `npm run test:quick` validates geometry/connectivity and that the authored size matches the image; trace paths against the artwork and inspect screenshots.
+3. `npm run test:quick` validates geometry/connectivity and that the authored size matches the image. Then open `npm run studio`, pick the scene and adjust the shapes over the actual artwork with the walk-test layer on; Save writes the data override.
 
 Game contracts: sprite cells 64×64 (128 for large dinosaurs), transparent background, foot anchor at y=60, walk sheets 4 frames per row in down/left/right/up order with walking rows four below idle rows. Portraits 128×128 transparent PNG. Scenes any size, stored as WebP.
 
@@ -120,7 +139,7 @@ Game contracts: sprite cells 64×64 (128 for large dinosaurs), transparent backg
 1. ✅ **Freeze policy, Node/npm, task runner, tiered tests, archive check, docs reset** (this step).
 2. ✅ **Asset manifest + consolidation.** 137 files V8 loaded from V1–V7 now live in `v8/assets/`; all 141 images are declared in `v8/data/art.json` and resolved through `V8_ART.url(id)` with hash-based cache-busting. No cross-version references remain.
 3. ✅ **Generalized importer** — `tools/import-art.cjs sprite|portrait|scene|image|cells|check`: detects drawings on ChatGPT's transparent exports, maps them into the game grid via layout presets (`walk6`, `walk4`, `walk8`) or an explicit row spec, writes assets + manifest entries with inbox provenance, and saves numbered previews. `docs/ART-SPEC.md` is the paste-ready ChatGPT brief. Replaces `v8/tools/process-areas.cjs`.
-4. **Unified scene geometry + visual collision editor**: a small in-browser tool (`npm run studio`) that overlays walkable/blocked/exit shapes on the real background, lets you drag/resize/add shapes and copies the definition back out; migrate Kentlands scenes to the `areas.js` definition format.
+4. ✅ **Visual collision editor** — `npm run studio` (`v8/studio/`, `tools/studio-server.cjs`): edit walkable/blocked shapes, markers, roads, spawn and bounds over the real backgrounds with a live walk-test; saves `v8/data/scene-geometry.json`, applied by `v8/src/scene-geometry.js`. Scenes migrate to data the first time they are saved; untouched ones keep their code geometry.
 5. **Format-only pass** on `v8/` (Prettier), then extract asset loading from `game.js` into `assets.js` (music is already in `music.js`).
 6. ✅ **Music manifest** — MP3 tracks + `data/music.json` (hero themes, place playlists), `tools/music.cjs import|build|check`, `src/music.js` director (one `<audio>` element, synth originals retained), Menu → Options with pickers. Music moved out of `game.js`.
 

@@ -109,7 +109,7 @@ return async function checkDanger(page,{width,height,touch,artifactDir}={}){
   await page.evaluate(()=>GAME.test.position(780,370));await page.waitForFunction(()=>GAME.state.dinosaur.windup===0);
   assert(await page.evaluate(()=>V4_RPG.members.coco.hp===80),'Ankylosaurus tail windup is dodgeable');
   await page.evaluate(()=>GAME.test.fixture('compy'));await page.waitForFunction(()=>GAME.state.playerCombat.lastHit!==null);
-  assert(await page.evaluate(()=>V4_RPG.members.coco.hp===77&&!document.getElementById('hero-health')&&document.getElementById('toast').textContent.includes('damage')&&!document.getElementById('toast').textContent.includes('77')&&__dangerSounds.includes('player-hurt')),'Real contact applies defense with menu-only HP and toast/audio feedback');
+  assert(await page.evaluate(()=>V4_RPG.members.coco.hp===77&&!document.getElementById('hero-health')&&!document.getElementById('toast').textContent.includes('damage')&&__dangerSounds.includes('player-hurt')),'Real contact applies defense with menu-only HP and audio feedback, no damage pop-up');
   await page.waitForFunction(()=>__dangerOutline>0);
   await page.evaluate(()=>{V4_RPG.recruit('connor');GAME.select('connor');});
   assert(await page.evaluate(()=>!GAME.test.damage(20)&&V4_RPG.members.connor.hp===90),'Hero switching cannot bypass hit invulnerability');

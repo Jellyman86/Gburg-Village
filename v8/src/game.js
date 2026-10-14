@@ -16,7 +16,7 @@
  const reduced=matchMedia('(prefers-reduced-motion: reduce)');
  const combat=V6_COMBAT.create({blocked,onSound:kind=>V4_SFX.play(kind),showNumbers:V6_SETTINGS.values.damageNumbers,reduced:()=>reduced.matches});
  const playerCombat=V6_PLAYER_COMBAT.create({getActor:()=>player,getMember:id=>V4_RPG.members[id],move,reduced:()=>reduced.matches,
-  onHit:hit=>{resetInput();V4_SFX.play('player-hurt');toast(characters[hit.id].name+' took damage! Check HP in Menu.');},
+  onHit:hit=>{resetInput();V4_SFX.play('player-hurt');},
   onFaint:()=>{resetInput();powers.clear();attacks.clear(encounterEnemies());combat.clearEffects();$('nearby').hidden=true;V4_SFX.play('faint');paintPower();},
   onRecover:recoverPlayer});
  const attacks=V6_ENEMY_ATTACKS.create({getActor:()=>player,blocked,onHit:(amount,source)=>playerCombat.damage(amount,source),onSound:kind=>V4_SFX.play(kind),isActive:()=>!playerCombat.locked});
@@ -139,10 +139,8 @@
  function encounterEnemies(){return (dino?[dino]:[]).concat(extraEnemies[town.id]||[]);}
  function activeEnemies(){return encounterEnemies().filter(enemy=>!enemy.hidden);}
  let dinoHome=null,dino=null;
- let powers; function makePowers(){return window.FAMILY_POWERS.create({blocked,getTargets:()=>activeEnemies().filter(enemy=>enemy.alive),getActor:()=>player,getAbility:actor=>window.V4_RPG.members[actor.id].ability,getSwordImage:()=>extraSheets.sword,getTowelImage:()=>extraSheets.towel,getGrenadeImage:()=>extraSheets.grenade,onSound:kind=>V4_SFX.play(kind),onHit:(id,hit)=>{
-  const alive=hit.target.alive;
-  combat.hit(hit.target,{...hit,strength:V4_RPG.stats(hit.owner).strength});
-  if(alive&&!hit.target.alive)toast(hit.target.mode==='retreat'?'That dinosaur has had enough! Watch it retreat.':'Poof! A little dinosaur defeated.');
+ let powers; function makePowers(){return window.FAMILY_POWERS.create({blocked,getTargets:()=>activeEnemies().filter(enemy=>enemy.alive),getActor:()=>player,getAbility:actor=>window.V4_RPG.members[actor.id].ability,getSwordImage:()=>extraSheets.sword,getTowelImage:()=>extraSheets.towel,getGrenadeImage:()=>extraSheets.grenade, onSound:kind=>V4_SFX.play(kind),onHit:(id,hit)=>{
+   combat.hit(hit.target,{...hit,strength:V4_RPG.stats(hit.owner).strength});
  }});} powers=makePowers();
  const powerButton=$('power'),powerLabel=$('power-label'),powerHint=$('power-hint');
  function paintPower(){
@@ -159,7 +157,7 @@
    toast('Equip the Japanese sword to use Sword slash.');return false;
   }
   const used=powers.activate({...player,powerHeight:unicorn.riding?20:0});
-  if(used){const scared=flight.scare(player);V4_SFX.play(window.FAMILY_POWERS.definitions[window.V4_RPG.members[player.id].ability].sound);toast(scared?'The pterodactyl got scared and flew away!':window.FAMILY_POWERS.definitions[window.V4_RPG.members[player.id].ability].name+'!');paintPower();}
+  if(used){flight.scare(player);V4_SFX.play(window.FAMILY_POWERS.definitions[window.V4_RPG.members[player.id].ability].sound);paintPower();}
   return used;
  }
  powerButton.addEventListener('pointerdown',e=>{e.preventDefault();activatePower();canvas.focus({preventScroll:true});});
@@ -180,7 +178,6 @@
    if(dino.timer<=0)dinoRest(null,dino);
   }else if(dino.timer<=0&&distance<185){
    dino.mode='chase';dino.timer=5+Math.random()*2;dino.target=null;
-   if(dino.kind!=='compy')toast('A dinosaur is approaching. Dodge the warning ring or use your power!');
   }
   if(dino.mode==='wander'&&(!dino.target||dino.turnTimer<=0||
     Math.hypot(dino.target.x-dino.x,dino.target.y-dino.y)<12)){
