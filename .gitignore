@@ -14,3 +14,7 @@ test-artifacts/
 !.vscode/extensions.json
 .DS_Store
 Thumbs.db
+
+# Raw music drops (m4a etc.); import them with tools/music.cjs
+Music/
+

@@ -38,10 +38,14 @@ node .\v8\tests\run.cjs
 
 Local read-only preview: `node .\v8\tools\server.cjs`, then http://127.0.0.1:5180/v8/. Set `GBURG_V8_PORT` to choose another port.
 
+## Music
+
+Each hero has a theme that starts when you play as them (Menu → Options → Character themes); the jet plays *Levels*; Hawaii and the cutscenes keep their original themes until a playlist is assigned. **Options** lets you turn music or hero themes off, set volume, pick a track per place (or rotate a playlist) and override any hero's theme — saved on your device. Tracks are MP3 and the original synthesized themes remain selectable. Shipped defaults: [data/music.json](data/music.json).
+
 ## Limits and verification
 
 The Hawaii images are separate illustrated rooms with transitions, not seamless tiles. Oceans, waterfalls, cliffs, planted beds, fountains, buildings and distant skyline are scenery, not walking routes. Shop interiors and new Hawaii quests/recruits are not included. Geography remains stylized and coarse; Florida is not a separate city scene. No Tiled pipeline is introduced.
 
-Progress remains session-only; refreshing starts over. Music is original synthesized audio, not recorded ukulele or a downloaded song.
+Progress remains session-only; refreshing starts over. Music is MP3 tracks plus the original synthesized themes; see the Music section.
 
 Local contracts validate safe arrivals, connected routes to every exit/interaction/enemy, solid scenery, logical Florida and timed harmless followers. Browser checks pass desktop and both touch layouts for travel, actual rendered Hawaii art, real combat, paused menus, parked-jet/party retention, flyer rendering and distinct nonempty/unclipped audio buffers. Retained recruitment checks pass on desktop; shared combat/healing/companion checks pass all three layouts. Touch testing is Chromium emulation, **not physical iPhone verification or a human audio-listening claim**.

@@ -41,9 +41,34 @@ The task runner ([tools/tasks.cjs](../tools/tasks.cjs)) auto-detects a browser: 
 | `npm run art:check` | Verify the manifest matches disk (runs inside `test:quick`) | <1 s |
 | `node tools/import-art.cjs …` | Import sprites/portraits/scenes from the art inbox (see Art workflow) | ~5 s |
 | `npm run art:provenance` | Confirm imported files still match their inbox originals (skips if no inbox) | <1 s |
+| `node tools/music.cjs import` / `npm run music:build` | Convert tracks from `Music/`; sync `music.json` → `music-data.js` (see Music workflow) | ~10 s |
 | `npm run serve` | Read-only local preview at http://127.0.0.1:5180/v8/ | — |
 
 Environment knobs honored by the suites: `V8_TEST_SUITES`, `V8_TEST_LAYOUTS`, `V8_TEST_ORIGIN`, `V8_ARTIFACT_DIR` (writes screenshots to an existing directory).
+
+## Music workflow
+
+Tracks are MP3 files in `v8/assets/music/`, declared in [v8/data/music.json](../v8/data/music.json) and played by [v8/src/music.js](../v8/src/music.js). The original synthesized themes stay built in as `synth:<place>` tracks ("Original · Village theme" etc.) and play wherever nothing else is assigned.
+
+```powershell
+node tools/music.cjs import          # convert new/changed files from Music/ (m4a, wav, …) to v8/assets/music/*.mp3 via FFmpeg
+node tools/music.cjs build           # after editing music.json: validate, sync hashes, regenerate v8/src/music-data.js
+node tools/music.cjs check           # part of test:quick
+```
+
+`music.json` is the single source of truth and is meant to be hand-edited:
+
+```json
+"characters": { "coco": "golden", "stephanie": "uptown-girl" },     // theme that plays while that hero is active
+"characterPlaces": ["village", "world", "nyc"],                     // places where hero themes play by default
+"places": { "jet": ["avicii-levels"], "hawaii": [], "village": [] }  // ordered playlists; several tracks rotate, one loops, none = original theme
+```
+
+Places: `village`, `world`, `jet`, `hawaii`, `nyc` (exploration) and `battle`, `cafe`, `omen` (cutscenes). Track ids come from the file name (`Uptown_Girl_SNES_Game.m4a` → `uptown-girl`); edit `title` in the JSON if you want a different display name. Dropping a new file in `Music/` and running `import` adds it; it becomes selectable immediately and assignable in the JSON.
+
+In the game, **Menu → Options** shows what's playing and lets the player turn music or character themes on/off, set volume, pick per place (character theme / rotate playlist / a specific track / an original theme) and override each hero's theme. Those choices are saved on the device; the JSON stays the shipped default.
+
+Audio notes: `.m4a` (AAC) does not decode in the open-source Chromium the tests use and OGG does not play on iPhone, so everything ships as MP3 (128 kbps; ~3 MB per track). `Music/` is git-ignored like the art inbox — keep your originals there.
 
 ## Branch, merge and deploy
 
@@ -96,7 +121,7 @@ Game contracts: sprite cells 64×64 (128 for large dinosaurs), transparent backg
 2. ✅ **Asset manifest + consolidation.** 137 files V8 loaded from V1–V7 now live in `v8/assets/`; all 141 images are declared in `v8/data/art.json` and resolved through `V8_ART.url(id)` with hash-based cache-busting. No cross-version references remain.
 3. ✅ **Generalized importer** — `tools/import-art.cjs sprite|portrait|scene|image|cells|check`: detects drawings on ChatGPT's transparent exports, maps them into the game grid via layout presets (`walk6`, `walk4`, `walk8`) or an explicit row spec, writes assets + manifest entries with inbox provenance, and saves numbered previews. `docs/ART-SPEC.md` is the paste-ready ChatGPT brief. Replaces `v8/tools/process-areas.cjs`.
 4. **Unified scene geometry + visual collision editor**: a small in-browser tool (`npm run studio`) that overlays walkable/blocked/exit shapes on the real background, lets you drag/resize/add shapes and copies the definition back out; migrate Kentlands scenes to the `areas.js` definition format.
-5. **Format-only pass** on `v8/` (Prettier), then extract asset loading and music from `game.js` into `assets.js` / `music.js`.
-6. **Music manifest**: convert MIDI → MP3, declare tracks in `music.json`, hook into the existing scene/flight/cinematic mode selector; Menu music picker plus per-character themes with a toggle.
+5. **Format-only pass** on `v8/` (Prettier), then extract asset loading from `game.js` into `assets.js` (music is already in `music.js`).
+6. ✅ **Music manifest** — MP3 tracks + `data/music.json` (hero themes, place playlists), `tools/music.cjs import|build|check`, `src/music.js` director (one `<audio>` element, synth originals retained), Menu → Options with pickers. Music moved out of `game.js`.
 
 Not planned: Tiled or a tilemap pipeline, a framework, or a rewrite.

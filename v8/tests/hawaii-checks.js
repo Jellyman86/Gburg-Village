@@ -3,7 +3,9 @@ return async function checkHawaii(page,{width,height,touch,artifactDir}={}){
  const onError=e=>errors.push(e.message),onConsole=m=>{if(m.type()==='error')errors.push(m.text());},onResponse=r=>{if(r.status()>=400)failed.push(r.url());};
  page.on('pageerror',onError);page.on('console',onConsole);page.on('response',onResponse);
  await page.addInitScript(()=>{
-  window.__areaDraws=[];window.__musicBuffers=[];
+  window.__areaDraws=[];window.__musicBuffers=[];window.__musicPlays=[];
+  const play=HTMLMediaElement.prototype.play;
+  HTMLMediaElement.prototype.play=function(...args){__musicPlays.push((this.src||this.currentSrc||'').split('?')[0]);return play.apply(this,args);};
   const draw=CanvasRenderingContext2D.prototype.drawImage;
   CanvasRenderingContext2D.prototype.drawImage=function(...args){
    if(this.canvas.id==='game'){
@@ -73,7 +75,7 @@ return async function checkHawaii(page,{width,height,touch,artifactDir}={}){
   await page.waitForFunction(()=>GAME.test.flyers[0].mode==='wander');
   assert(await page.evaluate(before=>GAME.state.player.x===before.x&&GAME.state.player.y===before.y&&V4_RPG.members.coco.hp===before.hp&&!GAME.state.flight.active&&GAME.test.flyers[0].cooldown>20,safe),'World flyer leaves with no damage/grab/player movement and a long cooldown');
   await page.evaluate(()=>{const s=V8_TRAVEL.sites.find(s=>s.id==='hawaii');GAME.test.position(s.x,s.y+20);});
-  await activate('#travel-action');await page.waitForFunction(()=>!GAME.state.travel.flying&&V5_MUSIC.state.mode==='village');
+  await activate('#travel-action');await page.waitForFunction(()=>!GAME.state.travel.flying&&V5_MUSIC.state.mode==='world');
   const parked=await page.evaluate(()=>GAME.state.travel.plane);
   await interact();await page.waitForFunction(()=>GAME.ready&&GAME.state.scene==='hawaii-central'&&V5_MUSIC.state.mode==='hawaii');
   await page.evaluate(()=>GAME.test.quiet());
@@ -110,12 +112,13 @@ return async function checkHawaii(page,{width,height,touch,artifactDir}={}){
   }
   const snapshot=await page.evaluate(()=>({hp:V4_RPG.members.coco.hp,inventory:{...V4_RPG.inventory},joined:Object.keys(V4_RPG.members).filter(id=>V4_RPG.members[id].joined)}));
   await page.evaluate(()=>GAME.test.position(725,970));await move(0,1,500);
-  await page.waitForFunction(()=>GAME.ready&&GAME.state.scene==='world'&&V5_MUSIC.state.mode==='village');
+  await page.waitForFunction(()=>GAME.ready&&GAME.state.scene==='world'&&V5_MUSIC.state.mode==='world');
   assert(await page.evaluate(p=>JSON.stringify(GAME.state.travel.plane)===JSON.stringify(p),parked),'Parked jet survives the complete Hawaii visit');
   assert(await page.evaluate(before=>GAME.state.player.id==='coco'&&V4_RPG.members.coco.hp===before.hp&&JSON.stringify(V4_RPG.inventory)===JSON.stringify(before.inventory)&&JSON.stringify(Object.keys(V4_RPG.members).filter(id=>V4_RPG.members[id].joined))===JSON.stringify(before.joined),snapshot),'Hawaii round trip preserves hero, party, HP and items');
-  assert(await page.evaluate(()=>__musicBuffers.length>=3&&__musicBuffers.every(b=>b.finite&&b.peak>0&&b.peak<1&&b.mean>.001)&&new Set(__musicBuffers.map(b=>Math.round(b.duration))).size>=3),'Actual original village, flight and Hawaii buffers are nonempty, distinct and unclipped');
+  assert(await page.evaluate(()=>{const files=new Set(__musicPlays.filter(s=>s.includes('/assets/music/')));const audio=V8_MUSIC.element;return files.size>=2&&V5_MUSIC.state.playing&&V5_MUSIC.state.track==='golden'&&audio&&Number.isFinite(audio.duration)&&audio.duration>10&&!audio.paused&&__musicPlays.some(s=>s.endsWith('/avicii-levels.mp3'));}),'Real MP3 tracks decode and play: hero theme on land, Levels in the jet, distinct files');
+  assert(await page.evaluate(()=>__musicBuffers.every(b=>b.finite&&b.peak>0&&b.peak<1)),'Any synthesized buffers are finite and unclipped');
   assert(errors.length===0,'Unexpected page errors: '+errors.join('; '));assert(failed.length===0,'Failed assets: '+failed.join('; '));
-  return {layout:width+'x'+height,touch:!!touch,pass:'Hawaii world entry, all four backgrounds, reversible native-input routes, combat/menu/party retention, parked jet, gentle rendered flyers and actual distinct music buffers'};
+  return {layout:width+'x'+height,touch:!!touch,pass:'Hawaii world entry, all four backgrounds, reversible native-input routes, combat/menu/party retention, parked jet, gentle rendered flyers and real MP3 hero/jet music'};
  }catch(error){
   console.error(await page.evaluate(()=>({scene:GAME?.state.scene,player:GAME?.state.player,music:V5_MUSIC?.state,toast:document.getElementById('toast').textContent})));
   await screenshot('failure');throw error;

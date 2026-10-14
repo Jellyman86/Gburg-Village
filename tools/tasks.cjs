@@ -9,9 +9,9 @@ const root=path.resolve(__dirname,'..');
 const LIVE='v8'; // The living version. Earlier folders are frozen archives (see tools/check-archive.cjs).
 const live=path.join(root,LIVE);
 const HOSTED_ORIGIN='https://jellyman86.github.io/Gburg-Village';
-const ALL_SUITES='world,hawaii,scenes,danger,combat';
+const ALL_SUITES='world,hawaii,music,scenes,danger,combat';
 const ALL_LAYOUTS='1280x900,390x844,844x390';
-const QUICK_SUITES='world,hawaii';
+const QUICK_SUITES='world,hawaii,music';
 const QUICK_LAYOUTS='1280x900';
 
 const args=process.argv.slice(2);
@@ -94,6 +94,8 @@ const tasks={
  contracts(){
   const env=resolvePlaywrightEnv();
   node('Art manifest',path.join(root,'tools','art.cjs'),['check']);
+  node('Music manifest',path.join(root,'tools','music.cjs'),['check']);
+  node('Music contracts',path.join(live,'tests','music.cjs'),[],env);
   node('Area contracts',path.join(live,'tests','areas.cjs'),[],env);
   node('World contracts',path.join(live,'tests','world.cjs'),[],env);
  },
@@ -113,6 +115,9 @@ const tasks={
  'art:build'(){node('Art manifest build',path.join(root,'tools','art.cjs'),['build']);},
  'art:check'(){node('Art manifest',path.join(root,'tools','art.cjs'),['check']);},
  'art:import'(){node('Import art',path.join(root,'tools','import-art.cjs'),args.filter(a=>a!==task),resolvePlaywrightEnv());},
+ 'music:import'(){node('Import music',path.join(root,'tools','music.cjs'),['import',...args.filter(a=>a!==task)]);},
+ 'music:build'(){node('Music manifest build',path.join(root,'tools','music.cjs'),['build']);},
+ 'music:check'(){node('Music manifest',path.join(root,'tools','music.cjs'),['check']);},
  'art:provenance'(){node('Inbox provenance',path.join(root,'tools','import-art.cjs'),['check'],resolvePlaywrightEnv());},
  predeploy(){tasks['check:archive']();tasks['test:full']();},
  serve(){node('Local read-only server',path.join(live,'tools','server.cjs'));},
@@ -133,6 +138,9 @@ const tasks={
    'art:check      verify every manifest asset exists with matching hash/size and art.js is current',
    'art:import     import from the art inbox: -- sprite|portrait|scene|image|cells|check ... (see tools/import-art.cjs)',
    'art:provenance verify imported files still match their inbox originals (skips when the inbox is absent)',
+   'music:import   convert new/changed tracks from Music/ into v8/assets/music/*.mp3 and update data/music.json',
+   'music:build    sync track hashes and regenerate v8/src/music-data.js after editing data/music.json',
+   'music:check    verify music.json, files and music-data.js agree',
    'predeploy      check:archive + test:full',
    'serve          read-only local preview at http://127.0.0.1:5180/'+LIVE+'/',
    'env            print the Node/Playwright/browser the tasks will use'].join('\n'));

@@ -1,7 +1,7 @@
 (() => {
  'use strict';
  const $=id=>document.getElementById(id),dialog=$('rpg-menu'),rpg=window.V4_RPG;
- const sections=['Party','Stats','Items','Equip','Abilities'],tabs=[],roster={};
+ const sections=['Party','Stats','Items','Equip','Abilities','Options'],tabs=[],roster={};
  let selected='coco',section='Party';
  function element(tag,text,className){
   const node=document.createElement(tag);if(text!==undefined)node.textContent=text;
@@ -87,8 +87,71 @@
     button.dataset.ability=id||'none';button.setAttribute('aria-pressed',String(equipped===id));list.append(button);
    }
    detail.append(list,element('p','Relic-style slot: choose one power. X or the power button uses it in the world. Find the sword in the Dino house for Sword slash and the grenade north of Cinepolis for a reusable blast. Jeff throws baseballs, Ari volleys soccer balls, Chris uses a short-range Towel Whip, and Jaime spins a skate tornado.','menu-note'));
+  }else if(section==='Options'){
+   renderOptions(detail);
   }
   detail.append(element('p','Preview progress lasts for this play session only; local saves are the next milestone.','menu-note'));
+ }
+ // Options: music director controls. Shipped defaults live in data/music.json; choices here are saved on this device.
+ function renderOptions(detail){
+  const music=window.V8_MUSIC;
+  detail.append(element('h3','Music'));
+  if(!music){detail.append(element('p','Music is not available in this browser.','menu-note'));return;}
+  const state=music.state,now=element('p',undefined,'now-playing');now.id='music-now-playing';
+  now.textContent=nowPlaying();
+  detail.append(now);
+  const toggles=element('div',undefined,'option-row');
+  const onOff=option(state.enabled?'Music: On':'Music: Off',()=>{music.setEnabled(!music.state.enabled);return {message:music.state.enabled?'Music on.':'Music off.'};});onOff.id='option-music';onOff.setAttribute('aria-pressed',String(state.enabled));
+  const characterMusic=option(state.characterMusic?'Character themes: On':'Character themes: Off',()=>{music.setCharacterMusic(!music.state.characterMusic);return {message:music.state.characterMusic?'Each hero plays their own theme.':'Places play their own playlists.'};});characterMusic.id='option-character-music';characterMusic.setAttribute('aria-pressed',String(state.characterMusic));
+  const skip=option('Next track',()=>{music.skip();return {message:'Skipped.'};});skip.id='option-music-skip';skip.disabled=state.reason!=='rotate';
+  toggles.append(onOff,characterMusic,skip);detail.append(toggles);
+  const volumeRow=element('label',undefined,'option-row');volumeRow.append(element('span','Volume'));
+  const volume=element('input');volume.type='range';volume.min='0';volume.max='100';volume.step='5';volume.value=String(Math.round(state.volume*100));volume.id='option-music-volume';volume.setAttribute('aria-label','Music volume');
+  volume.addEventListener('input',()=>music.setVolume(Number(volume.value)/100));
+  volumeRow.append(volume);detail.append(volumeRow);
+  const trackOptions=(select,extra)=>{
+   for(const [value,label] of extra)select.append(new Option(label,value));
+   const files=music.tracks().filter(t=>t.kind==='file'),synth=music.tracks().filter(t=>t.kind==='synth');
+   const group=document.createElement('optgroup');group.label='Tracks';for(const t of files)group.append(new Option(t.title,t.id));select.append(group);
+   const originals=document.createElement('optgroup');originals.label='Original themes';for(const t of synth)originals.append(new Option(t.title,t.id));select.append(originals);
+  };
+  detail.append(element('h3','Places'));
+  const places=element('div',undefined,'option-grid');
+  for(const place of music.places){
+   const label=element('label');label.append(element('span',music.placeLabels[place]));
+   const select=element('select');select.dataset.place=place;
+   const list=music.playlist(place);
+   trackOptions(select,[['character','Character theme'],['',`Rotate playlist (${list.length}: ${list.map(id=>music.titleOf(id)).join(', ')})`]]);
+   select.value=music.placePick(place);
+   select.addEventListener('change',()=>{music.setPlacePick(place,select.value);render();$('menu-message').textContent=music.placeLabels[place]+' → '+(select.value==='character'?'character theme':select.value===''?'rotating playlist':music.titleOf(select.value))+'.';});
+   label.append(select);places.append(label);
+  }
+  detail.append(places);
+  detail.append(element('h3','Character themes'));
+  const themes=element('div',undefined,'option-grid');
+  for(const [id,character] of Object.entries(window.CHARACTERS)){
+   if(!rpg.members[id].joined)continue;
+   const label=element('label');label.append(element('span',character.name));
+   const select=element('select');select.dataset.character=id;
+   const shipped=music.defaultCharacterTheme(id);
+   trackOptions(select,[['__default',`Default (${shipped?music.titleOf(shipped):'none'})`],['__none','No theme']]);
+   const current=music.characterTheme(id),stored=music.state&&Object.hasOwn(JSON.parse(localStorage.getItem('gburg-v8-music')||'{}').characters||{},id);
+   select.value=!stored?'__default':current===null?'__none':current;
+   select.addEventListener('change',()=>{music.setCharacterTheme(id,select.value==='__default'?undefined:select.value==='__none'?null:select.value);render();$('menu-message').textContent=character.name+' → '+(select.value==='__default'?'default theme':select.value==='__none'?'no theme':music.titleOf(select.value))+'.';});
+   label.append(select);themes.append(label);
+  }
+  detail.append(themes);
+  detail.append(element('p','Shipped defaults come from data/music.json. Choices here are remembered on this device. Sound effects, damage numbers and the bus gag are under Help.','menu-note'));
+ }
+ function nowPlaying(){
+  const state=window.V8_MUSIC.state;
+  return !state.enabled?'Music is off.':state.playing?`Now playing: ${state.title}`+(state.reason==='character'?` (${window.CHARACTERS[window.GAME?.state.player.id]?.name}'s theme)`:state.reason==='rotate'?' (rotating)':''):'Music starts after your next tap or key press.';
+ }
+ document.addEventListener('v8-music-change',()=>{const now=$('music-now-playing');if(now&&dialog.open)now.textContent=nowPlaying();});
+ function option(label,perform){
+  const button=element('button',label);button.type='button';
+  button.addEventListener('click',()=>{const result=perform();render();$('menu-message').textContent=result.message;});
+  return button;
  }
  function action(label,perform){
   const button=element('button',label);button.type='button';

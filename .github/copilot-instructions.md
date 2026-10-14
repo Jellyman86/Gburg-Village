@@ -20,6 +20,7 @@ Project: family/neighborhood top-down HTML Canvas adventure (vanilla JS, no buil
 - Menus and controls must work on desktop keyboard/mouse and iPhone touch; keep real-time gameplay outside menus.
 - Character sheets: 64×64 cells, 4 walk frames, rows down/left/right/up, foot (32,60). Portraits: 128×128 transparent PNG. Use obvious placeholders and stable IDs when art is missing.
 - **All art goes through the manifest.** Files live in `v8/assets/`, are declared in `v8/data/art.json`, and are referenced in code only via `V8_ART.url('<category>.<name>[.<variant>]')`. Never hard-code image paths or `?v=` cache-busters. Import inbox art with `node tools/import-art.cjs sprite|portrait|scene <id>` (see `docs/DEVELOPMENT.md`); for hand-placed files run `npm run art:build`. Commit the regenerated `v8/src/art.js`.
+- **Music goes through `v8/data/music.json`** (hero themes, place playlists) and `v8/src/music.js`; import tracks with `node tools/music.cjs import`, then `npm run music:build`. Ship MP3 only. Keep the original synthesized themes available.
 - Scenes are data-driven (`v8/src/areas.js` definitions + `v8/tools/process-areas.cjs`). Prefer adding data over adding code paths. No Tiled or tilemap pipeline unless the user explicitly asks.
 - Pathing/collision fixes belong in scene data with contract tests, not new frameworks.
 - Follow the roadmap order in `docs/DEVELOPMENT.md` unless the user redirects.

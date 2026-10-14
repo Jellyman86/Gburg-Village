@@ -65,3 +65,12 @@
  .member-summary{margin-bottom:8px}
  #menu-message{min-height:16px;margin:0!important;font-size:11px!important}
 }
+.option-row{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:8px 0 14px}
+.option-row button{min-height:44px;padding:8px 12px;background:#253d7d;border:1px solid #97a6cb;border-radius:3px}
+.option-row [aria-pressed=true]{border-color:#ffe7a1;background:#425bb0;color:#ffe7a1}
+.option-row input[type=range]{flex:1;min-width:140px;accent-color:#ffe7a1}
+.option-row span{font:13px system-ui;color:#e1e8ff;min-width:60px}
+.option-grid{display:grid;grid-template-columns:1fr;gap:8px;margin-bottom:16px}
+.option-grid label{display:grid;grid-template-columns:minmax(110px,1fr) minmax(0,2fr);gap:8px;align-items:center;font:13px system-ui;color:#e1e8ff}
+.option-grid select{min-height:40px;max-width:100%;padding:6px 8px;font:13px system-ui;color:#fff5df;background:#122052;border:1px solid #6277a3;border-radius:3px}
+#music-now-playing{color:#ffe7a1}
