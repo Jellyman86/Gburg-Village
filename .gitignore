@@ -1,0 +1,16 @@
+# Dependencies
+node_modules/
+
+# Raw art drops from ChatGPT (hundreds of MB). Import them with the tools instead of committing originals.
+art inbox/
+
+# Test artifacts and local output
+test-artifacts/
+*.log
+
+# Editor / OS
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+.DS_Store
+Thumbs.db

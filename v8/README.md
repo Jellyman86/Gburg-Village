@@ -25,7 +25,7 @@ Land near Hawaii's gold marker on clear ground, then walk to it and press **E / 
 3. Run the image importer. It validates dimensions, generates optimized WebP copies and records source/output SHA-256 hashes in [area-art.json](data/area-art.json). Existing differing outputs require explicit `--rebuild`.
 4. Run focused connectivity and area/browser checks; inspect the actual screenshots. Paths still need to be traced against the artwork—AI-generated scenery is not automatically a reliable collision map.
 
-Use the existing Node/Playwright tools; `PLAYWRIGHT_CORE` and `BROWSER_PATH` may point to an already installed package/browser:
+The quickest route is the repository task runner (`npm install` once, then `npm run test:quick`, `npm run test:full`, `npm run serve`; see [docs/DEVELOPMENT.md](../docs/DEVELOPMENT.md)). The underlying scripts can also be run directly; `PLAYWRIGHT_CORE` and `BROWSER_PATH` may point to an already installed package/browser:
 
 ```powershell
 node .\v8\tools\process-areas.cjs

@@ -1,35 +1,24 @@
-# Copilot instructions — Gburg Village
+﻿# Copilot instructions — Gburg Village
 
-Read `V4_PLAN.md` and `PROGRESS.md` before coding; inspect latest repo state, don't rely solely on prior chat summaries.
+Read `PROGRESS.md` (one screen) and `docs/DEVELOPMENT.md` before coding. Git history and current files are authoritative; do not rely on prior chat summaries. `V4_PLAN.md` is the original vision/milestone document — useful for intent, stale for state.
 
-Project: family/neighborhood top-down HTML Canvas adventure, Final Fantasy IV–VI-inspired presentation, Zelda-style REAL-TIME exploration/combat. Every created human character should be playable eventually. The user generates pixel art/portraits separately; Copilot handles the coding and integration.
+Project: family/neighborhood top-down HTML Canvas adventure (vanilla JS, no build step), Final Fantasy IV–VI-style presentation, Zelda-style real-time exploration/combat. Every human character should eventually be playable. The user generates sprites, portraits and backgrounds in ChatGPT; Copilot does all integration and code.
 
-## Current priority: FEATURES, not Tiled
-- Build V4 RPG menu, roster, stats, equipment, items, relic-style equipped abilities and save foundation before optional map-editing tooling.
-- **Do not implement Tiled** or a new tilemap pipeline unless the user explicitly requests it in the future. Pathing/collision bugs can be fixed directly in existing JS, with tests.
-- Use 128x128 transparent portrait PNGs when supplied; meanwhile use obvious placeholders and stable character IDs.
-- Menus should work on desktop, keyboard and iPhone touch; preserve real-time gameplay outside the menu.
+## Where work happens
+- **`v8/` is the only living version.** All features, fixes, art integration and tests go there (or in root `tools/`, `docs/`, `package.json`).
+- **Repo root (V1), `v2/` … `v7/` are frozen.** Never edit, rename, delete, or add files under them. `npm run check:archive` must pass. Their URLs must keep working.
+- Do **not** create a new `vN/` folder for a feature. Releases are git tags + a line in PROGRESS.md.
+- `art inbox/` is git-ignored user art. Read from it; never commit originals or modify them.
 
-## Safety
-- V1 root, `v2/`, and `v3/` are preserved working versions. Do not edit, delete, rename or publish them while implementing V4.
-- Keep V4 code isolated in `v4/` and use appropriate Git branching to protect concurrent work. Verify current refs before editing.
-- User authorizes automatic deployment of tested working V4 changes without repeated approval. Never break/overwrite V1–V3, their URLs, or shared deployment configuration. If a deployment risks old versions or major site settings, pause and ask.
-- Avoid giant monolithic rewrites, mass asset copies, and large code/base64 dumps in chat. Choose your own sensible development/commit strategy; test meaningful changes.
-- Track actual outcomes/limitations in progress log; don't claim physical iPhone verification from desktop emulation.
+## Workflow
+1. Branch from `main`. Keep edits small and reviewable; avoid giant rewrites, mass asset copies and large code/base64 dumps in chat.
+2. Run `npm run test:quick` while iterating; `npm run predeploy` before merging. Use `npm run browser -- --suites=… --layouts=…` to narrow.
+3. Fast-forward merge to `main`, push (GitHub Pages deploys `main`), then `npm run test:hosted`. The user has pre-authorized deploying tested V8 changes without asking each time. Pause and ask only if a change could affect frozen versions or shared site configuration.
+4. Record outcome in PROGRESS.md in 1–3 lines. Report: what changed, URL/status, actual verification evidence, next action. Chromium touch emulation is **not** physical iPhone verification; say so.
 
-## First coding task
-Milestone 0 + first slice of Milestone 1 in `V4_PLAN.md`: set up playable isolated V4 and build an FFVI-style Party/Stats menu supporting the FULL playable roster, levels, HP, XP, strength, quickness, dexterity, defense, portrait placeholder slots, safe movement pause and responsive controls. Use separate character data and menu state/UI where practical. Do not implement the whole equipment/quest system in one enormous patch.
-
-## Follow-up increments (after first slice tested)
-1. Inventory / equipment slots; Japanese sword placeholder and hamburger healing item.
-2. Relic-style selection of one equipped ability per character while retaining existing powers.
-3. Persistence, progression and friend rescue/unlock logic.
-4. New characters, locations, audio and polish once assets arrive.
-
-## Existing implementation pointers
-- `v3/src/game.js` core Canvas loop/movement.
-- `v3/src/map.js` plaza map data; `v3/src/scenes.js` scene images, routes, collisions.
-- Existing asset paths may reference `v2/`, root or V3. Preserve relative URLs and existing gameplay mechanics during V4 duplication.
-- Test intro, dinosaurs, powers, portals, keyboard and touch after changes.
-
-Report concise changes, deployment URL/status, verification evidence and next action. Do not dump source files into chat.
+## Conventions
+- Menus and controls must work on desktop keyboard/mouse and iPhone touch; keep real-time gameplay outside menus.
+- Character sheets: 64×64 cells, 4 walk frames, rows down/left/right/up, foot (32,60). Portraits: 128×128 transparent PNG. Use obvious placeholders and stable IDs when art is missing.
+- Scenes are data-driven (`v8/src/areas.js` definitions + `v8/tools/process-areas.cjs`). Prefer adding data over adding code paths. No Tiled or tilemap pipeline unless the user explicitly asks.
+- Pathing/collision fixes belong in scene data with contract tests, not new frameworks.
+- Follow the roadmap order in `docs/DEVELOPMENT.md` unless the user redirects.
