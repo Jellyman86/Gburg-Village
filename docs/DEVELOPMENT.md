@@ -66,7 +66,7 @@ node tools/music.cjs check           # part of test:quick
 
 Places: `village`, `world`, `jet`, `hawaii`, `nyc` (exploration) and `battle`, `cafe`, `omen` (cutscenes). Track ids come from the file name (`Uptown_Girl_SNES_Game.m4a` → `uptown-girl`); edit `title` in the JSON if you want a different display name. Dropping a new file in `Music/` and running `import` adds it; it becomes selectable immediately and assignable in the JSON.
 
-In the game, **Menu → Options** shows what's playing and lets the player turn music or character themes on/off, set volume, pick per place (character theme / rotate playlist / a specific track / an original theme) and override each hero's theme. Those choices are saved on the device; the JSON stays the shipped default.
+In the game, **Menu → Options** shows what's playing and offers a three-way music mode — **Off**, **On** (place playlists only) or **Themed** (the active hero's theme where allowed) — plus volume, a pick per place (character theme / rotate playlist / a specific track / an original theme) and an override for each hero's theme. Those choices are saved on the device; the JSON stays the shipped default. The volume slider follows a perceptual curve (gain = 0.8 × position^2.5) so the low end is genuinely quiet next to the sound effects; the default position is 50 %.
 
 Audio notes: `.m4a` (AAC) does not decode in the open-source Chromium the tests use and OGG does not play on iPhone, so everything ships as MP3 (128 kbps; ~3 MB per track). `Music/` is git-ignored like the art inbox — keep your originals there.
 

@@ -74,3 +74,7 @@
 .option-grid label{display:grid;grid-template-columns:minmax(110px,1fr) minmax(0,2fr);gap:8px;align-items:center;font:13px system-ui;color:#e1e8ff}
 .option-grid select{min-height:40px;max-width:100%;padding:6px 8px;font:13px system-ui;color:#fff5df;background:#122052;border:1px solid #6277a3;border-radius:3px}
 #music-now-playing{color:#ffe7a1}
+.segmented{display:inline-flex;gap:0;margin:0}
+.segmented button{border-radius:0;margin-left:-1px}
+.segmented button:first-child{border-radius:3px 0 0 3px;margin-left:0}
+.segmented button:last-child{border-radius:0 3px 3px 0}

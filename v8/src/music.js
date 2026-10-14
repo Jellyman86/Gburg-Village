@@ -18,17 +18,22 @@
  const AudioContextClass=window.AudioContext||window.webkitAudioContext;
 
  // Preferences --------------------------------------------------------------------------------------------------
+ // Music mode: 'off' | 'on' (place playlists only) | 'themed' (the active hero's theme where allowed).
  let enabled=true;
- const prefs={characterMusic:true,volume:.7,places:{},characters:{}};
+ const prefs={characterMusic:true,level:.5,places:{},characters:{}};
  try{enabled=localStorage.getItem(LEGACY_KEY)!=='off';}catch(_){}
  try{
   const saved=JSON.parse(localStorage.getItem(PREFS_KEY)||'{}');
   if(typeof saved.characterMusic==='boolean')prefs.characterMusic=saved.characterMusic;
-  if(typeof saved.volume==='number'&&saved.volume>=0&&saved.volume<=1)prefs.volume=saved.volume;
+  if(typeof saved.level==='number'&&saved.level>=0&&saved.level<=1)prefs.level=saved.level;
   if(saved.places&&typeof saved.places==='object')for(const [place,pick] of Object.entries(saved.places))if(PLACES.includes(place)&&typeof pick==='string')prefs.places[place]=pick;
   if(saved.characters&&typeof saved.characters==='object')for(const [id,pick] of Object.entries(saved.characters))if(pick===null||typeof pick==='string')prefs.characters[id]=pick;
  }catch(error){console.warn('Music preferences could not load; using defaults.',error);}
  function savePrefs(){try{localStorage.setItem(PREFS_KEY,JSON.stringify(prefs));localStorage.setItem(LEGACY_KEY,enabled?'on':'off');}catch(_){}}
+ // Slider position -> gain. Hearing is logarithmic, so a power curve keeps the low end genuinely quiet; full slider is 80% gain.
+ const gainFor=level=>Math.round(.8*Math.pow(Math.min(1,Math.max(0,level)),2.5)*1000)/1000;
+ const volume=()=>gainFor(prefs.level);
+ const musicMode=()=>!enabled?'off':prefs.characterMusic?'themed':'on';
 
  // Track catalogue -------------------------------------------------------------------------------------------------
  const isSynth=id=>typeof id==='string'&&id.startsWith('synth:');
@@ -81,7 +86,7 @@
  let current=null,startCount=0,generation=0,fileStarted=false;
  function paint(){
   const playing=isPlaying();
-  button.textContent=!enabled?'♫ Music: Off':playing?'♫ Music: On':'♫ Tap for music';
+  button.textContent=!enabled?'♫ Music: Off':playing?(prefs.characterMusic?'♫ Music: Themed':'♫ Music: On'):'♫ Tap for music';
   button.setAttribute('aria-pressed',String(enabled));
   button.setAttribute('aria-label',playing?'Turn background music off':!enabled?'Turn background music on':'Start background music');
   document.dispatchEvent(new CustomEvent('v8-music-change',{detail:state()}));
@@ -139,7 +144,7 @@
  async function ensureContext(){
   if(!AudioContextClass)return null;
   if(!context){context=new AudioContextClass();gain=context.createGain();gain.connect(context.destination);context.addEventListener('statechange',paint);}
-  gain.gain.value=prefs.volume;
+  gain.gain.value=volume();
   // Resume inside the gesture; iOS may also require a started buffer.
   const resuming=context.resume();
   const unlock=context.createBufferSource();unlock.buffer=context.createBuffer(1,1,context.sampleRate);unlock.connect(context.destination);unlock.onended=()=>unlock.disconnect();unlock.start(0);
@@ -163,7 +168,7 @@
     const track=data.tracks[next.track];
     const url=data.root+track.file+'?v='+track.hash.slice(0,10);
     if(!audio.src.endsWith(url))audio.src=url;
-    audio.loop=next.loop;audio.volume=prefs.volume;
+    audio.loop=next.loop;audio.volume=volume();
     const resume=positions[next.track]||0;
     const seek=()=>{try{if(resume>0&&Number.isFinite(audio.duration)&&resume<audio.duration-1)audio.currentTime=resume;}catch(_){}};
     if(audio.readyState>=1)seek();else audio.addEventListener('loadedmetadata',seek,{once:true});
@@ -211,7 +216,7 @@
  window.addEventListener('pageshow',()=>{if(enabled)start();});
 
  function state(){
-  return {enabled,characterMusic:prefs.characterMusic,volume:prefs.volume,mode:current?current.place:null,track:current?current.track:null,title:current?titleOf(current.track):null,reason:current?current.reason:null,playing:isPlaying(),startCount};
+  return {enabled,music:musicMode(),characterMusic:prefs.characterMusic,level:prefs.level,volume:volume(),mode:current?current.place:null,track:current?current.track:null,title:current?titleOf(current.track):null,reason:current?current.reason:null,playing:isPlaying(),startCount};
  }
  const api={
   get state(){return state();},
@@ -224,7 +229,15 @@
   defaultCharacterTheme:id=>data.characters[id]&&exists(data.characters[id])?data.characters[id]:null,
   setEnabled(value){enabled=!!value;if(enabled)start();else stop();savePrefs();paint();return enabled;},
   setCharacterMusic(value){prefs.characterMusic=!!value;savePrefs();sync();paint();return prefs.characterMusic;},
-  setVolume(value){prefs.volume=Math.min(1,Math.max(0,Number(value)||0));audio.volume=prefs.volume;if(gain)gain.gain.value=prefs.volume;savePrefs();paint();return prefs.volume;},
+  // mode: 'off' | 'on' | 'themed'
+  setMode(mode){
+   if(!['off','on','themed'].includes(mode))throw new Error('Unknown music mode: '+mode);
+   if(mode==='off'){enabled=false;stop();}else{prefs.characterMusic=mode==='themed';enabled=true;sync();}
+   savePrefs();paint();return musicMode();
+  },
+  gainFor,
+  // level: slider position 0..1 (perceptual curve); state.volume reports the resulting gain
+  setVolume(level){prefs.level=Math.min(1,Math.max(0,Number(level)||0));audio.volume=volume();if(gain)gain.gain.value=volume();savePrefs();paint();return prefs.level;},
   // pick: 'character' | '' (rotate) | track id | undefined (restore shipped default)
   setPlacePick(place,pick){
    if(!PLACES.includes(place))throw new Error('Unknown music place: '+place);

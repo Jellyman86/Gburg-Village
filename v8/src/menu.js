@@ -100,13 +100,14 @@
   const state=music.state,now=element('p',undefined,'now-playing');now.id='music-now-playing';
   now.textContent=nowPlaying();
   detail.append(now);
-  const toggles=element('div',undefined,'option-row');
-  const onOff=option(state.enabled?'Music: On':'Music: Off',()=>{music.setEnabled(!music.state.enabled);return {message:music.state.enabled?'Music on.':'Music off.'};});onOff.id='option-music';onOff.setAttribute('aria-pressed',String(state.enabled));
-  const characterMusic=option(state.characterMusic?'Character themes: On':'Character themes: Off',()=>{music.setCharacterMusic(!music.state.characterMusic);return {message:music.state.characterMusic?'Each hero plays their own theme.':'Places play their own playlists.'};});characterMusic.id='option-character-music';characterMusic.setAttribute('aria-pressed',String(state.characterMusic));
+  const modes=element('div',undefined,'option-row segmented');modes.setAttribute('role','group');modes.setAttribute('aria-label','Music mode');
+  for(const [mode,label,message] of [['off','Off','Music off.'],['on','On','Place playlists play; hero themes are off.'],['themed','Themed','Each hero plays their own theme where allowed.']]){
+   const choice=option(label,()=>{music.setMode(mode);return {message};});choice.id='option-music-'+mode;choice.setAttribute('aria-pressed',String(state.music===mode));modes.append(choice);
+  }
   const skip=option('Next track',()=>{music.skip();return {message:'Skipped.'};});skip.id='option-music-skip';skip.disabled=state.reason!=='rotate';
-  toggles.append(onOff,characterMusic,skip);detail.append(toggles);
+  const toggles=element('div',undefined,'option-row');toggles.append(element('span','Music'),modes,skip);detail.append(toggles);
   const volumeRow=element('label',undefined,'option-row');volumeRow.append(element('span','Volume'));
-  const volume=element('input');volume.type='range';volume.min='0';volume.max='100';volume.step='5';volume.value=String(Math.round(state.volume*100));volume.id='option-music-volume';volume.setAttribute('aria-label','Music volume');
+  const volume=element('input');volume.type='range';volume.min='0';volume.max='100';volume.step='5';volume.value=String(Math.round(state.level*100));volume.id='option-music-volume';volume.setAttribute('aria-label','Music volume');
   volume.addEventListener('input',()=>music.setVolume(Number(volume.value)/100));
   volumeRow.append(volume);detail.append(volumeRow);
   const trackOptions=(select,extra)=>{

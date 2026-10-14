@@ -40,7 +40,7 @@ Local read-only preview: `node .\v8\tools\server.cjs`, then http://127.0.0.1:518
 
 ## Music
 
-Each hero has a theme that starts when you play as them (Menu → Options → Character themes); the jet plays *Levels*; Hawaii and the cutscenes keep their original themes until a playlist is assigned. **Options** lets you turn music or hero themes off, set volume, pick a track per place (or rotate a playlist) and override any hero's theme — saved on your device. Tracks are MP3 and the original synthesized themes remain selectable. Shipped defaults: [data/music.json](data/music.json).
+Each hero has a theme that starts when you play as them; the jet plays *Levels*; Hawaii and the cutscenes keep their original themes until a playlist is assigned. **Options** offers a music mode — Off, On (place playlists) or Themed (hero themes) — volume, a track per place (or rotate a playlist) and an override for any hero's theme, all saved on your device. Tracks are MP3 and the original synthesized themes remain selectable. Shipped defaults: [data/music.json](data/music.json).
 
 ## Limits and verification
 

@@ -51,6 +51,13 @@
    "source": "Golden_SNES_Game.m4a",
    "sourceHash": "1ce457783ffcaca4e6084afd802a4de3e890d93830fd58d65b97ee27f8c52d1d"
   },
+  "hate-it-or-love-it": {
+   "title": "Hate It Or Love It",
+   "file": "hate-it-or-love-it.mp3",
+   "hash": "e6b31d794b91a4934c895e3a28f43c1220f261d6fdbed038729940bb35fe6f40",
+   "source": "Hate_It_Or_Love_It_SNES_Game.m4a",
+   "sourceHash": "fe479b1ab976a12e34fd029ff0bb7233562be27c99ae575aaf813dd84ba2ad68"
+  },
   "just-cant-wait-to-be-king": {
    "title": "I Just Can't Wait to Be King",
    "file": "just-cant-wait-to-be-king.mp3",
@@ -72,6 +79,13 @@
    "source": "Nirvana_Smells_Like_Teen_Spirit_SNES_Game.m4a",
    "sourceHash": "5437199453dcba724ef4e6af2d77b9ea9a1517b0dbbcf2b703adaec64c1e4584"
   },
+  "oasis-wonderwall": {
+   "title": "Wonderwall",
+   "file": "oasis-wonderwall.mp3",
+   "hash": "e0e22475184ec129a8783987b2104fd73da6f8b2f73f161d8f6c47e9458b0ae7",
+   "source": "Oasis_Wonderwall_SNES_Game.m4a",
+   "sourceHash": "0ca1d109458369ee7d7f009d96013c189c355a899ee402ed5faabb6b4c0971d1"
+  },
   "roses": {
    "title": "Roses",
    "file": "roses.mp3",
@@ -86,12 +100,26 @@
    "source": "Seven_Nation_Army_SNES_Game.m4a",
    "sourceHash": "9552a82e3a0105b5870b31c9215fec25e81f060da283e92d3ed12a4de07d59ff"
   },
+  "star-spangled-banner": {
+   "title": "The Star-Spangled Banner",
+   "file": "star-spangled-banner.mp3",
+   "hash": "0a604ca8aa8909dfefd5f811b98c8e4e244d2d2a972c02b06d909207823c6d27",
+   "source": "Star_Spangled_Banner_SNES_Game.m4a",
+   "sourceHash": "c524f5a5cafda346bf32322fb8e6cb57970897a28c8c23d420d23f6b9dd9380d"
+  },
   "star-wars-theme": {
    "title": "Star Wars Theme",
    "file": "star-wars-theme.mp3",
    "hash": "c474f065ee54248482795485cdbeb6d6183791b98f2a66196c5ee4b42273e6c1",
    "source": "Star_Wars_Theme_SNES_Game.m4a",
    "sourceHash": "477e8802b06d5b212257a6348d55645eeca639ededee7d285b8eb0d061336e6d"
+  },
+  "sweet-home-alabama": {
+   "title": "Sweet Home Alabama",
+   "file": "sweet-home-alabama.mp3",
+   "hash": "fae1f625e0bac1296dc4142882532abd88368c0290165306aabdfd604adf8dd5",
+   "source": "Sweet_Home_Alabama_SNES_Game.m4a",
+   "sourceHash": "a5c8a664aa683290fb67734c562e12dd9b0e0a676c188fb4fd698afa0648340a"
   },
   "takedown": {
    "title": "Takedown",
@@ -133,7 +161,11 @@
   "adam": "karma-chameleon",
   "chris": "nirvana-smells-like-teen-spirit",
   "kate": "just-cant-wait-to-be-king",
-  "ari": "waka-waka"
+  "ari": "waka-waka",
+  "vito": "hate-it-or-love-it",
+  "mark": "oasis-wonderwall",
+  "jeff": "sweet-home-alabama",
+  "gary": "star-spangled-banner"
  },
  "places": {
   "village": [],
