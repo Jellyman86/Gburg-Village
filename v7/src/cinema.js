@@ -274,7 +274,7 @@
    oval('#f1eee4',395+Math.min(u*1.7,1)*160,340,6,6);
    if(panic)dinosaur('raptor',510,340,{scale:.65});else human('coco',470,397,{dir:'up'});
   }else if(activity==='swim'||activity==='swim-panic'){
-   ctx.save();ctx.globalAlpha=.22;human('chris',358,848,{swim:true});ctx.restore();
+   if(activity==='swim-panic'){ctx.save();ctx.globalAlpha=.22;human('chris',358,848,{swim:true});ctx.restore();}
    if(activity==='swim')human('chris',358,813+(reduced.matches?0:Math.sin(t*3)*2),{swim:true,dir:'up',walk:true});
    for(let i=0;i<3;i++){ctx.strokeStyle='#c7ffff99';ctx.lineWidth=1;ctx.beginPath();ctx.ellipse(358,817,18+i*7+u*8,3+i*2,0,0,Math.PI*2);ctx.stroke();}
    dinosaur('pterodactyl',310+u*115,750,{dir:'right',scale:.72});

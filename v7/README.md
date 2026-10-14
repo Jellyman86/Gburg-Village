@@ -22,7 +22,13 @@ touch **Board** action, or the visible **Board jet** button.
 - Water and mountains block walking; forests can be explored.
 - Boarding switches from overhead walking to a tilted, horizon-facing
   perspective flight view inspired by classic console RPG overworlds.
-- Fly with WASD/arrows or the joystick; hold Shift / Run to boost.
+- **W / Up** flies forward into the main view; **S / Down** reverses.
+  **A / D / Left / Right** turns the jet and camera, including while stationary.
+  Touch joystick up/down controls forward/reverse; left/right turns.
+  These controls are camera-relative, not fixed compass directions.
+- Hold **Shift / Run** to boost. Engine flames animate only while boost is
+  held, cycling only the three actual flame poses (not the blank pose in
+  their source row); normal flight and the parked plane use the no-flame pose.
 - Flight crosses ocean, forests and mountains. Earth wraps horizontally;
   north/south polar boundaries stop travel beyond the map.
 - **E / Space / Land** lands on open grass, sand or snow only. Water,
@@ -56,9 +62,15 @@ interiors, subway travel or new recruits yet.
 The originals remain in `art inbox/`. V7 stores only processed new artwork in
 [assets/world](assets/world/):
 
-- Seven 32px world terrain samples and a 128x96 terrain grid, classified from
-  the approved Earth reference with small authored town/landing clearings.
-- Full-world overview derived from the approved reference.
+- Cleaned 32px bases, fitted coast/grass-desert/grass-snow transitions, and
+  transparent forest/mountain variants extracted from `World Map Tileset V4.png`.
+  Source tile frames are excluded, ground is made opaque, and detached sprite
+  fragments are removed. Original artwork is never overwritten.
+- The existing 128x96 collision grid remains classified from the approved
+  Earth reference with the same town clearings and local walking connection.
+  Neighbor-aware visual selection does not modify that geography.
+- Overview and flight minimap use the actual rendered terrain; the minimap
+  includes a heading indicator. The original concept overview derivative is retained.
 - An eight-frame jet sheet extracted from the supplied poses. The source's
   baked checkerboard is cleared outside the plane; the original is untouched.
 - Transparent NYC skyline icon.
@@ -67,10 +79,18 @@ The originals remain in `art inbox/`. V7 stores only processed new artwork in
 
 The image generator's sheets are not perfectly aligned, seamless production
 tilesets. This release uses selected normalized pieces rather than assuming
-every source cell is a valid tile. Coastlines use simple pixel edges; the world
-is deliberately simplified, with exaggerated landing clearings and a walking
-connection between Gaithersburg and New York. This is a first playable
-overworld, not a geographically exact atlas.
+every source cell is a valid tile. Shoreline endpoints are fitted in processed
+copies; neighbor-selected edges, convex corners and inner corners replace the
+old straight beige strips. Grass is the shared underlayer for forests and
+mountain ridges, with deterministic feature variants instead of solid texture
+squares. Small inner corners are procedurally constructed; not every supplied
+transition is used. The world hero is larger (0.8 instead of 0.45 sprite scale).
+The existing coarse grid still limits coastline shapes and includes classified
+inland water patches; this is not an exact FFVI recreation or a replacement
+geography/collision system. Art boundaries soften the same logical cell edges.
+
+Chris's recruitment shots now show only the surface swimmer. His translucent
+underwater hiding pose remains in the opening swim-panic montage.
 
 The generated Earth is cached once; the flight view projects a rotated local
 ground buffer into horizontal strips. The renderer uses existing HTML Canvas,
@@ -94,12 +114,19 @@ commit or publish.
 - `.\v7\tools\process-world-art.ps1`: create missing derivatives, preserving
   existing outputs. `-Rebuild` explicitly regenerates **V7 world derivatives
   and its terrain grid only**, never older versions or originals.
+- `.\v7\tools\process-terrain-art.ps1`: create missing coordinated terrain
+  derivatives without touching the old importer outputs or grid.
+  `-ValidateOnly` checks dimensions, all ground/transition pixels are opaque,
+  binary-alpha nonempty feature frames, and unchanged source hashes.
+  `-Rebuild` explicitly regenerates only the four new terrain atlases.
 - `node v7\tests\world.cjs`: terrain schema, safe entrances, boarding,
-  flight/boost/wrap/polar limits, landing rejection, plane retention, shared
-  roster/art and connected NYC walking routes.
+  camera-relative forward/reverse/turn/boost/wrap/polar limits, boost-only
+  flame frames, visual neighbor selection without geography mutation,
+  landing rejection, plane retention, shared roster/art and connected NYC routes.
 - `node v7\tests\run.cjs`: actual north road, overhead movement, overview,
   jet flight/landing, NYC round trip and adapted V6 danger/story suites.
-  Use `V7_TEST_SUITES=world,danger,combat` and
+  Chris recruitment/montage actor counts are checked by the `scenes` suite.
+  Use `V7_TEST_SUITES=world,scenes,danger,combat` and
   `V7_TEST_LAYOUTS=1280x900,390x844,844x390` to select coverage.
 
 Browser checks need Playwright and Chromium, optionally supplied through

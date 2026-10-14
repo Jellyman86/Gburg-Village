@@ -12,7 +12,7 @@ const server=http.createServer((req,res)=>{
 function check(name,legacy=false){
  let source=fs.readFileSync(path.join(__dirname,legacy?'..\\..\\v6\\tests':'',name+'-checks.js'),'utf8');
  if(legacy)source=source.replaceAll('/v6/','/v7/').replace("startsWith('assets/characters/jeff.png')","startsWith('../v6/assets/characters/jeff.png')");
- return new Function(source)();
+ return new Function('require',source)(require);
 }
 (async()=>{
  await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));let browser;
@@ -30,6 +30,7 @@ function check(name,legacy=false){
     });
     const config={...options,artifactDir:process.env.V7_ARTIFACT_DIR};
     if(selected('world'))console.log(JSON.stringify(await check('world')(page,config)));
+    if(selected('scenes'))console.log(JSON.stringify(await check('scenes')(page,config)));
     if(selected('danger'))console.log(JSON.stringify(await check('danger',true)(page,config)));
     await page.unroute(storyPattern);
     if(selected('combat'))console.log(JSON.stringify(await check('combat',true)(page,config)));

@@ -2,6 +2,17 @@ return async function checkWorld(page,{width,height,touch,artifactDir}={}){
  const assert=(value,message)=>{if(!value)throw new Error(message);};
  const errors=[],failed=[],onError=e=>errors.push(e.message),onConsole=m=>{if(m.type()==='error')errors.push(m.text());},onResponse=r=>{if(r.status()>=400)failed.push(r.url());};
  page.on('pageerror',onError);page.on('console',onConsole);page.on('response',onResponse);
+ await page.addInitScript(()=>{
+  window.__jetFrames=[];
+  const draw=CanvasRenderingContext2D.prototype.drawImage;
+  CanvasRenderingContext2D.prototype.drawImage=function(...args){
+   if(this.canvas.id==='game'&&(args[0].src||'').includes('/world/plane.png')){
+    __jetFrames.push({row:args[2]/128,frame:args[1]/128});
+    if(__jetFrames.length>120)__jetFrames.shift();
+   }
+   return draw.apply(this,args);
+  };
+ });
  const pattern='**/v7/src/game.js*';
  await page.route(pattern,async route=>{
   const response=await route.fetch(),source=await response.text();
@@ -36,6 +47,16 @@ return async function checkWorld(page,{width,height,touch,artifactDir}={}){
   const snapshot=await page.evaluate(()=>({inventory:{...V4_RPG.inventory},hp:V4_RPG.members.coco.hp,completed:GAME.state.story.completed}));
   const p0=await page.evaluate(()=>GAME.state.player);await move(-1,0,300);
   assert(await page.evaluate(before=>GAME.state.player.x<before.x-8,p0),'Actual overhead walking responds to keyboard/touch');
+  if(artifactDir){
+   await page.screenshot({path:artifactDir+'\\v7-overworld-'+width+'x'+height+'.png'});
+   const image=await page.evaluate(()=>{
+    const preview=document.createElement('canvas');preview.width=960;preview.height=720;
+    const context=preview.getContext('2d');context.imageSmoothingEnabled=false;
+    context.drawImage(V7_TRAVEL.background('world'),0,0,V7_TRAVEL.width,V7_TRAVEL.height,0,0,960,720);
+    return preview.toDataURL('image/png').split(',')[1];
+   });
+   require('node:fs').writeFileSync(artifactDir+'\\v7-terrain-overview.png',Buffer.from(image,'base64'));
+  }
   await activate('#open-world-map');assert(await page.evaluate(()=>GAME.state.map),'World overview opens');
   await activate('[data-destination="paris"]');
   assert((await page.locator('#world-map-message').innerText()).includes('future chapter'),'Unfinished destination is explicit, not fake content');
@@ -46,8 +67,31 @@ return async function checkWorld(page,{width,height,touch,artifactDir}={}){
   await page.evaluate(()=>GAME.test.position(V7_TRAVEL.field.x,V7_TRAVEL.field.y));
   await activate('#travel-action');assert(await page.evaluate(()=>GAME.state.travel.flying),'Actual board button takes off');
   assert(await page.locator('#power').isHidden(),'No attacks while flying');
-  const f0=await page.evaluate(()=>GAME.state.player);await move(1,-1,600);
-  assert(await page.evaluate(before=>GAME.state.player.x>before.x+50&&GAME.state.player.y<before.y-50,f0),'Free directional flight crosses terrain: '+JSON.stringify(await page.evaluate(()=>({player:GAME.state.player,travel:GAME.state.travel,flight:GAME.state.flight,input:GAME.state.input}))));
+  const turn0=await page.evaluate(()=>GAME.state.player);await move(1,0,450);
+  assert(await page.evaluate(before=>Math.hypot(GAME.state.player.x-before.x,GAME.state.player.y-before.y)<1&&GAME.state.travel.heading>.3,turn0),'Keyboard/touch right input turns without compass-direction movement');
+  const f0=await page.evaluate(()=>GAME.state.player);await move(0,-1,600);
+  assert(await page.evaluate(before=>GAME.state.player.x>before.x+30&&GAME.state.player.y<before.y-30,f0),'Up flies forward along the turned camera heading');
+  const reverse0=await page.evaluate(()=>GAME.state.player);await move(0,1,200);
+  assert(await page.evaluate(before=>GAME.state.player.x<before.x-8&&GAME.state.player.y>before.y+8,reverse0),'Down reverses along the same camera heading');
+  assert(await page.evaluate(()=>!GAME.state.travel.boosting&&V7_TRAVEL.planePose(GAME.state.travel).row===0),'Normal flight uses no flame frames');
+  await page.evaluate(()=>{__jetFrames=[];});await page.waitForTimeout(450);
+  assert(await page.evaluate(()=>__jetFrames.length>0&&__jetFrames.every(p=>p.row===0&&p.frame===0)),'Actual cruise rendering never draws flame poses');
+  const runInput=touch?await page.context().newCDPSession(page):null;
+  try{
+   if(touch){
+    const b=await page.locator('#run').boundingBox();
+    await runInput.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x:b.x+b.width/2,y:b.y+b.height/2,id:1}]});
+   }else await page.keyboard.down('Shift');
+   await page.waitForFunction(()=>GAME.state.travel.boosting);
+   assert(await page.evaluate(()=>{const pose=V7_TRAVEL.planePose(GAME.state.travel);return pose.row===1&&pose.frame>=1&&pose.frame<=3;}),'Run selects only the three actual flame poses');
+   await page.evaluate(()=>{__jetFrames=[];});await page.waitForTimeout(500);
+   assert(await page.evaluate(()=>__jetFrames.length>0&&__jetFrames.every(p=>p.row===1&&p.frame>=1&&p.frame<=3)&&new Set(__jetFrames.map(p=>p.frame)).size===3),'Actual boost animates all three flame poses without a blank frame');
+   if(touch)await runInput.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
+   else await page.keyboard.up('Shift');
+  }finally{if(runInput)await runInput.detach();}
+  await page.waitForFunction(()=>!GAME.state.travel.boosting);
+  await page.evaluate(()=>{__jetFrames=[];});await page.waitForTimeout(150);
+  assert(await page.evaluate(()=>__jetFrames.length>0&&__jetFrames.every(p=>p.row===0&&p.frame===0)),'Releasing Run returns actual rendering to the no-flame pose');
   const frames=await page.evaluate(()=>new Promise(resolve=>{const times=[];function tick(t){times.push(t);if(times.length===31)resolve((times[30]-times[0])/30);else requestAnimationFrame(tick);}requestAnimationFrame(tick);}));
   assert(frames<55,'Perspective renderer sustains at least 18fps in this Chromium layout: '+frames.toFixed(1)+'ms');
   if(artifactDir)await page.screenshot({path:artifactDir+'\\v7-flight-'+width+'x'+height+'.png'});
@@ -58,7 +102,7 @@ return async function checkWorld(page,{width,height,touch,artifactDir}={}){
   await page.waitForTimeout(150);assert(await page.evaluate(before=>{const same=JSON.stringify(GAME.state.travel)===before;delete document.hidden;document.dispatchEvent(new Event('visibilitychange'));return same;},hidden),'Hidden page pauses flight');
   await page.evaluate(()=>GAME.test.position(16,16));await activate('#travel-action');
   assert(await page.evaluate(()=>GAME.state.travel.flying&&document.getElementById('toast').textContent.includes('Find open')),'Ocean landing is rejected with explicit feedback');
-  await page.evaluate(()=>GAME.test.position(V7_TRAVEL.width-5,500));await move(1,0,150);
+  await page.evaluate(()=>GAME.test.position(V7_TRAVEL.width-5,500));await move(0,-1,150);
   assert(await page.evaluate(()=>GAME.state.player.x<150),'Actual flight wraps east-west');
   await page.evaluate(()=>{const site=V7_TRAVEL.sites[1];GAME.test.position(site.x,site.y+32);});
   assert(!await page.evaluate(()=>GAME.test.enterScene('nyc',[500,895])),'Cannot enter a city while airborne');
