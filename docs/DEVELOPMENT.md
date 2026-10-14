@@ -76,6 +76,7 @@ Audio notes: `.m4a` (AAC) does not decode in the open-source Chromium the tests 
 
 ```powershell
 npm run studio        # http://127.0.0.1:5181/v8/studio/   (game preview at http://127.0.0.1:5181/v8/)
+# or double-click 'Start Studio.cmd' in the repo folder — it starts the server and opens the page
 ```
 
 The studio loads the game's own scene definitions and draws them over the real backgrounds: walkable shapes (green), blocked shapes (red), markers/exits (gold diamonds with their trigger radius), road strips (cyan arrows), bounds and spawn. Pick a scene from the dropdown, then:
