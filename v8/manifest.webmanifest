@@ -1,0 +1,9 @@
+{
+ "name": "Gburg Village V8 - Island Skies",
+ "short_name": "Gburg V8",
+ "start_url": "./",
+ "scope": "./",
+ "display": "standalone",
+ "background_color": "#10282d",
+ "theme_color": "#17245e"
+}

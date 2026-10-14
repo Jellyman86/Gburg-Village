@@ -1,0 +1,15 @@
+#world-map{max-width:min(720px,95vw);max-height:90dvh;padding:16px;background:#17245e;color:#fff0c6;border:2px solid #bca778;border-radius:8px}
+#world-map::backdrop{background:#0a1229cc}
+#world-map header{display:flex;align-items:center;justify-content:space-between;gap:12px}
+#world-map h2{font-size:20px;margin:0}
+#close-world-map,#open-world-map{min-height:44px;padding:6px 10px;font:12px system-ui;border-radius:5px}
+#world-overview{display:block;width:100%;height:auto;max-height:52dvh;object-fit:contain;margin:12px 0;image-rendering:pixelated}
+#world-destinations{display:flex;flex-wrap:wrap;gap:8px}
+#world-destinations button{min-height:44px}
+#world-map p{font-size:13px;line-height:1.5}
+#travel-action{position:absolute;left:12px;bottom:12px;z-index:3;min-height:44px;background:#17245e;color:#ffe5a6;border:1px solid #bca778;border-radius:8px;padding:8px 14px}
+body.touch #travel-action{bottom:155px}
+#travel-action[hidden],#open-world-map[hidden]{display:none}
+.v8-travel .toast{top:110px;z-index:3}
+.v8-airborne .nearby{display:none}
+@media(max-height:500px){#world-map{padding:10px}#world-overview{max-height:40dvh}body.touch #travel-action{bottom:128px}.v8-travel .toast{top:76px}}
