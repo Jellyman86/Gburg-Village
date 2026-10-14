@@ -246,7 +246,7 @@ async function scene(){
  const format=has('png')?'png':current?path.extname(current.file).slice(1):'webp';
  const result=await withPage(page=>processInBrowser(page,{mode:'scene',base64:source.base64,mime:source.mime,width:width||dims.width,height:height||dims.height,smooth:true,format}));
  guardResize(artId,current,result.width,result.height);
- write(artId,current?current.file:`scenes/${id}.${format}`,Buffer.from(result.output,'base64'),source);
+ write(artId,option('to')||(current?current.file:`scenes/${id}.${format}`),Buffer.from(result.output,'base64'),source);
 }
 
 async function image(){

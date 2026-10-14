@@ -844,6 +844,14 @@
    "width": 512,
    "height": 256
   },
+  "world.skybox": {
+   "file": "world/skybox.webp",
+   "hash": "7248d1750cf5dbdc344f8d524a47d46eb3c8ffbdd6a06802a262c6512e7c304d",
+   "width": 1536,
+   "height": 1024,
+   "source": "skybox v1.png",
+   "sourceHash": "57277c4c38333f78fef45661081c0bf98bd149af5d9e67c1b326816ace01926e"
+  },
   "world.terrain": {
    "file": "world/terrain.png",
    "hash": "73d15f71d753dc4830a3a14607c0b8c9b53167bc052b862bff2aec5d0e4b843f",

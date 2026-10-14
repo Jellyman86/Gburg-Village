@@ -30,7 +30,12 @@ for(const site of travel.sites){
  assert(world.nearPlane(actor));assert(world.board(actor).ok);
 }
 const forest=data.cells.flatMap((row,y)=>[...row].map((id,x)=>({id:+id,x:(x+.5)*32,y:(y+.5)*32}))).find(p=>p.id===4&&world.terrain(p.x,p.y)===4);
-Object.assign(actor,forest);assert(!world.land(actor).ok,'Forest blocks landing');
+Object.assign(actor,forest);const forestLanding=world.land(actor);
+assert(!forestLanding.ok||([2,3,5].includes(world.terrain(world.state.plane.x,world.state.plane.y))&&Math.hypot(world.state.plane.x-forest.x,world.state.plane.y-forest.y)<=91),'Landing over forest either fails or glides to clear ground within two tiles');
+if(forestLanding.ok)assert(world.board(actor).ok);
+const deepWater={x:16,y:16};Object.assign(actor,deepWater);assert(!world.land(actor).ok,'Open ocean has no landing spot to glide to');
+const hawaiiSite=travel.sites.find(s=>s.id==='hawaii');
+for(const [dx,dy] of [[-60,0],[60,0],[0,-60],[0,60],[45,45]]){Object.assign(actor,{x:hawaiiSite.x+dx,y:hawaiiSite.y+dy});assert(world.land(actor).ok,'Hawaii has room to land around the marker: '+dx+','+dy);assert(world.board(actor).ok);}
 const seam=travel.create({...data,cells:Array(96).fill('2'.repeat(128))}),edge={...travel.field};
 assert(seam.board(edge).ok);Object.assign(edge,{x:travel.width-12,y:1500});assert(seam.land(edge).ok);
 edge.x=12;assert(seam.nearPlane(edge),'Parked jet is reachable across the horizontal seam');assert(seam.board(edge).ok);

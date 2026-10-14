@@ -18,7 +18,7 @@ Opening story and 15 recruitable playable characters, FFVI-style party menu (ros
 - **Music follow-ups are live:** `2f7fc21` — all 15 heroes themed (21 tracks); Options has Off / On / Themed; perceptual volume curve (quiet low end, default 50 %).
 - **Music tidy-up is live:** `dfdc810`. music is always on (no stage button); MP3s route through the Web Audio gain so the slider works on iPhone (Safari ignores element volume); combat/power pop-up toasts removed (damage, defeat, power name, dinosaur approaching).
 - **Step 4 — collision editor is live:** `b071547`. `npm run studio` opens Gburg Studio: scene geometry drawn over the real backgrounds, select/move/resize/add/delete shapes, markers and road strips, live walk-test mask, undo/redo, Save → `v8/data/scene-geometry.json` applied by the game at load (landmarks merge by id). Geometry contract round-trips all 15 scenes with identical collision; studio browser suite covers drawing, undo, export and read-only mode.
-- Next: formatting pass and `game.js` extractions (step 5).
+- **Flight polish (branch `flight-polish`):** landing glides to the nearest clear ground within two tiles instead of refusing on coastlines; Hawaii is a 5×5 island so there is room to set down; the jet view uses the supplied `skybox v1` (imported as `world.skybox`, pans with heading).
 
 ## Known limitations
 - No persistence; refreshing restarts as Coco.

@@ -30,6 +30,7 @@
   const cells=data.cells.map(line=>Array.from(line,Number));
   function pad(cx,cy,radius){for(let y=cy-radius;y<=cy+radius;y++)for(let x=cx-radius;x<=cx+radius;x++)if(y>=0&&y<rows)cells[y][wrap(x,cols)]=2;}
   for(const site of sites)pad(site.col,site.row,1);
+  pad(8,42,2); // Hawaii: a 5x5 island so there is room to set the jet down
   pad(34,32,2);pad(31,33,1);
   for(let x=31;x<=36;x++)pad(x,32,0);
   for(let y=29;y<=33;y++)pad(36,y,0);
@@ -44,11 +45,14 @@
    Object.assign(actor,plane);flying=true;boosting=false;heading=0;bank=0;
    return {ok:true,message:'Jet ready! Up flies forward; Left/Right turns. Hold Run for boost. E or Land sets down on clear ground.'};
   }
+  const clearGround=(x,y)=>[2,3,5].includes(terrain(x,y))&&!blocked(x,y,14,10);
   function land(actor){
    if(!flying)return {ok:false,message:'The jet is already parked.'};
-   const ground=terrain(actor.x,actor.y);
-   if(![2,3,5].includes(ground)||blocked(actor.x,actor.y,14,10))return {ok:false,message:'Find open grass, sand or snow to land. Oceans, forests and mountains are not landing sites.'};
-   plane={x:actor.x,y:actor.y};flying=false;boosting=false;bank=0;
+   // Glide to the nearest clear patch within two tiles rather than refusing because the exact pixel is a coastline.
+   let spot=null,best=Infinity;
+   for(let dy=-64;dy<=64;dy+=8)for(let dx=-64;dx<=64;dx+=8){const d=dx*dx+dy*dy;if(d<best&&clearGround(actor.x+dx,actor.y+dy)){best=d;spot={x:wrap(actor.x+dx,width),y:actor.y+dy};}}
+   if(!spot)return {ok:false,message:'Find open grass, sand or snow to land. Oceans, forests and mountains are not landing sites.'};
+   Object.assign(actor,spot);plane={...spot};flying=false;boosting=false;bank=0;
    return {ok:true,message:'A smooth landing! Walk to a town marker or board again.'};
   }
   function update(dt,actor,dx,dy,boost=false){
@@ -171,7 +175,7 @@
   api.preload=async()=>{
    const [data]=await Promise.all([
     fetch('data/world-grid.json?v=world-1').then(async response=>{if(!response.ok)throw new Error('World terrain request failed: '+response.status);return response.json();}),
-    ...Object.entries({terrain:'terrain',transitions:'transitions',coasts:'coasts',features:'features',overview:'overview',plane:'plane',icon:'nyc-icon',ground:'nyc-ground',buildings:'nyc-buildings',park:'nyc-park'}).map(async([key,art])=>{images[key]=await image(art);})
+    ...Object.entries({terrain:'terrain',transitions:'transitions',coasts:'coasts',features:'features',overview:'overview',plane:'plane',icon:'nyc-icon',ground:'nyc-ground',buildings:'nyc-buildings',park:'nyc-park',skybox:'skybox'}).map(async([key,art])=>{images[key]=await image(art);})
    ]);
    model=create(data);buildWorld();buildNYC();
   };
@@ -182,9 +186,24 @@
    ctx.save();ctx.translate(Math.round(x),Math.round(y));ctx.rotate(angle);
    ctx.drawImage(images.plane,frame*128,row*128,128,128,-size/2,-size/2,size,size);ctx.restore();
   };
+  // Skybox: the painted horizon sits at 42% of the image; the band above it fills the sky and pans with the heading so
+  // turning sweeps the clouds past. Falls back to the original flat sky if the image is unavailable.
+  function drawSky(ctx,w,horizon,heading){
+   const sky=images.skybox;
+   if(!sky){ctx.fillStyle='#9dc9d6';ctx.fillRect(0,0,w,horizon);ctx.fillStyle='#c8d8cf';ctx.fillRect(0,horizon-12,w,12);return;}
+   const srcH=Math.round(sky.height*.44),scale=horizon/srcH;
+   let sx=wrap(heading/(Math.PI*2)*sky.width,sky.width),dx=0;
+   ctx.save();ctx.imageSmoothingEnabled=true;
+   while(dx<w){
+    const srcW=Math.min(sky.width-sx,Math.ceil((w-dx)/scale)+1);
+    ctx.drawImage(sky,sx,0,srcW,srcH,dx,0,srcW*scale,horizon);
+    dx+=srcW*scale;sx=0;
+   }
+   ctx.restore();
+  }
   api.drawFlight=(ctx,output,actor)=>{
    const {heading,bank}=model.state,w=output.width,h=output.height,horizon=Math.floor(h*.24);
-   ctx.fillStyle='#9dc9d6';ctx.fillRect(0,0,w,horizon);ctx.fillStyle='#c8d8cf';ctx.fillRect(0,horizon-12,w,12);
+   drawSky(ctx,w,horizon,heading);
    const view=flightCanvas.getContext('2d');view.imageSmoothingEnabled=false;view.setTransform(1,0,0,1,0,0);view.fillStyle='#065294';view.fillRect(0,0,1280,1280);
    view.translate(640,1190);view.rotate(-heading);view.translate(-actor.x,-actor.y);
    for(const offset of [-width,0,width])view.drawImage(worldCanvas,offset,0);

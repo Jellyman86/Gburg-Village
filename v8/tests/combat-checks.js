@@ -32,6 +32,8 @@ return async function checkCombat(page,{width,height,touch,artifactDir}={}){
  async function skip(id){
   await readyStory(id);
   assert(await page.evaluate(()=>document.getElementById('screen-mode').nextElementSibling.id==='cutscene-skip'),'Skip is adjacent to Expand');
+  // The toolbar reflows when Skip un-hides; wait for a settled layout before measuring instead of sampling one frame.
+  await page.waitForFunction(w=>{const b=document.getElementById('cutscene-skip').getBoundingClientRect();return b.height>=44&&b.x>=0&&b.x+b.width<=w;},width,{timeout:5000}).catch(()=>{});
   const box=await page.locator('#cutscene-skip').boundingBox();
   assert(box&&box.height>=44&&box.x>=0&&box.x+box.width<=width,'Touch-sized Skip remains within viewport');
   await activate('#cutscene-skip');
