@@ -41,8 +41,8 @@ A humorous family/neighborhood 2D HTML/JavaScript adventure inspired by Final Fa
 
 ### Milestone 3 — Quests and characters
 - Rescue friends and unlock them as playable choices; do not enforce an arbitrary party size limit on the roster.
-- Dog companion follows the active character and occasionally bites dinosaurs; future upgraded sprites to be provided.
-- Jaime on scary T-Rex; Jeff Bigs playing soccer with Ari; Chris Tappis swimming at the lap pool; Mark and Steph playing Rock Band at their house.
+- Dog companion that you find follows the active character and occasionally bites dinosaurs; future upgraded sprites to be provided.
+- Jaime is rollar blading on the streets, he is fast; Jeff Bigs playing soccer with Ari; Chris Tappis swimming at the lap pool; Mark and Steph playing Rock Band at their house.
 - Outfit changing at Big Finds; optional gym strength progression at Lakelands clubhouse.
 - Keep event logic modular and preserve existing content.
 
