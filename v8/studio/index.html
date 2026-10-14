@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Gburg Studio · Collision editor</title>
+<link rel="icon" href="../assets/portraits/coco.png" type="image/png">
+<link rel="stylesheet" href="studio.css?v=studio-1">
+</head>
+<body>
+<header class="bar">
+ <strong>Gburg Studio</strong>
+ <label>Scene <select id="scene"></select></label>
+ <span id="override-state" class="pill"></span>
+ <span class="spacer"></span>
+ <span id="status" class="status">Loading…</span>
+ <button id="save" class="primary" type="button" disabled>Save <small>Ctrl+S</small></button>
+</header>
+<main class="layout">
+ <aside class="tools">
+  <h2>Tools</h2>
+  <div id="tool-buttons" class="tool-grid">
+   <button type="button" data-tool="select" aria-pressed="true" title="V">Select / move <kbd>V</kbd></button>
+   <button type="button" data-tool="rect-walk" title="W">Walkable rect <kbd>W</kbd></button>
+   <button type="button" data-tool="rect-block" title="B">Blocked rect <kbd>B</kbd></button>
+   <button type="button" data-tool="poly-walk" title="P">Walkable polygon <kbd>P</kbd></button>
+   <button type="button" data-tool="poly-block" title="O">Blocked polygon <kbd>O</kbd></button>
+   <button type="button" data-tool="ellipse-walk">Walkable ellipse</button>
+   <button type="button" data-tool="ellipse-block">Blocked ellipse</button>
+   <button type="button" data-tool="landmark" title="L">Marker <kbd>L</kbd></button>
+   <button type="button" data-tool="road" title="R">Road strip <kbd>R</kbd></button>
+  </div>
+  <h2>Layers</h2>
+  <div class="layer-list">
+   <label><input type="checkbox" data-layer="walkable" checked> <i class="sw walk"></i>Walkable</label>
+   <label><input type="checkbox" data-layer="blocked" checked> <i class="sw block"></i>Blocked</label>
+   <label><input type="checkbox" data-layer="landmarks" checked> <i class="sw land"></i>Markers &amp; exits</label>
+   <label><input type="checkbox" data-layer="roads" checked> <i class="sw road"></i>Road strips</label>
+   <label><input type="checkbox" data-layer="bounds" checked> <i class="sw bounds"></i>Bounds &amp; spawn</label>
+   <label><input type="checkbox" data-layer="mask"> <i class="sw mask"></i>Walk test (red = blocked)</label>
+   <label>Overlay opacity <input id="opacity" type="range" min="10" max="100" value="45"></label>
+  </div>
+  <h2>View</h2>
+  <div class="row"><button id="zoom-fit" type="button">Fit</button><button id="zoom-100" type="button">100%</button><button id="zoom-out" type="button">−</button><button id="zoom-in" type="button">+</button></div>
+  <p class="hint">Wheel zooms · Space+drag or middle button pans · Drag handles to resize · Alt+click a polygon edge adds a point · Delete removes · Ctrl+Z / Ctrl+Y undo/redo · Arrows nudge (Shift ×10)</p>
+  <h2>Scene</h2>
+  <div class="row"><button id="revert" type="button">Revert scene to code defaults</button></div>
+  <div class="row"><button id="export" type="button">Show JSON</button><button id="copy" type="button">Copy JSON</button></div>
+  <textarea id="json" hidden spellcheck="false"></textarea>
+ </aside>
+ <section id="viewport" class="viewport"><canvas id="canvas"></canvas><div id="coords" class="coords"></div></section>
+ <aside class="props">
+  <h2>Selection</h2>
+  <div id="props"><p class="hint">Nothing selected. Click a shape, or pick a tool and draw on the map.</p></div>
+  <h2>Scene info</h2>
+  <dl id="info" class="info"></dl>
+ </aside>
+</main>
+<script src="../src/art.js?v=manifest-1"></script>
+<script src="../src/map.js?v=banquet-v5-1"></script>
+<script src="../src/scenes.js?v=danger-1"></script>
+<script src="../src/world-travel.js?v=terrain-2"></script>
+<script src="../src/areas.js?v=hawaii-1"></script>
+<script src="../src/hawaii.js?v=hawaii-1"></script>
+<script src="../src/scene-geometry-data.js?v=studio-1"></script>
+<script src="../src/scene-geometry.js?v=studio-1"></script>
+<script src="studio.js?v=studio-1"></script>
+</body></html>

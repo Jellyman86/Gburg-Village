@@ -29,6 +29,7 @@ function check(name){return new Function('require',fs.readFileSync(path.join(__d
     if(selected('hawaii'))console.log(JSON.stringify(await check('hawaii')(page,config)));
     if(selected('scenes'))console.log(JSON.stringify(await check('scenes')(page,config)));
     if(selected('music'))console.log(JSON.stringify(await check('music')(page,config)));
+    if(selected('studio')&&!options.touch)console.log(JSON.stringify(await check('studio')(page,config)));
     if(selected('danger'))console.log(JSON.stringify(await check('danger')(page,config)));
     await page.unroute(storyPattern);
     if(selected('combat'))console.log(JSON.stringify(await check('combat')(page,config)));
