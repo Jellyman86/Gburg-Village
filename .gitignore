@@ -16,5 +16,5 @@ test-artifacts/
 Thumbs.db
 
 # Raw music drops (m4a etc.); import them with tools/music.cjs
-Music/
+/Music/
 
