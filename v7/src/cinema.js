@@ -5,6 +5,7 @@
  const clamp=(n,a=0,b=1)=>Math.max(a,Math.min(b,n));
  const ease=n=>{n=clamp(n);return n*n*(3-2*n);};
  const {catalog,friends}=window.V5_CINEMA_CATALOG;
+ const recruitVitoSheets=Object.fromEntries(['wrestle','throw','recover'].map(pose=>[pose,'assets/characters/vito-clean-'+pose+'.png']));
  const previewPage=document.body.hasAttribute('data-studio-preview');
  let sceneEdits=V5_SCENE_EDITS.empty();
  const editsReady=fetch('data/scene-edits.json?v=studio-v5-1',{cache:'no-cache'}).then(async response=>{
@@ -52,6 +53,7 @@
   for(const character of Object.values(CHARACTERS)){urls.add(character.sheet);if(character.emotions)urls.add(character.emotions.sheet);}
   for(const clips of Object.values(window.V5_ACTION_ART))for(const clip of Object.values(clips))urls.add(clip.sheet);
   urls.add(window.V5_WINDOW_ART.sheet);
+  if(shots.some(s=>s.friend==='vito'))for(const sheet of Object.values(recruitVitoSheets))urls.add(sheet);
   if(shots.some(s=>s.stage.startsWith('swim')))urls.add('../v4/assets/characters/chris-swim.png');
   if(shots.some(s=>s.stage.startsWith('banquet-')))urls.add(window.V5_BANQUET_FINALE.meteorSheet);
   for(const id of ['trex','raptor','triceratops','pterodactyl'])urls.add('../v4/assets/dinosaurs/'+id+'.png?v=cleanup-1');
@@ -169,7 +171,8 @@
  }
  function actionClip(id,pose){
   if(pose==='startle')pose='surprised';
-  const clip=window.V5_ACTION_ART[id]?.[pose];if(clip)return clip;
+  const clip=window.V5_ACTION_ART[id]?.[pose];
+  if(clip)return id==='vito'&&current?.event==='recruit-vito'&&recruitVitoSheets[pose]?{...clip,sheet:recruitVitoSheets[pose]}:clip;
   const emotion=CHARACTERS[id].emotions;
   return emotion&&pose in emotion.rows?{...emotion,frameWidth:64,frameHeight:64,foot:CHARACTERS[id].foot,row:emotion.rows[pose]}:null;
  }

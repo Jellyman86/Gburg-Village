@@ -92,6 +92,11 @@ geography/collision system. Art boundaries soften the same logical cell edges.
 Chris's recruitment shots now show only the surface swimmer. His translucent
 underwater hiding pose remains in the opening swim-panic montage.
 
+Vito's recruitment alone uses the approved clean-shaven copies of the original
+wrestle/throw/recover sheets in `assets/characters/`. Only facial pixels were
+retouched; mouth interiors, alpha, frame sizes, timing, costume and dinosaur
+are unchanged. The montage and playable Vito still use their original art.
+
 The generated Earth is cached once; the flight view projects a rotated local
 ground buffer into horizontal strips. The renderer uses existing HTML Canvas,
 not Tiled, a new map editor, WebGL or a replacement neighborhood pipeline.
@@ -125,7 +130,8 @@ commit or publish.
   landing rejection, plane retention, shared roster/art and connected NYC routes.
 - `node v7\tests\run.cjs`: actual north road, overhead movement, overview,
   jet flight/landing, NYC round trip and adapted V6 danger/story suites.
-  Chris recruitment/montage actor counts are checked by the `scenes` suite.
+  The `scenes` suite checks Chris recruitment/montage actor counts and Vito's
+  recruitment-only sprite draws, unchanged montage and natural one-time reward.
   Use `V7_TEST_SUITES=world,scenes,danger,combat` and
   `V7_TEST_LAYOUTS=1280x900,390x844,844x390` to select coverage.
 
