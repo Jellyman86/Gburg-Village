@@ -12,7 +12,7 @@ Opening story and 15 recruitable playable characters, FFVI-style party menu (ros
 
 ## Active work
 - **Tooling step 1 is live:** `285ca82` — freeze policy, `package.json` + task runner, tiered tests, archive check, docs reset. Node.js 24 LTS installed locally.
-- **Step 2 — art manifest (branch `art-manifest`):** V8 is self-contained. 137 images V8 loaded from V1–V7 were copied once into `v8/assets/`; all 141 images are declared in `v8/data/art.json` and resolved in code through `V8_ART.url(id)` with hash cache-busting. `npm run art:check` runs inside `test:quick`. The inherited V6 danger/combat checks now live in `v8/tests/` instead of being string-patched at run time. Also fixed a load-sensitive race in the world test (dialog `close` event vs. keyboard input).
+- **Step 2 — art manifest is live:** `ee3aa66`. V8 is self-contained. 137 images V8 loaded from V1–V7 were copied once into `v8/assets/`; all 141 images are declared in `v8/data/art.json` and resolved in code through `V8_ART.url(id)` with hash cache-busting. `npm run art:check` runs inside `test:quick`. The inherited V6 danger/combat checks now live in `v8/tests/` instead of being string-patched at run time. Also fixed a load-sensitive race in the world test (dialog `close` event vs. keyboard input). Hosted suite passes all layouts (295 s); all V1–V8 URLs respond 200.
 - Next: generalized art importer (step 3), unified scene geometry + `?debug=paths` overlay (4), formatting pass and `game.js` extractions (5), music manifest for the MIDI tracks (6).
 
 ## Known limitations
