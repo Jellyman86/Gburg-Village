@@ -1,18 +1,19 @@
-# Gburg Village â€” current status
+# Gburg Village — current status
 
 Updated: 2026-10-14. One screen only. Git history is the detailed log; older handoff prose is in [docs/archive](docs/archive/).
 
 ## Living version
-- **`v8/` is the only version under development.** Play: https://jellyman86.github.io/Gburg-Village/v8/ Â· [V8 guide](v8/README.md)
-- V1 (repo root), `v2/` â€¦ `v7/` are **frozen archives**. They stay byte-identical to the `archive/v1-v7` tag; `npm run check:archive` enforces it. Their URLs keep working.
+- **`v8/` is the only version under development.** Play: https://jellyman86.github.io/Gburg-Village/v8/ · [V8 guide](v8/README.md)
+- V1 (repo root), `v2/` … `v7/` are **frozen archives**. They stay byte-identical to the `archive/v1-v7` tag; `npm run check:archive` enforces it. Their URLs keep working.
 - Future releases are git tags and notes, **not new `vN/` folders**. See [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md).
 
 ## What works (V8, verified 2026-10-14)
 Opening story and 15 recruitable playable characters, FFVI-style party menu (roster, stats, items, equip, abilities), real-time dinosaur combat with healing and dog companions, Kentlands scenes, overworld Earth with jet flight, New York and four-zone Hawaii, original synthesized music/SFX, desktop keyboard + iPhone touch layouts. Progress is session-only (no saves yet).
 
 ## Active work
-- **Tooling step 1 is live:** `285ca82` — freeze policy, `package.json` + task runner, tiered tests, archive check, docs reset. `npm run test:full` (247 s) and `npm run test:hosted` (310 s) pass every suite on 1280x900, 390x844 and 844x390; all V1–V8 URLs respond 200. Node.js 24 LTS installed locally.
-- Next planned steps (see roadmap in DEVELOPMENT.md): asset manifest + one-time art consolidation into `v8/assets/`, generalized art importer, unified scene geometry + `?debug=paths` overlay, formatting pass and `game.js` extractions, music manifest for the user's MIDI tracks.
+- **Tooling step 1 is live:** `285ca82` — freeze policy, `package.json` + task runner, tiered tests, archive check, docs reset. Node.js 24 LTS installed locally.
+- **Step 2 — art manifest (branch `art-manifest`):** V8 is self-contained. 137 images V8 loaded from V1–V7 were copied once into `v8/assets/`; all 141 images are declared in `v8/data/art.json` and resolved in code through `V8_ART.url(id)` with hash cache-busting. `npm run art:check` runs inside `test:quick`. The inherited V6 danger/combat checks now live in `v8/tests/` instead of being string-patched at run time. Also fixed a load-sensitive race in the world test (dialog `close` event vs. keyboard input).
+- Next: generalized art importer (step 3), unified scene geometry + `?debug=paths` overlay (4), formatting pass and `game.js` extractions (5), music manifest for the MIDI tracks (6).
 
 ## Known limitations
 - No persistence; refreshing restarts as Coco.
@@ -22,7 +23,7 @@ Opening story and 15 recruitable playable characters, FFVI-style party menu (ros
 
 ## How to verify a change
 ```powershell
-npm run test:quick     # ~30 s: syntax, contracts, desktop world/hawaii suite
+npm run test:quick     # ~30 s: syntax, art manifest, contracts, desktop world/hawaii suite
 npm run predeploy      # archive check + every suite on desktop/portrait/landscape
 npm run test:hosted    # same suites against the published site after Pages deploys
 ```

@@ -9,11 +9,7 @@ const server=http.createServer((req,res)=>{
   res.end(fs.readFileSync(file));
  }catch(error){res.statusCode=404;res.end(error.message);}
 });
-function check(name,legacy=false){
- let source=fs.readFileSync(path.join(__dirname,legacy?'..\\..\\v6\\tests':'',name+'-checks.js'),'utf8');
- if(legacy)source=source.replaceAll('/v6/','/v8/').replace("startsWith('assets/characters/jeff.png')","startsWith('../v6/assets/characters/jeff.png')");
- return new Function('require',source)(require);
-}
+function check(name){return new Function('require',fs.readFileSync(path.join(__dirname,name+'-checks.js'),'utf8'))(require);}
 (async()=>{
  await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));let browser;
  try{
@@ -32,9 +28,9 @@ function check(name,legacy=false){
     if(selected('world'))console.log(JSON.stringify(await check('world')(page,config)));
     if(selected('hawaii'))console.log(JSON.stringify(await check('hawaii')(page,config)));
     if(selected('scenes'))console.log(JSON.stringify(await check('scenes')(page,config)));
-    if(selected('danger'))console.log(JSON.stringify(await check('danger',true)(page,config)));
+    if(selected('danger'))console.log(JSON.stringify(await check('danger')(page,config)));
     await page.unroute(storyPattern);
-    if(selected('combat'))console.log(JSON.stringify(await check('combat',true)(page,config)));
+    if(selected('combat'))console.log(JSON.stringify(await check('combat')(page,config)));
    }finally{await context.close();}
   }
  }finally{if(browser)await browser.close();await new Promise(resolve=>server.close(resolve));}

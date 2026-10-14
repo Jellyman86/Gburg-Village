@@ -1,6 +1,6 @@
 (() => {
  'use strict';
- const dogData={barney:{name:'Barney',sheet:'../v4/assets/companions/barney.png'},rosie:{name:'Rosie',sheet:'../v4/assets/companions/rosie.png'}};
+ const dogData={barney:{name:'Barney',sheet:V8_ART.url('companion.barney')},rosie:{name:'Rosie',sheet:V8_ART.url('companion.rosie')}};
  function create(){
   let clock=0,passes=0,lastPass=0;
   const friends=[{id:'jeff',x:385,y:345,direction:'right',frame:1,moving:true},{id:'ari',x:575,y:345,direction:'left',frame:1,moving:true}];

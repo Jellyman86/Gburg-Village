@@ -1,4 +1,4 @@
-﻿# Development guide
+# Development guide
 
 How the repository is organized, how to verify changes, and the agreed roadmap for making routine changes fast.
 
@@ -6,12 +6,12 @@ How the repository is organized, how to verify changes, and the agreed roadmap f
 
 | Folder | Status | URL |
 |---|---|---|
-| repo root (`index.html`, `src/`, `assets/`) | V1 â€” **frozen** | https://jellyman86.github.io/Gburg-Village/ |
-| `v2/` â€¦ `v7/` | **frozen** archives | `â€¦/Gburg-Village/vN/` |
-| `v8/` | **living version** â€” all new work goes here | https://jellyman86.github.io/Gburg-Village/v8/ |
+| repo root (`index.html`, `src/`, `assets/`) | V1 — **frozen** | https://jellyman86.github.io/Gburg-Village/ |
+| `v2/` … `v7/` | **frozen** archives | `…/Gburg-Village/vN/` |
+| `v8/` | **living version** — all new work goes here | https://jellyman86.github.io/Gburg-Village/v8/ |
 
 - Frozen folders must stay byte-identical to the `archive/v1-v7` git tag. `npm run check:archive` fails if anything under them changed or was added. Never edit, rename, delete or copy-forward files there.
-- The living version may still *reference* frozen art (`../v4/assets/...`) until the asset consolidation step below replaces those references with `v8/assets/` copies.
+- The living version is self-contained: every image it loads lives under `v8/assets/` and is declared in [v8/data/art.json](../v8/data/art.json). There are no `../v4/...` style references any more; `npm run art:check` (part of `test:quick`) enforces that every declared file exists with the recorded hash and dimensions, and that nothing sits in `v8/assets/` undeclared.
 - New features and content do **not** get a new `vN/` folder. Ship them in `v8/`, tag releases (`git tag v8.1`), and summarize in [PROGRESS.md](../PROGRESS.md).
 - `art inbox/` holds raw ChatGPT exports. It is git-ignored (hundreds of MB). Import art with the tools; never commit originals.
 
@@ -31,14 +31,16 @@ The task runner ([tools/tasks.cjs](../tools/tasks.cjs)) auto-detects a browser: 
 | Command | Use it when | Time |
 |---|---|---|
 | `npm run test:quick` | Any routine change: art swap, text, data, small logic | ~30 s |
-| `npm run test:full` | Logic changes to movement, scenes, combat, menu, input | ~5â€“8 min |
-| `npm run predeploy` | Before merging to `main` (archive check + full suite) | ~5â€“8 min |
-| `npm run test:hosted` | After GitHub Pages deploys, to confirm the live site | ~5â€“8 min |
+| `npm run test:full` | Logic changes to movement, scenes, combat, menu, input | ~5–8 min |
+| `npm run predeploy` | Before merging to `main` (archive check + full suite) | ~5–8 min |
+| `npm run test:hosted` | After GitHub Pages deploys, to confirm the live site | ~5–8 min |
 | `npm run browser -- --suites=hawaii --layouts=390x844` | Narrow a browser run while iterating | varies |
 | `npm run contracts` / `npm run syntax` | Fast pure-Node checks, no browser | <1 s |
-| `npm run check:archive` | Confirm V1â€“V7 are untouched | <1 s |
-| `npm run art:check` | Confirm imported area art matches recorded hashes (needs inbox) | ~5 s |
-| `npm run serve` | Read-only local preview at http://127.0.0.1:5180/v8/ | â€” |
+| `npm run check:archive` | Confirm V1–V7 are untouched | <1 s |
+| `npm run art:build` | After adding/replacing a file in `v8/assets/`: refresh hashes/sizes in `art.json`, regenerate `src/art.js` | <1 s |
+| `npm run art:check` | Verify the manifest matches disk (runs inside `test:quick`) | <1 s |
+| `npm run areas:check` | Confirm imported Hawaii backgrounds match their inbox originals (needs inbox) | ~5 s |
+| `npm run serve` | Read-only local preview at http://127.0.0.1:5180/v8/ | — |
 
 Environment knobs honored by the suites: `V8_TEST_SUITES`, `V8_TEST_LAYOUTS`, `V8_TEST_ORIGIN`, `V8_ARTIFACT_DIR` (writes screenshots to an existing directory).
 
@@ -54,18 +56,33 @@ Verification claims must say what was actually tested. Chromium touch emulation 
 
 ## Art workflow (today)
 
-1. Export from ChatGPT into `art inbox/` using a clear name (`Jeff Sprites.png`, `Scene - Paris.png`, `Kate Portrait.png`).
-2. Sprite sheets: 64Ã—64 cells, 4 columns of walk frames, rows down/left/right/up, foot anchor (32,60), transparent background. Portraits: 128Ã—128 transparent PNG. Scene backgrounds: one image per room; note its pixel size.
-3. Scenes: add a definition modeled on [v8/src/hawaii.js](../v8/src/hawaii.js), register it in [v8/index.html](../v8/index.html) with `V8_AREAS.install`, run `node v8/tools/process-areas.cjs` to validate/optimize/hash, then `npm run test:quick`.
-4. Characters and other sprites currently require editing the path in the relevant data file ([characters.js](../v8/src/characters.js), [action-art.js](../v8/src/action-art.js), [rpg.js](../v8/src/rpg.js), dinosaur list in `game.js`) and bumping its `?v=` cache-buster. The roadmap below removes this step.
+All art is addressed by a stable **art id** (`character.jeff.walk`, `portrait.kate`, `dinosaur.compy`, `scene.north-market`, `world.plane`, …). Code never hard-codes a file path; it calls `V8_ART.url('character.jeff.walk')`, which returns `assets/characters/jeff.png?v=<hash>` from the generated [v8/src/art.js](../v8/src/art.js). The hash changes whenever the file changes, so cache-busting is automatic.
+
+**Replace an existing sprite, portrait or background**
+1. Export from ChatGPT into `art inbox/`. Keep the same pixel dimensions as the current file (`art.json` records them).
+2. Copy it over the existing file in `v8/assets/…` (for example `v8/assets/characters/jeff.png`).
+3. `npm run art:build` — updates the hash and dimensions and regenerates `src/art.js`. If the size changed, the output says so; check the frame grid still matches the character definition.
+4. `npm run test:quick`, look at the game, commit.
+
+**Add a new character**
+1. Drop `v8/assets/characters/<id>.png` (64×64 cells, 4 walk frames per row, rows down/left/right/up; later recruits put walking rows four below idle rows) and `v8/assets/portraits/<id>.png` (128×128).
+2. Add `character.<id>.walk` and `portrait.<id>` entries to `art.json` with just the `file` field; `npm run art:build` fills the rest.
+3. Add the id to the roster list in [characters.js](../v8/src/characters.js). Action poses go in [action-art.js](../v8/src/action-art.js) as `character.<id>.<pose>` entries.
+
+**Add a new scene**
+1. Drop the background in `v8/assets/scenes/`, declare it as `scene.<id>` in `art.json`, `npm run art:build`.
+2. Add a definition modeled on [v8/src/hawaii.js](../v8/src/hawaii.js) (spawn, walkable polygons/rectangles, obstacles, exits, interactions, enemies) and register it in [v8/index.html](../v8/index.html) with `V8_AREAS.install`. Kentlands interiors use the `interior()` helper in [scenes.js](../v8/src/scenes.js).
+3. `npm run test:quick` validates geometry/connectivity; trace paths against the artwork and inspect screenshots.
+
+Sprite sheets: 64×64 cells, transparent background, foot anchor (32, 60). Portraits: 128×128 transparent PNG. Scenes: one image per room, any size; large PNGs are better stored as WebP (the roadmap importer will do this automatically).
 
 ## Roadmap (agreed 2026-10-14)
 
-1. âœ… **Freeze policy, Node/npm, task runner, tiered tests, archive check, docs reset** (this step).
-2. **Asset manifest + consolidation.** Copy every frozen-folder asset V8 uses into `v8/assets/` once; declare all art in one manifest (id â†’ path, frame size, rows, foot anchor, hash); replace ad-hoc `?v=` with manifest hashes. Result: no cross-version references.
-3. **Generalized importer** (`tools/import-art.cjs sprite|portrait|scene <id>`): validates grid/size/alpha, writes optimized output, updates the manifest, emits a contact-sheet preview. Plus `docs/ART-SPEC.md` to paste into ChatGPT.
+1. ✅ **Freeze policy, Node/npm, task runner, tiered tests, archive check, docs reset** (this step).
+2. ✅ **Asset manifest + consolidation.** 137 files V8 loaded from V1–V7 now live in `v8/assets/`; all 141 images are declared in `v8/data/art.json` and resolved through `V8_ART.url(id)` with hash-based cache-busting. No cross-version references remain.
+3. **Generalized importer** (`tools/import-art.cjs sprite|portrait|scene <id>`): reads from `art inbox/`, validates grid/size/alpha, converts large scenes to WebP, writes the asset and the manifest entry (with inbox provenance), emits a contact-sheet preview. Folds in `v8/tools/process-areas.cjs`. Plus `docs/ART-SPEC.md` to paste into ChatGPT.
 4. **Unified scene geometry + `?debug=paths` overlay**: migrate Kentlands scenes to the `areas.js` definition format; draw walkable/blocked/exit shapes in-game and click to copy polygon points.
 5. **Format-only pass** on `v8/` (Prettier), then extract asset loading and music from `game.js` into `assets.js` / `music.js`.
-6. **Music manifest**: convert MIDI â†’ OGG/M4A, declare tracks in `music.json`, hook into the existing scene/flight/cinematic mode selector; optional per-character themes and a Menu music picker.
+6. **Music manifest**: convert MIDI → OGG/M4A, declare tracks in `music.json`, hook into the existing scene/flight/cinematic mode selector; optional per-character themes and a Menu music picker.
 
 Not planned: Tiled or a tilemap pipeline, a framework, or a rewrite.

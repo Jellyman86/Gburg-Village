@@ -1,6 +1,6 @@
 // Scene-pixel coordinates from the upper-left. Opaque scenery has collision.
 window.TOWN={id:'kentlands',name:'Kentlands Market Square',width:1536,height:1024,
- image:'../assets/maps/kentlands/scene.png',bounds:{left:55,top:275,right:1475,bottom:984},spawn:{x:768,y:865},
+ image:V8_ART.url('scene.plaza'),bounds:{left:55,top:275,right:1475,bottom:984},spawn:{x:768,y:865},
  obstacles:[
  {x:0,y:0,w:584,h:261},{x:663,y:0,w:755,h:267},
  {x:278,y:395,w:260,h:345},{x:1003,y:396,w:252,h:347},

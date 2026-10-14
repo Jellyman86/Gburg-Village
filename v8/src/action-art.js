@@ -3,86 +3,86 @@
 // from its world anchor. Vito's wider cells include the dinosaur, not a giant human.
 window.V5_ACTION_ART = {
   connor: {
-    talk: { sheet: '../v5/assets/characters/connor-talk.png', frameWidth: 64, frameHeight: 64, foot: { x: 32, y: 60 }, frames: 1, fps: 6 },
-    surprised: { sheet: '../v5/assets/characters/connor-surprised.png', frameWidth: 64, frameHeight: 64, foot: { x: 32, y: 60 }, frames: 1, fps: 6 }
+    talk: { sheet: V8_ART.url('character.connor.talk'), frameWidth: 64, frameHeight: 64, foot: { x: 32, y: 60 }, frames: 1, fps: 6 },
+    surprised: { sheet: V8_ART.url('character.connor.surprised'), frameWidth: 64, frameHeight: 64, foot: { x: 32, y: 60 }, frames: 1, fps: 6 }
   },
   jason: {
-    talk: { sheet: '../v5/assets/characters/jason-talk.png', frameWidth: 64, frameHeight: 64, foot: { x: 32, y: 60 }, frames: 1, fps: 6 },
-    surprised: { sheet: '../v5/assets/characters/jason-surprised.png', frameWidth: 64, frameHeight: 64, foot: { x: 32, y: 60 }, frames: 1, fps: 6 }
+    talk: { sheet: V8_ART.url('character.jason.talk'), frameWidth: 64, frameHeight: 64, foot: { x: 32, y: 60 }, frames: 1, fps: 6 },
+    surprised: { sheet: V8_ART.url('character.jason.surprised'), frameWidth: 64, frameHeight: 64, foot: { x: 32, y: 60 }, frames: 1, fps: 6 }
   },
   peachy: {
-    talk: { sheet: '../v5/assets/characters/peachy-talk.png', frameWidth: 64, frameHeight: 64, foot: { x: 32, y: 60 }, frames: 1, fps: 6 },
-    surprised: { sheet: '../v5/assets/characters/peachy-surprised.png', frameWidth: 64, frameHeight: 64, foot: { x: 32, y: 60 }, frames: 1, fps: 6 }
+    talk: { sheet: V8_ART.url('character.peachy.talk'), frameWidth: 64, frameHeight: 64, foot: { x: 32, y: 60 }, frames: 1, fps: 6 },
+    surprised: { sheet: V8_ART.url('character.peachy.surprised'), frameWidth: 64, frameHeight: 64, foot: { x: 32, y: 60 }, frames: 1, fps: 6 }
   },
   mark: {
-    talk: { sheet: '../v5/assets/characters/mark-talk.png', frameWidth: 64, frameHeight: 64, foot: { x: 32, y: 60 }, frames: 1, fps: 6 },
-    surprised: { sheet: '../v5/assets/characters/mark-surprised.png', frameWidth: 64, frameHeight: 64, foot: { x: 32, y: 60 }, frames: 1, fps: 6 }
+    talk: { sheet: V8_ART.url('character.mark.talk'), frameWidth: 64, frameHeight: 64, foot: { x: 32, y: 60 }, frames: 1, fps: 6 },
+    surprised: { sheet: V8_ART.url('character.mark.surprised'), frameWidth: 64, frameHeight: 64, foot: { x: 32, y: 60 }, frames: 1, fps: 6 }
   },
   stephanie: {
-    talk: { sheet: '../v5/assets/characters/stephanie-talk.png', frameWidth: 64, frameHeight: 64, foot: { x: 32, y: 60 }, frames: 1, fps: 6 },
-    surprised: { sheet: '../v5/assets/characters/stephanie-surprised.png', frameWidth: 64, frameHeight: 64, foot: { x: 32, y: 60 }, frames: 1, fps: 6 }
+    talk: { sheet: V8_ART.url('character.stephanie.talk'), frameWidth: 64, frameHeight: 64, foot: { x: 32, y: 60 }, frames: 1, fps: 6 },
+    surprised: { sheet: V8_ART.url('character.stephanie.surprised'), frameWidth: 64, frameHeight: 64, foot: { x: 32, y: 60 }, frames: 1, fps: 6 }
   },
   vito: {
-    talk: { sheet: '../v5/assets/characters/vito-talk.png', frameWidth: 64, frameHeight: 64, foot: { x: 32, y: 60 }, frames: 1, fps: 6 },
-    surprised: { sheet: '../v5/assets/characters/vito-surprised.png', frameWidth: 64, frameHeight: 64, foot: { x: 32, y: 60 }, frames: 1, fps: 6 },
-    wrestle: { sheet: '../v5/assets/characters/vito-wrestle.png', frameWidth: 192, frameHeight: 128, foot: { x: 64, y: 120 }, frames: 3, fps: 6, scale: 1 },
-    throw: { sheet: '../v5/assets/characters/vito-throw.png', frameWidth: 192, frameHeight: 128, foot: { x: 64, y: 120 }, frames: 6, fps: 6, scale: 1, loop: false },
-    recover: { sheet: '../v5/assets/characters/vito-recover.png', frameWidth: 192, frameHeight: 128, foot: { x: 64, y: 120 }, frames: 3, fps: 3, scale: 1, loop: false }
+    talk: { sheet: V8_ART.url('character.vito.talk'), frameWidth: 64, frameHeight: 64, foot: { x: 32, y: 60 }, frames: 1, fps: 6 },
+    surprised: { sheet: V8_ART.url('character.vito.surprised'), frameWidth: 64, frameHeight: 64, foot: { x: 32, y: 60 }, frames: 1, fps: 6 },
+    wrestle: { sheet: V8_ART.url('character.vito.wrestle'), frameWidth: 192, frameHeight: 128, foot: { x: 64, y: 120 }, frames: 3, fps: 6, scale: 1 },
+    throw: { sheet: V8_ART.url('character.vito.throw'), frameWidth: 192, frameHeight: 128, foot: { x: 64, y: 120 }, frames: 6, fps: 6, scale: 1, loop: false },
+    recover: { sheet: V8_ART.url('character.vito.recover'), frameWidth: 192, frameHeight: 128, foot: { x: 64, y: 120 }, frames: 3, fps: 3, scale: 1, loop: false }
   },
   brie: {
-    talk: { sheet: '../v5/assets/characters/brie-talk.png', frameWidth: 64, frameHeight: 64, foot: { x: 32, y: 60 }, frames: 1, fps: 6 },
-    yoga: { sheet: '../v5/assets/characters/brie-yoga.png', frameWidth: 64, frameHeight: 64, foot: { x: 32, y: 60 }, frames: 3, fps: 3 },
-    stand: { sheet: '../v5/assets/characters/brie-stand.png', frameWidth: 64, frameHeight: 64, foot: { x: 32, y: 60 }, frames: 3, fps: 3, loop: false }
+    talk: { sheet: V8_ART.url('character.brie.talk'), frameWidth: 64, frameHeight: 64, foot: { x: 32, y: 60 }, frames: 1, fps: 6 },
+    yoga: { sheet: V8_ART.url('character.brie.yoga'), frameWidth: 64, frameHeight: 64, foot: { x: 32, y: 60 }, frames: 3, fps: 3 },
+    stand: { sheet: V8_ART.url('character.brie.stand'), frameWidth: 64, frameHeight: 64, foot: { x: 32, y: 60 }, frames: 3, fps: 3, loop: false }
   },
   jeff: {
-    talk: { sheet: '../v5/assets/characters/jeff-talk.png', frameWidth: 64, frameHeight: 64, foot: { x: 32, y: 60 }, frames: 3, fps: 6 },
-    surprised: { sheet: '../v5/assets/characters/jeff-surprised.png', frameWidth: 64, frameHeight: 64, foot: { x: 32, y: 60 }, frames: 3, fps: 6 },
-    hurt: { sheet: '../v5/assets/characters/jeff-hurt.png', frameWidth: 64, frameHeight: 64, foot: { x: 32, y: 60 }, frames: 3, fps: 6, loop: false },
-    win: { sheet: '../v5/assets/characters/jeff-win.png', frameWidth: 64, frameHeight: 64, foot: { x: 32, y: 60 }, frames: 3, fps: 6, loop: false },
-    interact: { sheet: '../v5/assets/characters/jeff-interact.png', frameWidth: 64, frameHeight: 64, foot: { x: 32, y: 60 }, frames: 2, fps: 6, loop: false }
+    talk: { sheet: V8_ART.url('character.jeff.talk'), frameWidth: 64, frameHeight: 64, foot: { x: 32, y: 60 }, frames: 3, fps: 6 },
+    surprised: { sheet: V8_ART.url('character.jeff.surprised'), frameWidth: 64, frameHeight: 64, foot: { x: 32, y: 60 }, frames: 3, fps: 6 },
+    hurt: { sheet: V8_ART.url('character.jeff.hurt'), frameWidth: 64, frameHeight: 64, foot: { x: 32, y: 60 }, frames: 3, fps: 6, loop: false },
+    win: { sheet: V8_ART.url('character.jeff.win'), frameWidth: 64, frameHeight: 64, foot: { x: 32, y: 60 }, frames: 3, fps: 6, loop: false },
+    interact: { sheet: V8_ART.url('character.jeff.interact'), frameWidth: 64, frameHeight: 64, foot: { x: 32, y: 60 }, frames: 2, fps: 6, loop: false }
   },
   ari: {
-    talk: { sheet: '../v5/assets/characters/ari-talk.png', frameWidth: 64, frameHeight: 64, foot: { x: 32, y: 60 }, frames: 3, fps: 6 },
-    surprised: { sheet: '../v5/assets/characters/ari-surprised.png', frameWidth: 64, frameHeight: 64, foot: { x: 32, y: 60 }, frames: 3, fps: 6 },
-    hurt: { sheet: '../v5/assets/characters/ari-hurt.png', frameWidth: 64, frameHeight: 64, foot: { x: 32, y: 60 }, frames: 3, fps: 6, loop: false },
-    interact: { sheet: '../v5/assets/characters/ari-interact.png', frameWidth: 64, frameHeight: 64, foot: { x: 32, y: 60 }, frames: 2, fps: 6, loop: false },
-    kick: { sheet: '../v5/assets/characters/ari-kick.png', frameWidth: 64, frameHeight: 64, foot: { x: 32, y: 60 }, frames: 3, fps: 6, loop: false },
-    win: { sheet: '../v5/assets/characters/ari-win.png', frameWidth: 64, frameHeight: 64, foot: { x: 32, y: 60 }, frames: 3, fps: 6, loop: false }
+    talk: { sheet: V8_ART.url('character.ari.talk'), frameWidth: 64, frameHeight: 64, foot: { x: 32, y: 60 }, frames: 3, fps: 6 },
+    surprised: { sheet: V8_ART.url('character.ari.surprised'), frameWidth: 64, frameHeight: 64, foot: { x: 32, y: 60 }, frames: 3, fps: 6 },
+    hurt: { sheet: V8_ART.url('character.ari.hurt'), frameWidth: 64, frameHeight: 64, foot: { x: 32, y: 60 }, frames: 3, fps: 6, loop: false },
+    interact: { sheet: V8_ART.url('character.ari.interact'), frameWidth: 64, frameHeight: 64, foot: { x: 32, y: 60 }, frames: 2, fps: 6, loop: false },
+    kick: { sheet: V8_ART.url('character.ari.kick'), frameWidth: 64, frameHeight: 64, foot: { x: 32, y: 60 }, frames: 3, fps: 6, loop: false },
+    win: { sheet: V8_ART.url('character.ari.win'), frameWidth: 64, frameHeight: 64, foot: { x: 32, y: 60 }, frames: 3, fps: 6, loop: false }
   },
   chris: {
-    talk: { sheet: '../v5/assets/characters/chris-talk.png', frameWidth: 64, frameHeight: 64, foot: { x: 32, y: 60 }, frames: 3, fps: 6 },
-    surprised: { sheet: '../v5/assets/characters/chris-surprised.png', frameWidth: 64, frameHeight: 64, foot: { x: 32, y: 60 }, frames: 3, fps: 6 },
-    hurt: { sheet: '../v5/assets/characters/chris-hurt.png', frameWidth: 64, frameHeight: 64, foot: { x: 32, y: 60 }, frames: 3, fps: 6, loop: false },
-    win: { sheet: '../v5/assets/characters/chris-win.png', frameWidth: 64, frameHeight: 64, foot: { x: 32, y: 60 }, frames: 3, fps: 6, loop: false },
-    interact: { sheet: '../v5/assets/characters/chris-interact.png', frameWidth: 64, frameHeight: 64, foot: { x: 32, y: 60 }, frames: 2, fps: 6, loop: false }
+    talk: { sheet: V8_ART.url('character.chris.talk'), frameWidth: 64, frameHeight: 64, foot: { x: 32, y: 60 }, frames: 3, fps: 6 },
+    surprised: { sheet: V8_ART.url('character.chris.surprised'), frameWidth: 64, frameHeight: 64, foot: { x: 32, y: 60 }, frames: 3, fps: 6 },
+    hurt: { sheet: V8_ART.url('character.chris.hurt'), frameWidth: 64, frameHeight: 64, foot: { x: 32, y: 60 }, frames: 3, fps: 6, loop: false },
+    win: { sheet: V8_ART.url('character.chris.win'), frameWidth: 64, frameHeight: 64, foot: { x: 32, y: 60 }, frames: 3, fps: 6, loop: false },
+    interact: { sheet: V8_ART.url('character.chris.interact'), frameWidth: 64, frameHeight: 64, foot: { x: 32, y: 60 }, frames: 2, fps: 6, loop: false }
   },
   jaime: {
-    talk: { sheet: '../v5/assets/characters/jaime-talk.png', frameWidth: 64, frameHeight: 64, foot: { x: 32, y: 60 }, frames: 3, fps: 6 },
-    surprised: { sheet: '../v5/assets/characters/jaime-surprised.png', frameWidth: 64, frameHeight: 64, foot: { x: 32, y: 60 }, frames: 3, fps: 6 },
-    hurt: { sheet: '../v5/assets/characters/jaime-hurt.png', frameWidth: 64, frameHeight: 64, foot: { x: 32, y: 60 }, frames: 3, fps: 6, loop: false },
-    win: { sheet: '../v5/assets/characters/jaime-win.png', frameWidth: 64, frameHeight: 64, foot: { x: 32, y: 60 }, frames: 3, fps: 6, loop: false },
-    phone: { sheet: '../v5/assets/characters/jaime-phone.png', frameWidth: 64, frameHeight: 64, foot: { x: 32, y: 60 }, frames: 2, fps: 6 },
-    skate: { sheet: '../v5/assets/characters/jaime-skate.png', frameWidth: 64, frameHeight: 64, foot: { x: 32, y: 60 }, frames: 3, fps: 8 }
+    talk: { sheet: V8_ART.url('character.jaime.talk'), frameWidth: 64, frameHeight: 64, foot: { x: 32, y: 60 }, frames: 3, fps: 6 },
+    surprised: { sheet: V8_ART.url('character.jaime.surprised'), frameWidth: 64, frameHeight: 64, foot: { x: 32, y: 60 }, frames: 3, fps: 6 },
+    hurt: { sheet: V8_ART.url('character.jaime.hurt'), frameWidth: 64, frameHeight: 64, foot: { x: 32, y: 60 }, frames: 3, fps: 6, loop: false },
+    win: { sheet: V8_ART.url('character.jaime.win'), frameWidth: 64, frameHeight: 64, foot: { x: 32, y: 60 }, frames: 3, fps: 6, loop: false },
+    phone: { sheet: V8_ART.url('character.jaime.phone'), frameWidth: 64, frameHeight: 64, foot: { x: 32, y: 60 }, frames: 2, fps: 6 },
+    skate: { sheet: V8_ART.url('character.jaime.skate'), frameWidth: 64, frameHeight: 64, foot: { x: 32, y: 60 }, frames: 3, fps: 8 }
   },
   gary: {
-    talk: { sheet: '../v5/assets/characters/gary-talk.png', frameWidth: 64, frameHeight: 64, foot: { x: 32, y: 60 }, frames: 3, fps: 6 },
-    surprised: { sheet: '../v5/assets/characters/gary-surprised.png', frameWidth: 64, frameHeight: 64, foot: { x: 32, y: 60 }, frames: 3, fps: 6 },
-    hurt: { sheet: '../v5/assets/characters/gary-hurt.png', frameWidth: 64, frameHeight: 64, foot: { x: 32, y: 60 }, frames: 3, fps: 6, loop: false },
-    win: { sheet: '../v5/assets/characters/gary-win.png', frameWidth: 64, frameHeight: 80, foot: { x: 32, y: 76 }, frames: 3, fps: 6, loop: false },
-    sit: { sheet: '../v5/assets/characters/gary-sit.png', frameWidth: 64, frameHeight: 64, foot: { x: 32, y: 60 }, frames: 1, fps: 6, loop: false },
-    drink: { sheet: '../v5/assets/characters/gary-drink.png', frameWidth: 64, frameHeight: 64, foot: { x: 32, y: 60 }, frames: 1, fps: 6, loop: false },
-    interact: { sheet: '../v5/assets/characters/gary-interact.png', frameWidth: 64, frameHeight: 64, foot: { x: 32, y: 60 }, frames: 2, fps: 6, loop: false },
-    attack: { sheet: '../v5/assets/characters/gary-attack.png', frameWidth: 128, frameHeight: 64, foot: { x: 32, y: 60 }, frames: 3, fps: 6, loop: false },
-    special: { sheet: '../v5/assets/characters/gary-special.png', frameWidth: 128, frameHeight: 80, foot: { x: 40, y: 72 }, frames: 3, fps: 6, loop: false },
-    unique: { sheet: '../v5/assets/characters/gary-unique.png', frameWidth: 64, frameHeight: 64, foot: { x: 32, y: 60 }, frames: 3, fps: 6, loop: false },
-    run: { sheet: '../v5/assets/characters/gary-run.png', frameWidth: 64, frameHeight: 64, foot: { x: 32, y: 60 }, frames: 3, fps: 8 }
+    talk: { sheet: V8_ART.url('character.gary.talk'), frameWidth: 64, frameHeight: 64, foot: { x: 32, y: 60 }, frames: 3, fps: 6 },
+    surprised: { sheet: V8_ART.url('character.gary.surprised'), frameWidth: 64, frameHeight: 64, foot: { x: 32, y: 60 }, frames: 3, fps: 6 },
+    hurt: { sheet: V8_ART.url('character.gary.hurt'), frameWidth: 64, frameHeight: 64, foot: { x: 32, y: 60 }, frames: 3, fps: 6, loop: false },
+    win: { sheet: V8_ART.url('character.gary.win'), frameWidth: 64, frameHeight: 80, foot: { x: 32, y: 76 }, frames: 3, fps: 6, loop: false },
+    sit: { sheet: V8_ART.url('character.gary.sit'), frameWidth: 64, frameHeight: 64, foot: { x: 32, y: 60 }, frames: 1, fps: 6, loop: false },
+    drink: { sheet: V8_ART.url('character.gary.drink'), frameWidth: 64, frameHeight: 64, foot: { x: 32, y: 60 }, frames: 1, fps: 6, loop: false },
+    interact: { sheet: V8_ART.url('character.gary.interact'), frameWidth: 64, frameHeight: 64, foot: { x: 32, y: 60 }, frames: 2, fps: 6, loop: false },
+    attack: { sheet: V8_ART.url('character.gary.attack'), frameWidth: 128, frameHeight: 64, foot: { x: 32, y: 60 }, frames: 3, fps: 6, loop: false },
+    special: { sheet: V8_ART.url('character.gary.special'), frameWidth: 128, frameHeight: 80, foot: { x: 40, y: 72 }, frames: 3, fps: 6, loop: false },
+    unique: { sheet: V8_ART.url('character.gary.unique'), frameWidth: 64, frameHeight: 64, foot: { x: 32, y: 60 }, frames: 3, fps: 6, loop: false },
+    run: { sheet: V8_ART.url('character.gary.run'), frameWidth: 64, frameHeight: 64, foot: { x: 32, y: 60 }, frames: 3, fps: 8 }
   }
 };
 window.V5_WINDOW_ART = {
-  sheet: '../v5/assets/dinosaurs/window-head.png', frameWidth: 192, frameHeight: 192, frames: 3
+  sheet: V8_ART.url('dinosaur.window-head'), frameWidth: 192, frameHeight: 192, frames: 3
 };
 window.V5_GARY_WALK = {
-  sheet: '../v5/assets/characters/gary-walk.png?v=cleanup-2', frameWidth: 64, frameHeight: 64,
+  sheet: V8_ART.url('character.gary.walk'), frameWidth: 64, frameHeight: 64,
   foot: { x: 32, y: 60 }, frames: 4,
   rows: { down: 0, left: 1, right: 2, up: 3 }, walkRowOffset: 4
 };

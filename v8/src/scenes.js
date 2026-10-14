@@ -1,7 +1,8 @@
 // Separate maps keep artwork detailed without a giant world texture.
 (() => {
  const rects=(list,w,h)=>list.map(([x,y,rw,rh])=>({x:x*w/1000,y:y*h/1000,w:rw*w/1000,h:rh*h/1000}));
- const make=(id,name,w,h,paths,ports,hint)=>({id,name,width:w,height:h,image:`../v2/assets/${id}.webp`,bounds:{left:0,top:0,right:w,bottom:h},spawn:{x:w/2,y:h/2},obstacles:[],walkable:rects(paths,w,h),landmarks:ports.map(([id,name,x,y,to,tx,ty])=>({id,name,x:x*w/1000,y:y*h/1000,radius:55,to,arrival:[tx,ty]})),hint});
+ const sceneArt={north:'scene.north-market'};
+ const make=(id,name,w,h,paths,ports,hint)=>({id,name,width:w,height:h,image:V8_ART.url(sceneArt[id]||'scene.'+id),bounds:{left:0,top:0,right:w,bottom:h},spawn:{x:w/2,y:h/2},obstacles:[],walkable:rects(paths,w,h),landmarks:ports.map(([id,name,x,y,to,tx,ty])=>({id,name,x:x*w/1000,y:y*h/1000,radius:55,to,arrival:[tx,ty]})),hint});
  const plaza=window.TOWN;plaza.id='plaza';plaza.hint='Go north to the roundabout, or east to Main Street. Use Go at a gold marker.';
  plaza.landmarks.push({id:'to-district',name:'Shops & Main Street →',x:1415,y:780,radius:58,to:'district',arrival:[435,630]});
  plaza.landmarks.push({id:'to-north',name:'North street · Market & roundabout ↑',x:620,y:300,radius:48,to:'north',arrival:[499,954]});
@@ -27,10 +28,9 @@
  [['to-neighborhood','Front door · Go outside',120,940,'neighborhood',713,276]],
  'Home! Walk through the living floor. The front door returns to the neighborhood.')};
  const north=SCENES.north;
- north.image='../v3/assets/north-market.png';
  north.walkableEllipses=[{x:499/1000*1536,y:203/1000*1536,rx:168/1000*1536,ry:101/1000*1536}];
  north.blockedEllipses=[{x:499/1000*1536,y:203/1000*1536,rx:96/1000*1536,ry:67/1000*1536}];
- north.overlay={image:'../v3/assets/meteor-crater.png',x:587,y:200,w:360,h:205,source:[130,180,1300,670]};
+ north.overlay={image:V8_ART.url('scene.meteor-crater'),x:587,y:200,w:360,h:205,source:[130,180,1300,670]};
  north.landmarks.push({id:'meteor',name:'The meteor crater',x:767,y:437,radius:55,text:'It landed right in the roundabout! Something prehistoric crawled out. Keep to the road around the broken island.'});
  const recreation=SCENES.recreation;
  // Follow the east street's bends with overlapping road-and-sidewalk strips.
@@ -68,7 +68,7 @@
   SCENES[id]={id,name,width,height,image,bounds:{left:0,top:0,right:width,bottom:height},spawn:{x:width/2,y:height*.8},
    indoor:true,walkable:walkable.map(([x,y,w,h])=>({x,y,w,h})),obstacles:obstacles.map(([x,y,w,h])=>({x,y,w,h})),landmarks,hint};
  }
- interior('hq','Five Guys · Dinosaur Fighting HQ',724,543,'../v5/assets/scenes/five-guys-hq.png',[
+ interior('hq','Five Guys · Dinosaur Fighting HQ',724,543,V8_ART.url('scene.five-guys-hq'),[
   [150,270,90,170],[170,260,140,45],[285,235,100,55],[370,220,100,45],[455,205,75,50],
   [510,225,90,55],[565,265,90,65],[525,315,165,130],[145,415,545,115],[610,350,80,105]
  ],[
@@ -83,20 +83,20 @@
  const hqDoor=plaza.landmarks.find(l=>l.id==='fiveguys');
  Object.assign(hqDoor,{name:'Five Guys · HQ',to:'hq',arrival:[200/724*1000,450/543*1000],arrivalDirection:'up'});
  delete hqDoor.text;
- interior('upstairs','Dino house · Upstairs',600,450,'../v4/assets/scenes/upstairs.png',[[211,195,189,157],[274,149,64,62],[240,340,114,110]],[],[
+ interior('upstairs','Dino house · Upstairs',600,450,V8_ART.url('scene.upstairs'),[[211,195,189,157],[274,149,64,62],[240,340,114,110]],[],[
   {id:'coco-room',name:"Coco's room",x:382,y:233,radius:45,to:'cocoRoom',arrival:[210,880]},
   {id:'connor-room',name:"Connor's room · Next door",x:239,y:206,radius:45,to:'connorRoom',arrival:[180,810]},
   {id:'downstairs',name:'Downstairs · Living room',x:297,y:412,radius:44,to:'house',arrival:[152,810]}
  ],"Coco and Connor's rooms are next to each other. Stairs lead to the living floor.");
- interior('cocoRoom',"Dino house · Coco's room",600,450,'../v4/assets/scenes/coco-room.png',
+ interior('cocoRoom',"Dino house · Coco's room",600,450,V8_ART.url('scene.coco-room'),
   [[85,210,450,200],[165,140,130,80],[85,290,90,120]],[[340,150,180,165]],[
    {id:'hall',name:"Hallway · Connor is next door",x:126,y:396,radius:42,to:'upstairs',arrival:[620,555]}
   ],"Find Connor next door. Look at the gold door marker to enter the upstairs hallway.");
- interior('connorRoom',"Dino house · Connor's room",600,450,'../v4/assets/scenes/connor-room.png',
+ interior('connorRoom',"Dino house · Connor's room",600,450,V8_ART.url('scene.connor-room'),
   [[85,220,465,190],[105,180,105,70]],[[220,165,165,145]],[
    {id:'hall',name:'Upstairs hallway',x:108,y:365,radius:42,to:'upstairs',arrival:[430,555]}
   ],'Talk to Connor, then head downstairs to find Peachy and Jason.');
- interior('rockband','Rock Band house · Mark & Stephanie',576,324,'../v4/assets/scenes/rockband.png',
+ interior('rockband','Rock Band house · Mark & Stephanie',576,324,V8_ART.url('scene.rockband'),
   [[45,160,490,140],[80,135,370,35]],[[235,190,145,50]],[
    {id:'outside',name:'Outside · East of the pool',x:70,y:200,radius:42,to:'recreation',arrival:[945,670]}
   ],'Talk to Mark and Stephanie. The door leads to the street on the right side of the recreation map.');

@@ -51,9 +51,10 @@ let grabs=0;const bird=flightScope.window.V4_FLIGHT.create({onGrab:()=>grabs++,o
 for(const id of ['world','nyc']){bird.enter(id,actor);bird.update(60,actor,flightScope.SCENES[id]);assert(!bird.grab(actor,id));}
 assert.equal(grabs,0,'Old pterodactyl lift cannot interfere with jet travel or NYC');
 const scope={window:{}};vm.createContext(scope);
-for(const name of ['action-art','characters','powers','rpg'])vm.runInContext(fs.readFileSync(path.join(__dirname,'..','src',name+'.js'),'utf8'),scope);
+for(const name of ['art','action-art','characters','powers','rpg'])vm.runInContext(fs.readFileSync(path.join(__dirname,'..','src',name+'.js'),'utf8'),scope);
 assert.equal(Object.keys(scope.window.CHARACTERS).length,15);assert.equal(scope.window.FAMILY_POWERS.definitions.grenade.cooldown,.6);
-assert(scope.window.CHARACTERS.jeff.sheet.startsWith('../v6/assets/'),'Cleaned Jeff is shared, not duplicated');
+assert(scope.window.CHARACTERS.jeff.sheet.startsWith('assets/characters/jeff.png?v='),'Cleaned Jeff resolves through the V8 art manifest');
+assert(Object.keys(scope.window.CHARACTERS).every(id=>scope.window.V8_ART.has('character.'+id+'.walk')&&scope.window.V8_ART.has('portrait.'+id)),'Every roster member has walk art and a portrait in the manifest');
 assert(fs.readFileSync(path.join(__dirname,'..','src','settings.js'),'utf8').includes('gburg-v8-preferences'),'Preferences are V8-isolated');
 const nycBlocked=(x,y)=>x<40||y<36||x>1240||y>988||travel.nycObstacles.some(o=>x+8>o.x&&x-8<o.x+o.w&&y+4>o.y&&y-4<o.y+o.h);
 const pending=[[640,912]],seen=new Set(['640,912']);

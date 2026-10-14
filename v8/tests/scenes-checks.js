@@ -27,7 +27,7 @@ return async function checkScenes(page,{width,height,touch,artifactDir}={}){
   await page.waitForFunction(()=>V5_CINEMA.state.event==='montage'&&V5_CINEMA.state.shot===1&&V5_CINEMA.state.actors.some(a=>a.id==='chris'));
   assert(await page.evaluate(()=>V5_CINEMA.state.actors.filter(a=>a.id==='chris').length===1&&V5_CINEMA.state.actors.find(a=>a.id==='chris').baseY===848),'Swim-panic montage retains underwater Chris');
   if(artifactDir)await page.screenshot({path:artifactDir+'\\v8-swim-panic-'+width+'x'+height+'.png'});
-  await page.waitForFunction(()=>V5_CINEMA.state.event==='montage'&&V5_CINEMA.state.shot===2&&__vitoDraws.some(d=>d.event==='montage'&&d.src.includes('/v5/assets/characters/vito-wrestle.png')));
+  await page.waitForFunction(()=>V5_CINEMA.state.event==='montage'&&V5_CINEMA.state.shot===2&&__vitoDraws.some(d=>d.event==='montage'&&d.src.includes('/v8/assets/characters/vito-wrestle.png')));
   assert(await page.evaluate(()=>__vitoDraws.filter(d=>d.event==='montage').every(d=>!d.src.includes('vito-clean-'))),'Montage keeps the original bearded wrestle sprite');
   await activate('#cutscene-skip');await page.waitForFunction(()=>!V5_CINEMA.active);
   assert(await page.evaluate(()=>V5_CINEMA.play('recruit-chris')),'Recruitment starts');
@@ -41,13 +41,13 @@ return async function checkScenes(page,{width,height,touch,artifactDir}={}){
   await page.evaluate(()=>GAME.test.position(1555,1037));
   assert(await page.evaluate(()=>V5_EVENTS.encounter('vito')),'Real Vito rescue starts');
   for(const pose of ['wrestle','throw','recover']){
-   await page.waitForFunction(pose=>__vitoDraws.some(d=>d.event==='recruit-vito'&&d.src.includes('/v7/assets/characters/vito-clean-'+pose+'.png')),pose);
+   await page.waitForFunction(pose=>__vitoDraws.some(d=>d.event==='recruit-vito'&&d.src.includes('/v8/assets/characters/vito-clean-'+pose+'.png')),pose);
   }
   if(artifactDir)await page.screenshot({path:artifactDir+'\\v8-vito-clean-recruit-'+width+'x'+height+'.png'});
   await page.waitForFunction(()=>!V5_CINEMA.active&&V4_RPG.members.vito.joined);
   assert(await page.evaluate(()=>!V5_EVENTS.encounter('vito')),'Natural completion recruits Vito only once');
   assert(await page.evaluate(()=>__vitoDraws.filter(d=>d.event==='recruit-vito').every(d=>d.src.includes('vito-clean-'))),'All recruitment wrestle/throw/recover draws use clean-shaven sheets');
-  assert(await page.evaluate(()=>V5_ACTION_ART.vito.wrestle.sheet.startsWith('../v5/')&&CHARACTERS.vito.sheet==='../assets/characters/vito/sheets/walk_4dir.png'),'Global montage clips and playable Vito are unchanged');
+  assert(await page.evaluate(()=>V5_ACTION_ART.vito.wrestle.sheet.startsWith('assets/characters/vito-wrestle.png?v=')&&CHARACTERS.vito.sheet.startsWith('assets/characters/vito.png?v=')),'Global montage clips and playable Vito are unchanged');
   assert(!errors.length,'No scene exceptions: '+errors.join('; '));
   assert(!failed.length,'No failed scene assets: '+failed.join('; '));
   return {scenes:'passed',width,height,touch,checks:['Underwater Chris retained in swim-panic montage','One surface Chris in both recruitment shots','Original montage Vito; clean-shaven recruitment wrestle/throw/recover','Natural one-time Vito rescue reward; unchanged playable sprite'],errors,failed};

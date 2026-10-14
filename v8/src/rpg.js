@@ -13,9 +13,9 @@
    equipment:{weapon:null,accessory:null},ability:window.FAMILY_POWERS.definitions[id]?id:null}];
  }));
  const items=Object.freeze({
-  sword:Object.freeze({id:'sword',name:'Japanese sword',slot:'weapon',strength:4,image:'../v4/assets/items/sword.png',description:'Find it in the Dino house. Strength +4. Equip to select Sword slash in Abilities.'}),
-  hamburger:Object.freeze({id:'hamburger',name:'Five Guys hamburger',heal:50,image:'../v6/assets/items/hamburger.png?v=combat-1',description:'Restore up to 50 HP to the selected character.'}),
-  grenade:Object.freeze({id:'grenade',name:'Grenade',image:'../v6/assets/items/grenade-icon.png?v=danger-1',description:'Find it north of Cinepolis on Main Street. Unlocks reusable Grenade toss in Abilities: a strong blast with a 0.6-second cooldown. No ammo or friendly fire.'})
+  sword:Object.freeze({id:'sword',name:'Japanese sword',slot:'weapon',strength:4,image:V8_ART.url('item.sword'),description:'Find it in the Dino house. Strength +4. Equip to select Sword slash in Abilities.'}),
+  hamburger:Object.freeze({id:'hamburger',name:'Five Guys hamburger',heal:50,image:V8_ART.url('item.hamburger'),description:'Restore up to 50 HP to the selected character.'}),
+  grenade:Object.freeze({id:'grenade',name:'Grenade',image:V8_ART.url('item.grenade-icon'),description:'Find it north of Cinepolis on Main Street. Unlocks reusable Grenade toss in Abilities: a strong blast with a 0.6-second cooldown. No ammo or friendly fire.'})
  });
  const inventory={sword:0,hamburger:3,grenade:0},discoveries={sword:false,dogs:false,grenade:false};
  function recruit(id){

@@ -5,7 +5,8 @@
  const clamp=(n,a=0,b=1)=>Math.max(a,Math.min(b,n));
  const ease=n=>{n=clamp(n);return n*n*(3-2*n);};
  const {catalog,friends}=window.V5_CINEMA_CATALOG;
- const recruitVitoSheets=Object.fromEntries(['wrestle','throw','recover'].map(pose=>[pose,'../v7/assets/characters/vito-clean-'+pose+'.png']));
+ const recruitVitoSheets=Object.fromEntries(['wrestle','throw','recover'].map(pose=>[pose,V8_ART.url('character.vito.clean-'+pose)]));
+ const chrisSwimSheet=V8_ART.url('character.chris.swim'),dinosaurSheet=kind=>V8_ART.url('dinosaur.'+kind);
  const previewPage=document.body.hasAttribute('data-studio-preview');
  let sceneEdits=V5_SCENE_EDITS.empty();
  const editsReady=fetch('data/scene-edits.json?v=studio-v5-1',{cache:'no-cache'}).then(async response=>{
@@ -54,9 +55,9 @@
   for(const clips of Object.values(window.V5_ACTION_ART))for(const clip of Object.values(clips))urls.add(clip.sheet);
   urls.add(window.V5_WINDOW_ART.sheet);
   if(shots.some(s=>s.friend==='vito'))for(const sheet of Object.values(recruitVitoSheets))urls.add(sheet);
-  if(shots.some(s=>s.stage.startsWith('swim')))urls.add('../v4/assets/characters/chris-swim.png');
+  if(shots.some(s=>s.stage.startsWith('swim')))urls.add(chrisSwimSheet);
   if(shots.some(s=>s.stage.startsWith('banquet-')))urls.add(window.V5_BANQUET_FINALE.meteorSheet);
-  for(const id of ['trex','raptor','triceratops','pterodactyl'])urls.add('../v4/assets/dinosaurs/'+id+'.png?v=cleanup-1');
+  for(const id of ['trex','raptor','triceratops','pterodactyl'])urls.add(dinosaurSheet(id));
   return [...urls];
  }
  function pause(){cancelAnimationFrame(raf);raf=0;last=0;}
@@ -205,7 +206,7 @@
   if(clip&&clip.frameWidth>64){const size=scale*(clip.scale||1);points.push([x+(flip?clip.foot.x-clip.frameWidth:-clip.foot.x)*size,y-lift-clip.foot.y*size],[x+(flip?clip.foot.x:clip.frameWidth-clip.foot.x)*size,y-lift+(clip.frameHeight-clip.foot.y)*size]);}
   ctx.save();ctx.translate(x,y-lift);ctx.scale(scale,scale);
   if(swim||!drawPose(ctx,id,expression,0,0,poseTime,{rotation,flip})){
-   const img=images.get(swim?'../v4/assets/characters/chris-swim.png':c.sheet),walking=characterWalkPose(c,dir,walk),row=swim?{down:0,up:1,left:2,right:3}[dir]:walking.row,frame=walk?Math.floor(t*(c.walkFPS||8))%c.frames:1;
+   const img=images.get(swim?chrisSwimSheet:c.sheet),walking=characterWalkPose(c,dir,walk),row=swim?{down:0,up:1,left:2,right:3}[dir]:walking.row,frame=walk?Math.floor(t*(c.walkFPS||8))%c.frames:1;
    rotatePose(ctx,rotation);if(!swim&&walking.flip)ctx.scale(-1,1);ctx.drawImage(img,frame*64,row*64,64,64,-c.foot.x,-c.foot.y,64,64);
   }
   ctx.restore();
@@ -213,7 +214,7 @@
  function dinosaur(kind,x,y,{dir='left',walk=false,scale=1,id=null}={}){
   if(id!==null)current.enemies.push({id,kind,x,y});
   points.push([x,y-70*scale],[x,y]);
-  const image=images.get('../v4/assets/dinosaurs/'+kind+'.png?v=cleanup-1'),row={down:0,left:1,right:2,up:3}[dir]+(walk?4:0),frame=walk?Math.floor(current.age*7)%4:1;
+  const image=images.get(dinosaurSheet(kind)),row={down:0,left:1,right:2,up:3}[dir]+(walk?4:0),frame=walk?Math.floor(current.age*7)%4:1;
   ctx.drawImage(image,frame*128,row*128,128,128,x-64*scale,y-124*scale,128*scale,128*scale);
  }
  function smoke(x,y,t,seed=0){

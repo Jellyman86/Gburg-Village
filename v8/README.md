@@ -2,7 +2,7 @@
 
 Play: https://jellyman86.github.io/Gburg-Village/v8/
 
-V8 is isolated from V1–V7. It reuses their existing character, dinosaur, cinematic and world-terrain assets without editing or duplicating them. Preferences and cinematic overrides are V8-local; the existing Music preference remains shared.
+V8 is isolated from V1–V7 and self-contained: every image it loads lives in `v8/assets/` and is declared in `data/art.json` (see the [development guide](../docs/DEVELOPMENT.md)). Preferences and cinematic overrides are V8-local; the existing Music preference remains shared.
 
 ## What's new
 

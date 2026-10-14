@@ -2,7 +2,7 @@
  'use strict';
  const cities=[['paris','Paris'],['egypt','Egypt'],['japan','Japan'],['russia','Russia'],['hawaii','Hawaii'],['new-york','New York']];
  const scenes=Object.fromEntries([['banquet','Kentlands Under the Lights'],...cities].map(([id,name])=>[id,{
-  name,image:'../v5/assets/scenes/'+id+'.png',width:960,height:id==='banquet'?1440:1280,
+  name,image:V8_ART.url('finale.'+id),width:960,height:id==='banquet'?1440:1280,
   bounds:{left:0,top:0,right:960,bottom:id==='banquet'?1440:1280}
  }]));
  const shot=(seconds,stage,scene='banquet',speaker='coco',text='',extra={})=>({seconds,stage,scene,speaker,text,camera:[480,1100,1],music:'omen',...extra});
@@ -58,5 +58,5 @@
  function shake(s,t,reduced){
   return !reduced&&s.stage==='banquet-city'&&t>=1.75&&t<2.4?2*(1-(t-1.75)/.65):0;
  }
- window.V5_BANQUET_FINALE={scenes,shots,stage,camera,flash,shake,cityNames:cities.map(([,name])=>name),meteorSheet:'../v5/assets/effects/meteor.png'};
+ window.V5_BANQUET_FINALE={scenes,shots,stage,camera,flash,shake,cityNames:cities.map(([,name])=>name),meteorSheet:V8_ART.url('effect.meteor')};
 })();

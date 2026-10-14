@@ -16,12 +16,14 @@ return async function checkWorld(page,{width,height,touch,artifactDir}={}){
  const pattern='**/v8/src/game.js*';
  await page.route(pattern,async route=>{
   const response=await route.fetch(),source=await response.text();
-  const hook=`window.GAME={test:{enterScene,position(x,y){if(!airborne()&&blocked(x,y))throw new Error('Blocked world fixture placement');Object.assign(player,{x,y});resetInput();updateCamera();updateNearby();},
+  const hook=`window.GAME={test:{enterScene,position(x,y){if(!airborne()&&blocked(x,y))throw new Error('Blocked world fixture placement');Object.assign(player,{x,y});resetInput();checkZoneCrossing(x,y);updateCamera();updateNearby();},
    quiet(){dino=null;extraEnemies[town.id]=[];attacks.clear();}},`;
   assert(source.includes('window.GAME={'),'World fixture target exists');
   await route.fulfill({response,body:source.replace('window.GAME={',hook)});
  });
  const activate=selector=>touch?page.locator(selector).tap():page.locator(selector).click();
+ // dialog.close() resets input synchronously and again from the queued 'close' event; let that task run before sending new input.
+ const settle=()=>page.evaluate(()=>new Promise(resolve=>setTimeout(resolve,0)));
  const interact=()=>touch?activate('#interact'):page.keyboard.press('e');
  async function move(dx,dy,ms){
   if(!touch){
@@ -113,7 +115,7 @@ return async function checkWorld(page,{width,height,touch,artifactDir}={}){
   const n0=await page.evaluate(()=>GAME.state.player);await move(-1,0,250);
   assert(await page.evaluate(before=>GAME.state.player.x<before.x-10,n0),'NYC keyboard/touch exploration works');
   await page.evaluate(()=>GAME.test.position(520,440));await interact();
-  assert((await page.locator('#dialog-body').innerText()).includes('New York'),'Real pocket-park interaction works');await activate('#continue');
+  assert((await page.locator('#dialog-body').innerText()).includes('New York'),'Real pocket-park interaction works');await activate('#continue');await settle();
   if(artifactDir)await page.screenshot({path:artifactDir+'\\v8-nyc-'+width+'x'+height+'.png'});
   await page.evaluate(()=>GAME.test.position(640,940));await move(0,1,250);await page.waitForFunction(()=>GAME.state.scene==='world');
   assert(await page.evaluate(old=>GAME.state.travel.plane.x===old.x&&GAME.state.travel.plane.y===old.y,parked),'Jet remains parked after a NYC visit');

@@ -16,10 +16,10 @@
  const voices=new Set(),rockVoices=new Set();
  $('intro-start').disabled=true;$('intro-start').textContent='Getting the town ready…';
  const reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;
- const assets={plaza:'../assets/scene/neighborhood.png',district:'../v2/assets/district.webp',recreation:'../v2/assets/recreation.webp',north:'../v3/assets/north-market.png',room:'../v3/assets/window-room.png',crater:'../v3/assets/meteor-crater.png',rockband:'../v4/assets/scenes/rockband.png'};
+ const assets={district:V8_ART.url('scene.district'),recreation:V8_ART.url('scene.recreation'),north:V8_ART.url('scene.north-market'),room:V8_ART.url('scene.window-room'),crater:V8_ART.url('scene.meteor-crater'),rockband:V8_ART.url('scene.rockband')};
  assets.plaza=window.TOWN.image;
- assets.bedroom='../v4/assets/scenes/coco-room.png';assets.instruments='../v4/assets/items/band-instruments.png';
- for(const id of ['trex','raptor','triceratops'])assets[id]='../v4/assets/dinosaurs/'+id+'.png?v=cleanup-1';
+ assets.bedroom=V8_ART.url('scene.coco-room');assets.instruments=V8_ART.url('item.band-instruments');
+ for(const id of ['trex','raptor','triceratops'])assets[id]=V8_ART.url('dinosaur.'+id);
  const load=src=>new Promise(resolve=>{const img=new Image();img.onload=()=>resolve(img);img.onerror=()=>{console.error('Opening artwork failed to load: '+src);resolve(null);};img.src=src;});
  Promise.all([...Object.entries(assets).map(async([id,url])=>images[id]=await load(url)),...Object.entries(CHARACTERS).map(async([id,v])=>sheets[id]=await load(v.sheet))]).then(()=>{ready=true;$('intro-start').disabled=false;$('intro-start').textContent='Play the opening';draw(0);});
  const clamp=(v,a=0,b=1)=>Math.max(a,Math.min(b,v));

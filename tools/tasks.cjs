@@ -93,6 +93,7 @@ const tasks={
  },
  contracts(){
   const env=resolvePlaywrightEnv();
+  node('Art manifest',path.join(root,'tools','art.cjs'),['check']);
   node('Area contracts',path.join(live,'tests','areas.cjs'),[],env);
   node('World contracts',path.join(live,'tests','world.cjs'),[],env);
  },
@@ -109,7 +110,9 @@ const tasks={
  'test:full'(){tasks.syntax();tasks.contracts();tasks.browser(ALL_SUITES,ALL_LAYOUTS);},
  'test:hosted'(){tasks.browser(ALL_SUITES,ALL_LAYOUTS,flag('origin')||HOSTED_ORIGIN);},
  'check:archive'(){node('Frozen archive check',path.join(root,'tools','check-archive.cjs'));},
- 'art:check'(){node('Area art provenance',path.join(live,'tools','process-areas.cjs'),['--check'],resolvePlaywrightEnv());},
+ 'art:build'(){node('Art manifest build',path.join(root,'tools','art.cjs'),['build']);},
+ 'art:check'(){node('Art manifest',path.join(root,'tools','art.cjs'),['check']);},
+ 'areas:check'(){node('Area art provenance',path.join(live,'tools','process-areas.cjs'),['--check'],resolvePlaywrightEnv());},
  predeploy(){tasks['check:archive']();tasks['test:full']();},
  serve(){node('Local read-only server',path.join(live,'tools','server.cjs'));},
  env(){
@@ -125,7 +128,9 @@ const tasks={
    'contracts      pure Node geometry/world contract tests (no browser)',
    'browser        browser suites; --suites=world,hawaii --layouts=1280x900 narrow the run',
    'check:archive  verify frozen V1-V7 folders match the archive/v1-v7 tag',
-   'art:check      verify imported area art matches recorded hashes (needs the art inbox)',
+   'art:build      refresh hashes/dimensions in v8/data/art.json and regenerate v8/src/art.js',
+   'art:check      verify every manifest asset exists with matching hash/size and art.js is current',
+   'areas:check    verify imported area art matches recorded inbox hashes (needs the art inbox)',
    'predeploy      check:archive + test:full',
    'serve          read-only local preview at http://127.0.0.1:5180/'+LIVE+'/',
    'env            print the Node/Playwright/browser the tasks will use'].join('\n'));

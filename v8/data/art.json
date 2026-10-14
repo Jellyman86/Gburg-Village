@@ -1,0 +1,860 @@
+{
+ "version": 1,
+ "root": "assets/",
+ "assets": {
+  "character.adam.walk": {
+   "file": "characters/adam.png",
+   "hash": "3e9cf368001fc14186e22763b1e6aac374cc493b1303b22616e99e8948055e10",
+   "width": 256,
+   "height": 256
+  },
+  "character.ari.hurt": {
+   "file": "characters/ari-hurt.png",
+   "hash": "2b58c2ce019964e734d86d9a5ea2ae0546c3ac8da94c38158132ce25140b977c",
+   "width": 192,
+   "height": 64
+  },
+  "character.ari.interact": {
+   "file": "characters/ari-interact.png",
+   "hash": "0b3041ba91fc39cc9deeb6cf2e71e423ec3b87b94927c451b5e962ab940530ab",
+   "width": 128,
+   "height": 64
+  },
+  "character.ari.kick": {
+   "file": "characters/ari-kick.png",
+   "hash": "52df219f665f2f65cdca1338d0aca88f1622029da12a2e6eeadb1e86c7b66e10",
+   "width": 192,
+   "height": 64
+  },
+  "character.ari.surprised": {
+   "file": "characters/ari-surprised.png",
+   "hash": "f705829d5eec3fbdb1f802bdf22476ff572fb2676dc7796a02f52ff5f3e09b17",
+   "width": 192,
+   "height": 64
+  },
+  "character.ari.talk": {
+   "file": "characters/ari-talk.png",
+   "hash": "62c488f6a2e271b4d1d936c197e66d23c5d8ddfb365a29488f0a962cff8ab5d0",
+   "width": 192,
+   "height": 64
+  },
+  "character.ari.walk": {
+   "file": "characters/ari.png",
+   "hash": "e962d80399596ef317e86e55b77dc09397ab0f6a68131f2d1a2abdf26998841a",
+   "width": 256,
+   "height": 512
+  },
+  "character.ari.win": {
+   "file": "characters/ari-win.png",
+   "hash": "4404a411ca794ac4dc7bbe24e593b86991ebb7c6eba19ebc339969b7588f0aef",
+   "width": 192,
+   "height": 64
+  },
+  "character.brie.stand": {
+   "file": "characters/brie-stand.png",
+   "hash": "90768a88945af8544e8ad6190bdc6410a1fd53437da2b5e45a45955ff193fead",
+   "width": 192,
+   "height": 64
+  },
+  "character.brie.talk": {
+   "file": "characters/brie-talk.png",
+   "hash": "649f79c00703194673829c5a1ec40b857cb07f67c906510b22c3025846e47758",
+   "width": 64,
+   "height": 64
+  },
+  "character.brie.walk": {
+   "file": "characters/brie.png",
+   "hash": "99745478e6d601513b2fdd19e57e4b5786e003ea6b9cb2a924d7fca635b41817",
+   "width": 256,
+   "height": 256
+  },
+  "character.brie.yoga": {
+   "file": "characters/brie-yoga.png",
+   "hash": "02cef9d05a7931862a84d8a92425dd6cee88873d643b3d87b2f2c5c45ef5e38e",
+   "width": 192,
+   "height": 64
+  },
+  "character.chris.hurt": {
+   "file": "characters/chris-hurt.png",
+   "hash": "3e43b2c267746a974ab25f5b0466350993d490ca8ec0cbcf62abb820847803bf",
+   "width": 192,
+   "height": 64
+  },
+  "character.chris.interact": {
+   "file": "characters/chris-interact.png",
+   "hash": "3c40ca8d229f419051174600f9913056c9912c1a6f1d90db4640b1c95dd66247",
+   "width": 128,
+   "height": 64
+  },
+  "character.chris.surprised": {
+   "file": "characters/chris-surprised.png",
+   "hash": "da40e83bf07048ae8c972c8baf45fc3d2353fd9bac22172cc4f8cd1fbe727595",
+   "width": 192,
+   "height": 64
+  },
+  "character.chris.swim": {
+   "file": "characters/chris-swim.png",
+   "hash": "a6238dbeb5bda2678bbdd39926c1a638070eacd949f0af44dff56bbc3b17dd8f",
+   "width": 256,
+   "height": 256
+  },
+  "character.chris.talk": {
+   "file": "characters/chris-talk.png",
+   "hash": "1501d5f0487b28651f92c6dd4e0ed70b8ba55822902461a4296c9de2de1229a6",
+   "width": 192,
+   "height": 64
+  },
+  "character.chris.walk": {
+   "file": "characters/chris.png",
+   "hash": "9644c446ea2ce70bf70a59dc17542ef753c338afe33bd09b3442cf62742d6f83",
+   "width": 256,
+   "height": 512
+  },
+  "character.chris.win": {
+   "file": "characters/chris-win.png",
+   "hash": "6c735bc5eaa70b174fcf4e4be40cf9169ad632f6a272efe99f63700d829e7bf6",
+   "width": 192,
+   "height": 64
+  },
+  "character.coco.emotions": {
+   "file": "characters/coco-emotions.png",
+   "hash": "30bd6222a2cb14ef9840f6438166589fcb004646bc4d6b298cdb262b119afa52",
+   "width": 192,
+   "height": 128
+  },
+  "character.coco.walk": {
+   "file": "characters/coco.png",
+   "hash": "fbc13a2f30e07e060e504227cc971a49576f270d2f5d6cc9bf7b2a7617c766a2",
+   "width": 256,
+   "height": 256
+  },
+  "character.connor.surprised": {
+   "file": "characters/connor-surprised.png",
+   "hash": "83e0e74b89daf603e4227409175adc33233cbfdc2027ae0037c4ea02e9396f33",
+   "width": 64,
+   "height": 64
+  },
+  "character.connor.talk": {
+   "file": "characters/connor-talk.png",
+   "hash": "959fac23dfb0de88a6a6b4186b92094a8332260c71aec41bfd1cc0471814cb55",
+   "width": 64,
+   "height": 64
+  },
+  "character.connor.walk": {
+   "file": "characters/connor.png",
+   "hash": "cbab64919af505d4db1671563ca1b72654e353b7a04261cc7be592f5edc0b28e",
+   "width": 256,
+   "height": 256
+  },
+  "character.gary.attack": {
+   "file": "characters/gary-attack.png",
+   "hash": "884cdaaa984b3d13b01d750ea31dae47328cc79fbeeadecb5a38aa47ea2a3008",
+   "width": 384,
+   "height": 64
+  },
+  "character.gary.drink": {
+   "file": "characters/gary-drink.png",
+   "hash": "50d56c9858edce5faf47fdb9a1f9072b640334c10c9953a8463c4b50fdf72387",
+   "width": 64,
+   "height": 64
+  },
+  "character.gary.hurt": {
+   "file": "characters/gary-hurt.png",
+   "hash": "ccd2dc0170ac94c6c25f86fe5d56312840a06ad217b8c71a5c42dd81d1db2f10",
+   "width": 192,
+   "height": 64
+  },
+  "character.gary.interact": {
+   "file": "characters/gary-interact.png",
+   "hash": "e44b5fcc3638f06e72658554fbdfdcfa30198a37c8d39152934f9bbca6cb542a",
+   "width": 128,
+   "height": 64
+  },
+  "character.gary.run": {
+   "file": "characters/gary-run.png",
+   "hash": "0aea53fa057b1ec0a76b136d0bead6eb1c1ec0ac0265de295b020a9ef1d177e9",
+   "width": 192,
+   "height": 64
+  },
+  "character.gary.sit": {
+   "file": "characters/gary-sit.png",
+   "hash": "d34bda03feab35c0453e75fc56be5cbac221fe372bfe7cfca111f8185a78c0d8",
+   "width": 64,
+   "height": 64
+  },
+  "character.gary.special": {
+   "file": "characters/gary-special.png",
+   "hash": "6c19f6f6311ad358bc052caab6e16358ef361685228cab4b43fdcdbcd14a9e57",
+   "width": 384,
+   "height": 80
+  },
+  "character.gary.surprised": {
+   "file": "characters/gary-surprised.png",
+   "hash": "8f71a81110964632a0461e660ee2dd879150f15bddc9a0b800076bbc6e03dabe",
+   "width": 192,
+   "height": 64
+  },
+  "character.gary.talk": {
+   "file": "characters/gary-talk.png",
+   "hash": "ff4ea849fa3f77e66104073660ca90eb726cf3ccb1c5cedea5611adb3f386bb5",
+   "width": 192,
+   "height": 64
+  },
+  "character.gary.unique": {
+   "file": "characters/gary-unique.png",
+   "hash": "9767871865819848a47027e4839a9e55b8e6a8a1c9928b4c288eec3cbf960730",
+   "width": 192,
+   "height": 64
+  },
+  "character.gary.walk": {
+   "file": "characters/gary.png",
+   "hash": "d3f24b6898c909053b47b6fc49af63d68ba6856a3d22a9e2a775d46850912a01",
+   "width": 256,
+   "height": 512
+  },
+  "character.gary.win": {
+   "file": "characters/gary-win.png",
+   "hash": "0d27c672bb7270af653c74b87e2634f729ae9aad0a3a1c623b33c95799b0e091",
+   "width": 192,
+   "height": 80
+  },
+  "character.jaime.hurt": {
+   "file": "characters/jaime-hurt.png",
+   "hash": "8025fe55a31317c7b46ea66599af9af46432e94c7d8ab104e6af678b85236979",
+   "width": 192,
+   "height": 64
+  },
+  "character.jaime.phone": {
+   "file": "characters/jaime-phone.png",
+   "hash": "2f4aaa7e029fec6788b94e742f94bbc30c0aafad1943922ca4fa0fd59a7c65a1",
+   "width": 128,
+   "height": 64
+  },
+  "character.jaime.skate": {
+   "file": "characters/jaime-skate.png",
+   "hash": "84fce84156f0d34c5017ad390f5405527d06aa34aa4e3fe9abf6e1d46fdb2368",
+   "width": 192,
+   "height": 64
+  },
+  "character.jaime.surprised": {
+   "file": "characters/jaime-surprised.png",
+   "hash": "de8bec8d90587267a46f5e3b210c543a43eb37c940cd8b5be7091790e4c448d0",
+   "width": 192,
+   "height": 64
+  },
+  "character.jaime.talk": {
+   "file": "characters/jaime-talk.png",
+   "hash": "c297857e2b91a91ddc77769e646814a146385f460a179754f96bd0e84c987361",
+   "width": 192,
+   "height": 64
+  },
+  "character.jaime.walk": {
+   "file": "characters/jaime.png",
+   "hash": "1eea92722d51c68f85e1e066c509a4c26f3778bc7b93302f93f0bad69b18c9ae",
+   "width": 256,
+   "height": 512
+  },
+  "character.jaime.win": {
+   "file": "characters/jaime-win.png",
+   "hash": "25106b42310e5760684c32099cce99b2eaf98d2148c08b5c3a81c65c4ff3c5c6",
+   "width": 192,
+   "height": 64
+  },
+  "character.jason.surprised": {
+   "file": "characters/jason-surprised.png",
+   "hash": "8b42f48b8322455780b77809652d9216af0e68ae8c1ce8a4cd5adcc57704f069",
+   "width": 64,
+   "height": 64
+  },
+  "character.jason.talk": {
+   "file": "characters/jason-talk.png",
+   "hash": "d27b49779612b583d0266f6b75943840054f18b22be6e362c52f999433469ec4",
+   "width": 64,
+   "height": 64
+  },
+  "character.jason.walk": {
+   "file": "characters/jason.png",
+   "hash": "fdc56f9f87b27ffc162767b181141794c7e93cb558971743e3c49242ab6f7535",
+   "width": 256,
+   "height": 256
+  },
+  "character.jeff.hurt": {
+   "file": "characters/jeff-hurt.png",
+   "hash": "53c34f3b05449fd4074ada05b19adae3683795ff3f5850d8514e26e02e3b7510",
+   "width": 192,
+   "height": 64
+  },
+  "character.jeff.interact": {
+   "file": "characters/jeff-interact.png",
+   "hash": "8288054414c8180d522766f3c6babc8e79acd194ff0a6ee5150df2e170612f0b",
+   "width": 128,
+   "height": 64
+  },
+  "character.jeff.surprised": {
+   "file": "characters/jeff-surprised.png",
+   "hash": "967ad05638f184660e0f8917d9a74bb40c62075d97ba0a0c521552c74c6e916d",
+   "width": 192,
+   "height": 64
+  },
+  "character.jeff.talk": {
+   "file": "characters/jeff-talk.png",
+   "hash": "6624aba609a236e877cbd406b52b16793c84098bfe606248aa52a119994d0c79",
+   "width": 192,
+   "height": 64
+  },
+  "character.jeff.walk": {
+   "file": "characters/jeff.png",
+   "hash": "278ac29badeef0e0f28b14a2d26abc9592f7f66cea15dc0dea77fcf274d669b7",
+   "width": 256,
+   "height": 512
+  },
+  "character.jeff.win": {
+   "file": "characters/jeff-win.png",
+   "hash": "e137e62c5f5643f813221ae9e7f2f7bbc1cae842478c6d30cc59f4ebec50843e",
+   "width": 192,
+   "height": 64
+  },
+  "character.kate.walk": {
+   "file": "characters/kate.png",
+   "hash": "b0024cb6af6e27aa5dda899b7f93fdf46f1e0d224f965cbaacd2eaa3b25a9164",
+   "width": 256,
+   "height": 256
+  },
+  "character.mark.surprised": {
+   "file": "characters/mark-surprised.png",
+   "hash": "072c722c35910022db5802194d462ee88b6410da1ba2e57ca9f21636bc7c64ce",
+   "width": 64,
+   "height": 64
+  },
+  "character.mark.talk": {
+   "file": "characters/mark-talk.png",
+   "hash": "6ab9ebd0f5088681172acf7ea8b25151feb1169d214b12d939a272c77d44a351",
+   "width": 64,
+   "height": 64
+  },
+  "character.mark.walk": {
+   "file": "characters/mark.png",
+   "hash": "7c7571524cab9fedecbf6a5d63821264aed1ed720017defb2044f66a5568192b",
+   "width": 256,
+   "height": 256
+  },
+  "character.peachy.surprised": {
+   "file": "characters/peachy-surprised.png",
+   "hash": "26471904d24c6c5bf277af2e250f766b3f59bfe9f7eaa6344cb7c981695119cb",
+   "width": 64,
+   "height": 64
+  },
+  "character.peachy.talk": {
+   "file": "characters/peachy-talk.png",
+   "hash": "eb528cb48e01e885dc3edbe09e0843aeb8673ab32261c9770b2d9843a71cac5b",
+   "width": 64,
+   "height": 64
+  },
+  "character.peachy.walk": {
+   "file": "characters/peachy.png",
+   "hash": "0894817ff1ce9f07b3b0db27b6852c2937b937f3adf9538be5c0e4454e0e81cc",
+   "width": 256,
+   "height": 256
+  },
+  "character.stephanie.surprised": {
+   "file": "characters/stephanie-surprised.png",
+   "hash": "34a904733f9e4332e58f1869ab2c8c2b39d3a21e1263d460b5400ccffd117809",
+   "width": 64,
+   "height": 64
+  },
+  "character.stephanie.talk": {
+   "file": "characters/stephanie-talk.png",
+   "hash": "ca7466b0dc6dad4e9b551de56702c6cba6427554b17858946f67575b4c7869e9",
+   "width": 64,
+   "height": 64
+  },
+  "character.stephanie.walk": {
+   "file": "characters/stephanie.png",
+   "hash": "533b6ffb236b98c60ed58817fedca0d698b49c854b12f71fade8ab1422f8a555",
+   "width": 256,
+   "height": 256
+  },
+  "character.vito.clean-recover": {
+   "file": "characters/vito-clean-recover.png",
+   "hash": "66099185deb2f496c21b40820583485011fb1c4fd127824be76ded50860d7286",
+   "width": 576,
+   "height": 128
+  },
+  "character.vito.clean-throw": {
+   "file": "characters/vito-clean-throw.png",
+   "hash": "40ef8e79e9c52cbaf4ccf2c31bc44ec70d6615356899f0770100bf873bb87cb3",
+   "width": 1152,
+   "height": 128
+  },
+  "character.vito.clean-wrestle": {
+   "file": "characters/vito-clean-wrestle.png",
+   "hash": "a70b1bc521daf8c872724dc2492ae02cd7fa7ea2a4d10da0f1965ef4f1763778",
+   "width": 576,
+   "height": 128
+  },
+  "character.vito.recover": {
+   "file": "characters/vito-recover.png",
+   "hash": "676cc77a64bc714fd96bf4de78ef4f45b060e1df500d20e86fbe57a6c0b8ef00",
+   "width": 576,
+   "height": 128
+  },
+  "character.vito.surprised": {
+   "file": "characters/vito-surprised.png",
+   "hash": "1a17a64aa40d76717161b58d8389a619005717c0f98acf48744f2382044c8ec6",
+   "width": 64,
+   "height": 64
+  },
+  "character.vito.talk": {
+   "file": "characters/vito-talk.png",
+   "hash": "3ff426cdf30b560653d94f7c0b44195984250ce8cb987465688125b51d27933e",
+   "width": 64,
+   "height": 64
+  },
+  "character.vito.throw": {
+   "file": "characters/vito-throw.png",
+   "hash": "12d500466b1cf63180e36d903de313a2e39fab99564c8164ecc1dfca682ce100",
+   "width": 1152,
+   "height": 128
+  },
+  "character.vito.walk": {
+   "file": "characters/vito.png",
+   "hash": "4df6392086e0e712628453f1d2e0425a0a23f6e8e922fb0d7976d2c374a43c11",
+   "width": 256,
+   "height": 256
+  },
+  "character.vito.wrestle": {
+   "file": "characters/vito-wrestle.png",
+   "hash": "40a9d74345b036075e7148c37c932e860f544063d7a7c3614429342bacc509f5",
+   "width": 576,
+   "height": 128
+  },
+  "companion.barney": {
+   "file": "companions/barney.png",
+   "hash": "7bc4b6625eaf27944552b9bdca04a96c7174027d121831ed57a711d5ac083bea",
+   "width": 256,
+   "height": 512
+  },
+  "companion.barney.poses": {
+   "file": "companions/barney-poses.png",
+   "hash": "42e5576ab4fda56034b45801538d765654a9654f650c90d03f653633462c1d44",
+   "width": 320,
+   "height": 64
+  },
+  "companion.rosie": {
+   "file": "companions/rosie.png",
+   "hash": "a5c51be810bc82240e1a3e89781a62cb83d9c9a4ec920ad5d6848c73e208a97a",
+   "width": 256,
+   "height": 512
+  },
+  "companion.rosie.poses": {
+   "file": "companions/rosie-poses.png",
+   "hash": "afff09a5d4aaa6a3ddfd3f1b88c40406c8d5e891f5b70ac7690eba03317f077b",
+   "width": 320,
+   "height": 64
+  },
+  "dinosaur.ankylosaurus": {
+   "file": "dinosaurs/ankylosaurus.png",
+   "hash": "b261efb0faf06598e5bad14fa8f42de3a27f1fc80572c55a75c882434647b41e",
+   "width": 512,
+   "height": 1024
+  },
+  "dinosaur.compy": {
+   "file": "dinosaurs/compy.png",
+   "hash": "9a6ede7e60e81aca1db62a114fd51b22c5e5f47d7d9facd1ab9bd9cb38213103",
+   "width": 256,
+   "height": 384
+  },
+  "dinosaur.dilophosaurus": {
+   "file": "dinosaurs/dilophosaurus.png",
+   "hash": "a3352188860286db1a7a7045383c6f5e4def15cba1fdf8c4b69d9672dc8893d8",
+   "width": 512,
+   "height": 896
+  },
+  "dinosaur.pterodactyl": {
+   "file": "dinosaurs/pterodactyl.png",
+   "hash": "91ffa72681d243e8e36bb16643dcf24685ec6a13125d8b6609ff56f57e3d2c3a",
+   "width": 512,
+   "height": 1024
+  },
+  "dinosaur.raptor": {
+   "file": "dinosaurs/raptor.png",
+   "hash": "4979444df89f7df768d18df301beb6c54e891d4a503356886b30dabdfb73eb1e",
+   "width": 512,
+   "height": 1024
+  },
+  "dinosaur.trex": {
+   "file": "dinosaurs/trex.png",
+   "hash": "bdab48f9b81ff1781e8ab40b14f87e6ea0d724e50ea7d1b78b3d3b85a091193c",
+   "width": 512,
+   "height": 1024
+  },
+  "dinosaur.triceratops": {
+   "file": "dinosaurs/triceratops.png",
+   "hash": "a83058863dc6d35033f65e8aa252bce4bbe6eceecdb8baa90fe0e0c090166b4e",
+   "width": 512,
+   "height": 1024
+  },
+  "dinosaur.window-head": {
+   "file": "dinosaurs/window-head.png",
+   "hash": "7c6b6faee3305c65c24008d70eebfa2863b7c66310958db97a93db8b74b38bd7",
+   "width": 576,
+   "height": 192
+  },
+  "effect.meteor": {
+   "file": "effects/meteor.png",
+   "hash": "08a60c05426eca3e936fb35cdf5d864af5901c1a8675ebff449c1d01198c6f70",
+   "width": 384,
+   "height": 256
+  },
+  "finale.banquet": {
+   "file": "scenes/finale-banquet.png",
+   "hash": "7cf963749bf2613c395aa9c480be5deaac29722e27399669615b8d4bfa26c32e",
+   "width": 576,
+   "height": 864
+  },
+  "finale.egypt": {
+   "file": "scenes/finale-egypt.png",
+   "hash": "a28248755a4f89646287b90ecc9344ab6f53a4385d8c773cb1667d6272778a35",
+   "width": 576,
+   "height": 768
+  },
+  "finale.hawaii": {
+   "file": "scenes/finale-hawaii.png",
+   "hash": "c45e37bcb2c1bf5d01e41dfdde047e76ef37f31ec2207eebab9e025b9133f094",
+   "width": 576,
+   "height": 768
+  },
+  "finale.japan": {
+   "file": "scenes/finale-japan.png",
+   "hash": "0997a528d1a42468d42c581586ffec3c4830c62bfb38f725b2ba2f89b053a19a",
+   "width": 576,
+   "height": 768
+  },
+  "finale.new-york": {
+   "file": "scenes/finale-new-york.png",
+   "hash": "5bc50e5418b0f84a7e087fecafa4393e6e8259359500159843cf5e22dc0cf28c",
+   "width": 576,
+   "height": 768
+  },
+  "finale.paris": {
+   "file": "scenes/finale-paris.png",
+   "hash": "445aa302e35c6c12fcad91a7ea260cc1f9c95018713e2fd3df7cf1e74b0041d1",
+   "width": 576,
+   "height": 768
+  },
+  "finale.russia": {
+   "file": "scenes/finale-russia.png",
+   "hash": "78b17e401cf2ec970019c8105dd747b86f565f2cfc2fcb135bf05f0046f6cb40",
+   "width": 576,
+   "height": 768
+  },
+  "gimmick.bus": {
+   "file": "gimmicks/bus.png",
+   "hash": "d949f6525fa1d4b3c0ceb906a807792c87b891adbfece990f70bdd8be7b187ec",
+   "width": 1280,
+   "height": 128
+  },
+  "item.band-instruments": {
+   "file": "items/band-instruments.png",
+   "hash": "a0a988e4ef89652ae81aec7a991f3dde42f1f019da76de86a5cdabe6d36cff88",
+   "width": 256,
+   "height": 64
+  },
+  "item.grenade": {
+   "file": "items/grenade.png",
+   "hash": "4bf3a26ab183495b2ccb5be3b10641a0c2acb1fa35a5b70bac0bf13050573469",
+   "width": 256,
+   "height": 128
+  },
+  "item.grenade-icon": {
+   "file": "items/grenade-icon.png",
+   "hash": "6242de7ea6bde3863473eb32fd2d05a5da01f8d160700c87ff437b1514301e69",
+   "width": 64,
+   "height": 64
+  },
+  "item.hamburger": {
+   "file": "items/hamburger.png",
+   "hash": "b9f96c778add83480c4e76d829b6a767ce5da42b4343eeb76ee2d3a1ce7158db",
+   "width": 64,
+   "height": 64
+  },
+  "item.sword": {
+   "file": "items/sword.png",
+   "hash": "722b1017f03a77281fa3511d6b1053ee409e54d5e592b11e0f9f69c4e2e6c4a5",
+   "width": 64,
+   "height": 64
+  },
+  "item.sword-slash": {
+   "file": "items/sword-slash.png",
+   "hash": "4087afe6c9249acaf570a10c2a0c1fc1ef79e05c33dd81e2b1f8360e7ba6675a",
+   "width": 256,
+   "height": 64
+  },
+  "item.towel-whip": {
+   "file": "items/towel-whip.png",
+   "hash": "e04da630739168bf565c1e769d2848fbdad6aa4775e2325f2600b95fedb7cf7d",
+   "width": 768,
+   "height": 64
+  },
+  "portrait.adam": {
+   "file": "portraits/adam.png",
+   "hash": "155676aafc9d0570bb57b8afbf01def4cbd3a1524cbf9f94791dd6d14390df79",
+   "width": 128,
+   "height": 128
+  },
+  "portrait.ari": {
+   "file": "portraits/ari.png",
+   "hash": "b2d3b3542db0d2f1d37938edbbeecfd7cc325a7cdea46107c610101d7d2876cc",
+   "width": 128,
+   "height": 128
+  },
+  "portrait.brie": {
+   "file": "portraits/brie.png",
+   "hash": "dccf7dd6d525dbdf0f9e0ae08f7f62502aa60f4e53e3d1c97d9f45cf51a997e0",
+   "width": 128,
+   "height": 128
+  },
+  "portrait.chris": {
+   "file": "portraits/chris.png",
+   "hash": "99b204e7eb17206738f7095f10aa9711ef7b9e441d41b37931f5c7d1ad876c39",
+   "width": 128,
+   "height": 128
+  },
+  "portrait.coco": {
+   "file": "portraits/coco.png",
+   "hash": "83fe966b8b85fdf0ed62ef221172da33e56555c38105affbb51a5939ab1e9d3f",
+   "width": 128,
+   "height": 128
+  },
+  "portrait.connor": {
+   "file": "portraits/connor.png",
+   "hash": "188e7a6feb8c741512cfd7ed6a5084845d5045002d898ffcee5659ff66b55417",
+   "width": 128,
+   "height": 128
+  },
+  "portrait.gary": {
+   "file": "portraits/gary.png",
+   "hash": "a1a05a56b45b12f46532b16dde79b23e234435cb4fb63f09ceeed8b7b04c4056",
+   "width": 128,
+   "height": 128
+  },
+  "portrait.jaime": {
+   "file": "portraits/jaime.png",
+   "hash": "84778b7339136f8c7157c360c4b777da979645f9dd3227c75f57090b673cbd87",
+   "width": 128,
+   "height": 128
+  },
+  "portrait.jason": {
+   "file": "portraits/jason.png",
+   "hash": "9c8a51da2547650458a097992d45ddc7ffe3b2f62bababb03ba07ce9959d2c9b",
+   "width": 128,
+   "height": 128
+  },
+  "portrait.jeff": {
+   "file": "portraits/jeff.png",
+   "hash": "c1ea97068fe6e273a737ab739d33dccf2b344a6b949081f4786f6f3e3f7cadf0",
+   "width": 128,
+   "height": 128
+  },
+  "portrait.kate": {
+   "file": "portraits/kate.png",
+   "hash": "a9ede29ad63adc20b30f7b17b1acd1eeee9e42a767eb4435d11cda84f6d28314",
+   "width": 128,
+   "height": 128
+  },
+  "portrait.mark": {
+   "file": "portraits/mark.png",
+   "hash": "70b6d18efb79a2aa85fa4743c62b3df6efd6f2913d7efde72a12cd6541e9eee4",
+   "width": 128,
+   "height": 128
+  },
+  "portrait.peachy": {
+   "file": "portraits/peachy.png",
+   "hash": "a9027b5e179d45f9ee23b8586ab4338b1cdcc69bf78e4b1a0814d80f0a71ce70",
+   "width": 128,
+   "height": 128
+  },
+  "portrait.stephanie": {
+   "file": "portraits/stephanie.png",
+   "hash": "df4bd219466a690d8199c04983b0d57849983d8d2913334366aac578677955d4",
+   "width": 128,
+   "height": 128
+  },
+  "portrait.vito": {
+   "file": "portraits/vito.png",
+   "hash": "29d058d6e39d68fc4374fc89e376c7aed410d605ba4277fe5ebbc71f4a759850",
+   "width": 128,
+   "height": 128
+  },
+  "scene.coco-room": {
+   "file": "scenes/coco-room.png",
+   "hash": "219e616676db1e1c56293bce066ba156a15b2a908565a153574b4f8c6eee8b40",
+   "width": 600,
+   "height": 450
+  },
+  "scene.connor-room": {
+   "file": "scenes/connor-room.png",
+   "hash": "e24c657ada263e949f9973494279ff5ef55899b6dd6342baf2ac6b6aa99560ff",
+   "width": 600,
+   "height": 450
+  },
+  "scene.district": {
+   "file": "scenes/district.webp",
+   "hash": "cb735fec5265362bfef94ff97a59f41f6e08b1a0c6fe6869feebda7b0f70cdf9",
+   "width": 2171,
+   "height": 724
+  },
+  "scene.five-guys-hq": {
+   "file": "scenes/five-guys-hq.png",
+   "hash": "c851412835aa8a63c852e08e69b7706812ac64ac052ffb339d2c4492c3adbc9b",
+   "width": 724,
+   "height": 543
+  },
+  "scene.hawaii-central": {
+   "file": "scenes/hawaii-central.webp",
+   "hash": "1e6cd2080d20f85c0a8b0b95acf4222a013f3f7b8ae6fa67aaa774b83ca60594",
+   "width": 1448,
+   "height": 1086,
+   "source": "Hawaii - Central Zone.png",
+   "sourceHash": "a7c395514fd47e3723391e9743ee0708bde8d835107fd43a6bbd59048ab35ac5"
+  },
+  "scene.hawaii-east": {
+   "file": "scenes/hawaii-east.webp",
+   "hash": "4e04a7ea6de00d904de12bb319b2cd2286c7fa48752314a779d2ab5cf9a163fc",
+   "width": 1448,
+   "height": 1086,
+   "source": "Hawaii - East Zone.png",
+   "sourceHash": "a09bca12ea3ec27f3b1950176332ddff7b03c46ebbe9b4a396e39b9974500b49"
+  },
+  "scene.hawaii-north": {
+   "file": "scenes/hawaii-north.webp",
+   "hash": "fc8824f3611ecb18df069894bbea089f2f0dfda0198edffa960dec4f1239acb5",
+   "width": 1448,
+   "height": 1086,
+   "source": "Hawaii - North Zone.png",
+   "sourceHash": "afdbd72473dba0b6d4323deb68bf128ec377b6d6b76f7a90429e9d5cd9da1206"
+  },
+  "scene.hawaii-west": {
+   "file": "scenes/hawaii-west.webp",
+   "hash": "520f55b5a6da58d19b1800a88006ee9cc57a8a7fb9a082c648078a0488fd6344",
+   "width": 1448,
+   "height": 1086,
+   "source": "Hawaii - West Zone.png",
+   "sourceHash": "04d785ce687c3d7b6149fb31be51784b9b7d1f52adc873d55a558a0f7629a236"
+  },
+  "scene.house": {
+   "file": "scenes/house.webp",
+   "hash": "7dad91fccb7678673b8b689f494c069314d7c30c28021aaf8f3150267f859696",
+   "width": 1448,
+   "height": 1086
+  },
+  "scene.meteor-crater": {
+   "file": "scenes/meteor-crater.png",
+   "hash": "ef3b74e8f97bfc32c28bb3457219176fb8c4f526e46a1604d719bb6706523004",
+   "width": 1536,
+   "height": 1024
+  },
+  "scene.neighborhood": {
+   "file": "scenes/neighborhood.webp",
+   "hash": "53a1123f76d28b29e64ffd6b0f94b89a81ce070ad31f5111cbbf269a6ab159d1",
+   "width": 1254,
+   "height": 1254
+  },
+  "scene.north-market": {
+   "file": "scenes/north-market.png",
+   "hash": "249523a9e173177d2e3046608be1e80e6e9cd8a9c7df69ec79de3f85e1733003",
+   "width": 1254,
+   "height": 1254
+  },
+  "scene.plaza": {
+   "file": "scenes/plaza.png",
+   "hash": "4ecba79a92702e9bd96d53959241188005ad78441c6f63fda3d848d1a2c21eb8",
+   "width": 1536,
+   "height": 1024
+  },
+  "scene.recreation": {
+   "file": "scenes/recreation.webp",
+   "hash": "1f14008aca31267f917ee79cc848c8ced91ba1faacc732ee664f9f478db5751e",
+   "width": 1254,
+   "height": 1254
+  },
+  "scene.rockband": {
+   "file": "scenes/rockband.png",
+   "hash": "b3a1266b4545efa06b9d6b6d5d2fa3830f638a0807b24a69c741151c0023a0a4",
+   "width": 960,
+   "height": 540
+  },
+  "scene.upstairs": {
+   "file": "scenes/upstairs.png",
+   "hash": "6dbc119d499ce41aaca60d827c1216488dd1ed028354a9d60c7d654c928ff9fc",
+   "width": 600,
+   "height": 450
+  },
+  "scene.window-room": {
+   "file": "scenes/window-room.png",
+   "hash": "cdf9d11fada0ff75ea67ab491aedacc6ffb789ace397ef62b094ae75cd026c81",
+   "width": 1672,
+   "height": 941
+  },
+  "world.coasts": {
+   "file": "world/coasts.png",
+   "hash": "aa6f77fa97320c779ecd94156c5af9dc0f744157f098c59a5951faacbb1a7532",
+   "width": 128,
+   "height": 96
+  },
+  "world.features": {
+   "file": "world/features.png",
+   "hash": "f8a1a8fb284b0af4cd9ded00c1d3078b3333327e489cfd8501bcc8ccd139d0ac",
+   "width": 256,
+   "height": 32
+  },
+  "world.nyc-buildings": {
+   "file": "world/nyc-buildings.png",
+   "hash": "a734cf155f04f7cb1c2f0fed2a14d318f938e1de26e65184688b12cdb3f66588",
+   "width": 1024,
+   "height": 256
+  },
+  "world.nyc-ground": {
+   "file": "world/nyc-ground.png",
+   "hash": "cb5b2dc625e9ed6650725908d69092bda66df090dbe1740c4012f98f8a9742cc",
+   "width": 128,
+   "height": 32
+  },
+  "world.nyc-icon": {
+   "file": "world/nyc-icon.png",
+   "hash": "dd16e2e2206bc54fd7cdabc7aee6a8577a0277f65088e975fe532cf5ccc201df",
+   "width": 128,
+   "height": 128
+  },
+  "world.nyc-park": {
+   "file": "world/nyc-park.png",
+   "hash": "220c4e5901f12c15893a1c157b94db2d4a1be29533dffdadb7cf3b43ade74f87",
+   "width": 256,
+   "height": 384
+  },
+  "world.overview": {
+   "file": "world/overview.png",
+   "hash": "ad3632ea7e54ef9285791adfbb98e1329fbce467ae07fe50a7f0363cd7f576ce",
+   "width": 1024,
+   "height": 768
+  },
+  "world.plane": {
+   "file": "world/plane.png",
+   "hash": "ede1dff2ae4ecc8a6454e4e41d21b0f9250aa7a9d9fae63af6002a2f4cdd974a",
+   "width": 512,
+   "height": 256
+  },
+  "world.terrain": {
+   "file": "world/terrain.png",
+   "hash": "73d15f71d753dc4830a3a14607c0b8c9b53167bc052b862bff2aec5d0e4b843f",
+   "width": 448,
+   "height": 32
+  },
+  "world.transitions": {
+   "file": "world/transitions.png",
+   "hash": "2ead7be88100448057d431aed8567fbab102c4de3fbfe1633920f2a87c9d2e2b",
+   "width": 128,
+   "height": 160
+  }
+ }
+}

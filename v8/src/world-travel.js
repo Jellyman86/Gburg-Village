@@ -95,7 +95,7 @@
  if(typeof document!=='undefined'){
   let model,worldCanvas,nycCanvas;
   const images={},flightCanvas=document.createElement('canvas');flightCanvas.width=1280;flightCanvas.height=1280;
-  function image(file){return new Promise((resolve,reject)=>{const img=new Image();img.onload=()=>resolve(img);img.onerror=()=>reject(new Error('Could not load V8 world art: '+file));img.src='../v7/assets/world/'+file+'?v=terrain-2';});}
+  function image(key){return new Promise((resolve,reject)=>{const img=new Image();img.onload=()=>resolve(img);img.onerror=()=>reject(new Error('Could not load V8 world art: '+key));img.src=root.V8_ART.url('world.'+key);});}
   function canvas(w,h){const c=document.createElement('canvas');c.width=w;c.height=h;return c;}
   function buildWorld(){
    worldCanvas=canvas(width,height);const ctx=worldCanvas.getContext('2d');ctx.imageSmoothingEnabled=false;
@@ -171,7 +171,7 @@
   api.preload=async()=>{
    const [data]=await Promise.all([
     fetch('data/world-grid.json?v=world-1').then(async response=>{if(!response.ok)throw new Error('World terrain request failed: '+response.status);return response.json();}),
-    ...Object.entries({terrain:'terrain-v2.png',transitions:'transitions-v2.png',coasts:'coasts-v2.png',features:'features-v2.png',overview:'overview.png',plane:'plane.png',icon:'nyc-icon.png',ground:'nyc-ground.png',buildings:'nyc-buildings.png',park:'nyc-park.png'}).map(async([key,file])=>{images[key]=await image(file);})
+    ...Object.entries({terrain:'terrain',transitions:'transitions',coasts:'coasts',features:'features',overview:'overview',plane:'plane',icon:'nyc-icon',ground:'nyc-ground',buildings:'nyc-buildings',park:'nyc-park'}).map(async([key,art])=>{images[key]=await image(art);})
    ]);
    model=create(data);buildWorld();buildNYC();
   };

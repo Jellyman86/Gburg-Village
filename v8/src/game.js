@@ -573,8 +573,12 @@
  }
  $('return-plaza').addEventListener('click',()=>{if($('dialog').open)$('dialog').close();enterScene('plaza',[50,84.47265625].map(v=>v*10));});
  function loadImage(path){return new Promise((resolve,reject)=>{const img=new Image();img.onload=()=>resolve(img);img.onerror=()=>reject(new Error('Could not load '+path));img.src=window.EMBEDDED_ASSETS?.[path]||path;});}
+ const extraArt={...Object.fromEntries(Object.entries(recreation.dogData).map(([id,data])=>[id,data.sheet])),
+  ...Object.fromEntries(['trex','raptor','triceratops','pterodactyl','dilophosaurus','ankylosaurus','compy'].map(id=>[id,V8_ART.url('dinosaur.'+id)])),
+  barneyPoses:V8_ART.url('companion.barney.poses'),rosiePoses:V8_ART.url('companion.rosie.poses'),grenade:V8_ART.url('item.grenade'),grenadeIcon:V4_RPG.items.grenade.image,
+  towel:V8_ART.url('item.towel-whip'),bus:V8_ART.url('gimmick.bus'),swim:V8_ART.url('character.chris.swim'),sword:V8_ART.url('item.sword-slash'),swordIcon:V4_RPG.items.sword.image};
  Promise.all([loadImage(town.image).then(img=>{background=img;sceneImages.cocoRoom=img;}),...ids.map(id=>loadImage(characters[id].sheet).then(img=>{sheets[id]=img;})),
-  ...Object.entries({...Object.fromEntries(Object.entries(recreation.dogData).map(([id,data])=>[id,data.sheet])),...Object.fromEntries(['trex','raptor','triceratops','pterodactyl'].map(id=>[id,'../v4/assets/dinosaurs/'+id+'.png?v=cleanup-1'])),...Object.fromEntries(['dilophosaurus','ankylosaurus'].map(id=>[id,'../v6/assets/dinosaurs/'+id+'.png?v=danger-2'])),barneyPoses:'../v6/assets/companions/barney-poses.png?v=danger-1',rosiePoses:'../v6/assets/companions/rosie-poses.png?v=danger-1',grenade:'../v6/assets/items/grenade.png?v=danger-1',grenadeIcon:V4_RPG.items.grenade.image,compy:'../v6/assets/dinosaurs/compy.png?v=danger-2',towel:'../v6/assets/items/towel-whip.png?v=combat-1',bus:'../v6/assets/gimmicks/bus.png?v=combat-1',swim:'../v4/assets/characters/chris-swim.png',sword:'../v4/assets/items/sword-slash.png',swordIcon:window.V4_RPG.items.sword.image}).map(([id,path])=>loadImage(path).then(img=>{
+  ...Object.entries(extraArt).map(([id,path])=>loadImage(path).then(img=>{
    extraSheets[id]=img;
    if(V6_COMBAT.species[id]){const flash=document.createElement('canvas');flash.width=img.width;flash.height=img.height;const paint=flash.getContext('2d');paint.drawImage(img,0,0);paint.globalCompositeOperation='source-atop';paint.fillStyle='#fff5dc';paint.fillRect(0,0,flash.width,flash.height);flashSheets[id]=flash;}
   }))
