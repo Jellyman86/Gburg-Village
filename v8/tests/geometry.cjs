@@ -2,7 +2,7 @@ const assert=require('node:assert/strict');
 const geometry=require('../../tools/geometry.cjs');
 const context=geometry.loadScenes(),{SCENES,V8_GEOMETRY:G,V8_AREAS}=context;
 const editable=Object.values(SCENES).filter(s=>!s.world);
-assert(editable.length>=26,'All playable scenes are loaded for geometry validation');
+assert(editable.length>=27,'All playable scenes are loaded for geometry validation');
 // extract() then apply() must reproduce the game's collision answers exactly for every scene.
 const r2=(k,v)=>typeof v==='number'?Math.round(v*100)/100:v;
 const landmarkSignature=scene=>JSON.stringify(scene.landmarks.map(l=>[l.id,l.x,l.y,l.radius,l.to,l.text,l.roads]),r2);

@@ -764,6 +764,14 @@
    "source": "Italy all.png",
    "sourceHash": "07f0b1b58e0c04a1aabb9f107c90c6a5b8db6055017dad467b340419e8d40b5e"
   },
+  "scene.japan": {
+   "file": "scenes/japan.webp",
+   "hash": "821edc980411c0143062d1ea84a525c891a95f5636662915bc4ae4a46acd619b",
+   "width": 1448,
+   "height": 1086,
+   "source": "Japan All.png",
+   "sourceHash": "73541cd3003cfcb6dcf195f7e5435d13e2aa113c0012f742e63f24446fa89d1b"
+  },
   "scene.meteor-crater": {
    "file": "scenes/meteor-crater.png",
    "hash": "ef3b74e8f97bfc32c28bb3457219176fb8c4f526e46a1604d719bb6706523004",

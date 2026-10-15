@@ -62,7 +62,7 @@ assert(scope.window.CHARACTERS.jeff.sheet.startsWith('assets/characters/jeff.png
 assert(Object.keys(scope.window.CHARACTERS).every(id=>scope.window.V8_ART.has('character.'+id+'.walk')&&scope.window.V8_ART.has('portrait.'+id)),'Every roster member has walk art and a portrait in the manifest');
 assert(fs.readFileSync(path.join(__dirname,'..','src','settings.js'),'utf8').includes('gburg-v8-preferences'),'Preferences are V8-isolated');
 const playable=travel.sites.filter(s=>s.to);
-assert(playable.length>=7,'Every finished destination is a playable world site');
+assert(playable.length>=8,'Every finished destination is a playable world site');
 for(const site of playable){
  const probe=travel.create(JSON.parse(fs.readFileSync(path.join(__dirname,'..','data','world-grid.json'),'utf8')));
  let landed=0,total=0;

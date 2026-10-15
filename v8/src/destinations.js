@@ -1,4 +1,4 @@
-// Playable destinations: New York (4 zones), Paris (4 zones), Egypt, Italy and the Philippines.
+// Playable destinations: New York (4 zones), Paris (4 zones), Egypt, Italy, the Philippines and Japan.
 // Same definition format as hawaii.js (see areas.js). Coordinates are artwork pixels; trace refinements live in
 // data/scene-geometry.json (Gburg Studio), which overrides these first-pass shapes scene by scene.
 ((root)=>{
@@ -119,7 +119,25 @@
    exits:[portal('philippines-earth','↓ Earth · Return to your jet',785,1040,'world',...earth(115,43),'down',rect(700,1032,170,22,'down'))],
    points:[{id:'philippines-plaza',name:'Plaza · Island fiesta',x:735,y:760,radius:55,text:'Fiesta flags, market stalls and a jeepney by the church. The lagoon is not walkable; the south steps return to your jet.'}],
    enemies:[{kind:'compy',x:480,y:640},{kind:'dilophosaurus',x:1020,y:640}],
-   hint:'Explore the plaza, market and pier. Water, stalls and the fountain are solid. The south steps return to Earth.'})
+   hint:'Explore the plaza, market and pier. Water, stalls and the fountain are solid. The south steps return to Earth.'}),
+
+  // ---- Japan -----------------------------------------------------------------------------------------------------
+  zone({id:'japan',name:'Japan · Cherry Blossom Plaza',art:'scene.japan',region:'Japan',music:'japan',worldSite:'japan',spawn:{x:780,y:940},
+   paths:[],
+   polygons:[
+    [[760,185],[840,185],[845,330],[930,380],[1010,440],[1100,500],[1130,590],[1020,640],[1030,720],[960,770],[870,800],[845,900],[860,985],[820,1055],[640,1055],[600,985],[740,900],[735,800],[600,780],[560,700],[520,620],[560,480],[600,400],[700,330],[755,330]],
+    [[88,362],[322,370],[483,480],[600,470],[600,520],[483,530],[306,485],[88,410]],
+    [[95,715],[310,690],[480,700],[620,740],[620,790],[480,790],[310,760],[95,770]],
+    [[1000,470],[1100,495],[1240,500],[1310,545],[1310,600],[1240,570],[1100,555],[1000,570]]],
+   obstacles:[],blockedPolygons:[
+    [[715,455],[830,455],[830,565],[715,565]],[[640,325],[745,325],[745,400],[640,400]],[[900,325],[1045,325],[1045,420],[900,420]],
+    [[620,435],[712,435],[712,500],[620,500]],[[822,425],[960,425],[960,500],[822,500]],[[870,570],[1040,570],[1040,670],[870,670]],
+    [[637,655],[695,655],[695,690],[637,690]],[[712,690],[741,690],[741,790],[712,790]],[[811,690],[838,690],[838,790],[811,790]],
+    [[405,515],[608,515],[608,631],[405,631]],[[195,510],[305,510],[305,700],[195,700]],[[1300,470],[1420,470],[1420,590],[1300,590]]],
+   exits:[portal('japan-earth','↓ Earth · Return to your jet',720,1045,'world',...earth(115,33),'down',rect(640,1035,170,20,'down'))],
+   points:[{id:'japan-shrine',name:'Shrine · Cherry Blossom Plaza',x:790,y:235,radius:55,text:'Lanterns glow along the shrine steps while cherry petals drift across the plaza. The pagoda, tea houses and water are solid; the torii steps and beach lead back to your jet.'}],
+   enemies:[{kind:'compy',x:650,y:730},{kind:'compy',x:920,y:720},{kind:'dilophosaurus',x:930,y:540}],
+   hint:'Climb to the shrine, cross the harbor docks or the east bridge. Water, tea houses and the pagoda are solid. The south torii steps return to Earth.'})
  ];
  const hawaii=root.V8_HAWAII;
  root.V8_DESTINATIONS=Object.freeze({defs,all:hawaii?hawaii.defs.concat(defs):defs,width:W,height:H});

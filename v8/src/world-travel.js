@@ -6,7 +6,7 @@
   {id:'nyc',name:'New York',col:36,row:29,to:'nyc-central',arrival:[715/1448*1000,985/1086*1000],arrivalDirection:'up'},
   {id:'paris',name:'Paris',col:63,row:25,to:'paris-central',arrival:[735/1448*1000,985/1086*1000],arrivalDirection:'up'},
   {id:'egypt',name:'Egypt',col:73,row:39,to:'egypt',arrival:[724/1448*1000,1010/1086*1000],arrivalDirection:'up'},
-  {id:'japan',name:'Japan',col:115,row:33},
+  {id:'japan',name:'Japan',col:115,row:33,to:'japan',arrival:[740/1448*1000,985/1086*1000],arrivalDirection:'up'},
   {id:'russia',name:'Russia',col:88,row:20},
   {id:'hawaii',name:'Hawaii',col:8,row:42,to:'hawaii-central',arrival:[725/1448*1000,960/1086*1000],arrivalDirection:'up'},
   {id:'italy',name:'Italy',col:67,row:31,to:'italy',arrival:[717/1536*1000,985/1024*1000],arrivalDirection:'up'},
@@ -86,7 +86,7 @@
   scenes.world={id:'world',name:'Earth · World Map',world:true,width,height,bounds:{left:0,top:0,right:width,bottom:height},
    spawn:{...start},obstacles:[],landmarks:sites.map(site=>({...site,name:site.name+(site.to?' · Enter':' · Future chapter'),
     text:site.name+(site.to?' is a playable destination: land nearby and walk to its marker.':' is a future chapter. Its destination is mapped, but its playable streets and story are not built yet. You can fly onward or return to Gaithersburg.')})),
-   hint:'Walk the continents or board the nearby jet. Map shows every destination. Land on open grass, sand or snow; Gaithersburg, New York, Paris, Egypt, Italy, the Philippines and Hawaii are playable.'};
+   hint:'Walk the continents or board the nearby jet. Map shows every destination. Land on open grass, sand or snow; Gaithersburg, New York, Paris, Egypt, Italy, the Philippines, Japan and Hawaii are playable.'};
   scenes.north.landmarks.push({id:'to-world',name:'↑ Beyond the meteor · World map',x:767,y:65,radius:44,to:'world',arrival:[start.x/width*1000,start.y/height*1000],arrivalDirection:'down',
    roads:[{x:704,y:30,w:126,h:28,direction:'up'}]});
   scenes.north.hint+=' The road NORTH of the meteor leads to the world map and a nearby jet.';
