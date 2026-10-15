@@ -5,6 +5,8 @@
 'use strict';
 const fs=require('node:fs'),path=require('node:path'),http=require('node:http'),crypto=require('node:crypto');
 const geometry=require('./geometry.cjs');
+// Reload the geometry tool on every save so a long-running studio never validates against stale scene definitions.
+const freshGeometry=()=>{delete require.cache[require.resolve('./geometry.cjs')];return require('./geometry.cjs');};
 const root=path.resolve(__dirname,'..'),port=Number(process.env.GBURG_STUDIO_PORT||5181);
 if(!Number.isInteger(port)||port<1||port>65535)throw new Error('GBURG_STUDIO_PORT must be between 1 and 65535.');
 const token=crypto.randomBytes(24).toString('hex');
@@ -29,13 +31,13 @@ const server=http.createServer(async(req,res)=>{
    try{
     request=JSON.parse(Buffer.concat(chunks).toString('utf8'));
     if(!request||typeof request.revision!=='string')throw new Error('A saved revision is required.');
-    const context=geometry.loadScenes();context.V8_GEOMETRY.validate(request.data,context.SCENES);
+    const context=freshGeometry().loadScenes();context.V8_GEOMETRY.validate(request.data,context.SCENES);
    }catch(error){reply(res,400,{error:error.message});return;}
    if(read().revision!==request.revision){reply(res,409,{error:'Geometry changed on disk since you loaded it. Copy your JSON, reload the studio, then save again.'});return;}
    const bytes=JSON.stringify(request.data,null,1)+'\n',temporary=geometry.dataPath+'.'+crypto.randomBytes(8).toString('hex')+'.tmp';
    try{fs.writeFileSync(temporary,bytes,{flag:'wx'});fs.renameSync(temporary,geometry.dataPath);}
    finally{if(fs.existsSync(temporary))fs.unlinkSync(temporary);}
-   geometry.build({quiet:true});
+   freshGeometry().build({quiet:true});
    console.log(`Saved scene geometry (${Object.keys(request.data.scenes).length} scene override(s)) at ${new Date().toLocaleTimeString()}`);
    reply(res,200,{data:request.data,revision:hash(bytes)});return;
   }
