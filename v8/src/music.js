@@ -6,9 +6,9 @@
  const stage=document.getElementById('stage');
  if(!stage||window.V8_MUSIC)return;
  const data=window.V8_MUSIC_DATA||{root:'assets/music/',tracks:{},characters:{},places:{},characterPlaces:[]};
- const PLACES=['village','world','jet','hawaii','nyc','battle','cafe','omen'];
+ const PLACES=['village','world','jet','hawaii','nyc','montage','battle','cafe','omen'];
  const SYNTH={village:'Village theme',battle:'Battle theme',cafe:'Café theme',omen:'Omen theme',jet:'Jet theme',hawaii:'Hawaii theme'};
- const FALLBACK={world:'village',nyc:'village'};
+ const FALLBACK={world:'village',nyc:'village',montage:'omen'};
  const CHARACTER_PLACES=new Set(data.characterPlaces&&data.characterPlaces.length?data.characterPlaces:['village','world','nyc']);
  const PREFS_KEY='gburg-v8-music',LEGACY_KEY='village-music';
  const AudioContextClass=window.AudioContext||window.webkitAudioContext;
@@ -16,7 +16,7 @@
  // Preferences --------------------------------------------------------------------------------------------------
  // Music mode: 'off' | 'on' (place playlists only) | 'themed' (the active hero's theme where allowed).
  let enabled=true;
- const prefs={characterMusic:true,level:.5,places:{},characters:{}};
+ const prefs={characterMusic:false,level:.5,places:{},characters:{}};
  try{enabled=localStorage.getItem(LEGACY_KEY)!=='off';}catch(_){}
  try{
   const saved=JSON.parse(localStorage.getItem(PREFS_KEY)||'{}');
@@ -29,6 +29,8 @@
  // Slider position -> gain. Hearing is logarithmic, so a power curve keeps the low end genuinely quiet; full slider is 80% gain.
  const gainFor=level=>Math.round(.8*Math.pow(Math.min(1,Math.max(0,level)),2.5)*1000)/1000;
  const volume=()=>gainFor(prefs.level);
+ // Optional per-track "gain" in music.json trims a track that is still louder/quieter than the rest after normalization.
+ const trackGain=id=>!id||isSynth(id)?1:Math.min(2,Math.max(.1,Number(data.tracks[id]?.gain)||1));
  const musicMode=()=>!enabled?'off':prefs.characterMusic?'themed':'on';
 
  // Track catalogue -------------------------------------------------------------------------------------------------
@@ -58,7 +60,7 @@
   if(window.V3_INTRO?.active||document.hidden)return null;
   const cinema=window.V5_CINEMA?.state;
   if(cinema?.waitingReturn)return null;
-  if(cinema?.active||window.V5_CINEMA?.active)return cinema?.event==='gary'?'battle':cinema?.event==='banquet'?(cinema.music||'cafe'):'village';
+  if(cinema?.active||window.V5_CINEMA?.active)return cinema?.event==='gary'?'battle':cinema?.event==='banquet'?(cinema.music||'cafe'):cinema?.event==='montage'?'montage':'village';
   const game=window.GAME?.state;
   if(!game)return 'village';
   if(game.scene==='world')return game.travel?.flying?'jet':'world';
@@ -68,6 +70,9 @@
  function wanted(){
   const place=wantedPlace();
   if(!place)return null;
+  // Recruitment cutscenes introduce a friend with their own theme, then music returns to the player's choice.
+  const event=window.V5_CINEMA?.state?.event;
+  if(event&&event.startsWith('recruit-')&&window.V5_CINEMA?.active){const theme=characterTheme(event.slice(8));if(theme)return {place,track:theme,reason:'recruit',loop:true};}
   const pick=placePick(place),hero=window.GAME?.state.player.id;
   if(pick==='character'&&prefs.characterMusic&&hero){const theme=characterTheme(hero);if(theme)return {place,track:theme,reason:'character',loop:true};}
   if(pick&&pick!=='character'&&exists(pick))return {place,track:pick,reason:'pick',loop:true};
@@ -141,6 +146,7 @@
   const unlock=context.createBufferSource();unlock.buffer=context.createBuffer(1,1,context.sampleRate);unlock.connect(context.destination);unlock.onended=()=>unlock.disconnect();unlock.start(0);
   await resuming;return context;
  }
+ function applyGain(){const g=volume()*trackGain(current?.track);if(gain)gain.gain.value=g;audio.volume=mediaSource?1:g;}
  async function start(){
   const next=wanted();
   if(!next||!enabled)return;
@@ -169,11 +175,11 @@
     fileStarted=true;
     const ctx=await ensureContext();
     if(ctx&&!mediaSource){try{mediaSource=ctx.createMediaElementSource(audio);mediaSource.connect(gain);}catch(error){console.warn('Music volume falls back to element volume.',error);}}
-    audio.volume=mediaSource?1:volume();
+    audio.volume=mediaSource?1:volume()*trackGain(next.track);
     if(playing)await playing;
     if(token!==generation||!enabled){return;}
    }
-   current=next;startCount++;paint();
+   current=next;applyGain();startCount++;paint();
   }catch(error){
    fileStarted=false;current=null;
    if(error?.name!=='NotAllowedError')console.warn('Music could not start; it retries on the next tap or key press.',error);
@@ -190,6 +196,20 @@
  const sync=()=>{if(wantedPlace())start();else stop();};
 
  // Controls -------------------------------------------------------------------------------------------------------
+ // Stage bubble: one tap flips between hero themes and the default (place) music. Cutscenes hide #music-toggle already.
+ const bubble=document.createElement('button');
+ bubble.id='music-toggle';bubble.type='button';bubble.className='music-bubble';
+ bubble.innerHTML='<span class="music-icon" aria-hidden="true">♫</span><small></small>';
+ stage.append(bubble);
+ function paintBubble(){
+  const mode=musicMode();
+  bubble.querySelector('small').textContent=mode==='themed'?'Theme':mode==='on'?'Default':'Off';
+  bubble.setAttribute('aria-pressed',String(mode==='themed'));
+  bubble.setAttribute('aria-label',mode==='themed'?'Hero themes on. Tap for default music.':mode==='on'?'Default music. Tap for hero themes.':'Music off. Tap to turn music on.');
+  bubble.classList.toggle('themed',mode==='themed');
+ }
+ bubble.addEventListener('click',e=>{e.stopPropagation();api.setMode(musicMode()==='themed'?'on':'themed');});
+ document.addEventListener('v8-music-change',paintBubble);
  // Browsers only allow audio after a user gesture; any tap or key starts (or resumes) the right track automatically.
  function gesture(event){if(!event.repeat)start();}
  // Capture sees joystick touches even when their handlers prevent default.
@@ -214,7 +234,7 @@
   get state(){return state();},
   get element(){return audio;},
   places:PLACES,
-  placeLabels:{village:'Gburg Village',world:'World map',jet:'Jet',hawaii:'Hawaii',nyc:'New York',battle:'Boss battle (cutscene)',cafe:'Banquet (cutscene)',omen:'Meteor omen (cutscene)'},
+  placeLabels:{village:'Gburg Village',world:'World map',jet:'Jet',hawaii:'Hawaii',nyc:'New York',montage:'Invasion montage (cutscene)',battle:'Boss battle (cutscene)',cafe:'Banquet (cutscene)',omen:'Meteor omen (cutscene)'},
   tracks,titleOf,playlist,placePick,
   defaultPlacePick:place=>CHARACTER_PLACES.has(place)?'character':'',
   characterTheme,
@@ -229,7 +249,7 @@
   },
   gainFor,
   // level: slider position 0..1 (perceptual curve); state.volume reports the resulting gain
-  setVolume(level){prefs.level=Math.min(1,Math.max(0,Number(level)||0));audio.volume=mediaSource?1:volume();if(gain)gain.gain.value=volume();savePrefs();paint();return prefs.level;},
+  setVolume(level){prefs.level=Math.min(1,Math.max(0,Number(level)||0));applyGain();savePrefs();paint();return prefs.level;},
   // pick: 'character' | '' (rotate) | track id | undefined (restore shipped default)
   setPlacePick(place,pick){
    if(!PLACES.includes(place))throw new Error('Unknown music place: '+place);
@@ -246,5 +266,5 @@
  };
  window.V8_MUSIC=api;
  window.V5_MUSIC={get state(){return state();}};
- paint();
+ paintBubble();paint();
 })();

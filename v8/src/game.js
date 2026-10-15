@@ -11,7 +11,7 @@
  const player={x:310,y:350,id:'coco',direction:'down',frame:1,moving:false,running:false,clock:0};
  let joining=null,pendingRecruit=null,viewScale=1,storyReturn=null;
  const storyBusy=()=>window.V5_EVENTS.active||window.V5_CINEMA.active;
- const arrivalPortals=new Set();
+ const arrivalPortals=new Set();let arrivalPoint={x:0,y:0};
  const recreation=window.V4_RECREATION.create(),extraSheets={},flashSheets={};
  const reduced=matchMedia('(prefers-reduced-motion: reduce)');
  const combat=V6_COMBAT.create({blocked,onSound:kind=>V4_SFX.play(kind),showNumbers:V6_SETTINGS.values.damageNumbers,reduced:()=>reduced.matches});
@@ -301,14 +301,19 @@
   const positive=road.direction==='right'||road.direction==='down';
   if(positive?delta<=0:delta>=0)return false;
   const start=horizontal?road.x:road.y,end=start+(horizontal?road.w:road.h);
-  if(Math.max(before,after)<start||Math.min(before,after)>end)return false;
-  const entry=positive?start:end,t=clamp((entry-before)/delta,0,1);
-  const transverse=horizontal?oldY+(newY-oldY)*t:oldX+(newX-oldX)*t;
   const low=horizontal?road.y:road.x,high=low+(horizontal?road.h:road.w);
-  return transverse>=low&&transverse<=high;
+  // Crossing either edge of the strip while moving in its direction counts, so turning around right after arriving
+  // inside the strip works without walking out of it first.
+  return [start,end].some(edge=>{
+   if(positive?!(before<edge&&after>=edge):!(before>edge&&after<=edge))return false;
+   const t=clamp((edge-before)/delta,0,1),transverse=horizontal?oldY+(newY-oldY)*t:oldX+(newX-oldX)*t;
+   return transverse>=low&&transverse<=high;
+  });
  }
  function checkZoneCrossing(oldX,oldY){
   const portals=town.landmarks.filter(l=>l.to);
+  // Arrival guards stop an instant bounce-back; they release after a short step away from the arrival point.
+  if(arrivalPortals.size&&Math.hypot(player.x-arrivalPoint.x,player.y-arrivalPoint.y)>24)arrivalPortals.clear();
   for(const portal of portals)if(!nearPortal(portal,oldX,oldY))arrivalPortals.delete(portal.id);
   if(!player.moving||unicorn.riding||airborne())return false;
   const portal=portals.find(l=>!arrivalPortals.has(l.id)&&(l.roads?l.roads.some(r=>crossesRoad(r,oldX,oldY,player.x,player.y)):Math.hypot(l.x-player.x,l.y-player.y)<=22));
@@ -409,13 +414,17 @@
  window.addEventListener('keyup',e=>keys.delete(e.code));
  const joyEl=$('joystick');
  function setJoy(e){const r=joyEl.getBoundingClientRect(),max=r.width*.34,dx=e.clientX-r.left-r.width/2,dy=e.clientY-r.top-r.height/2,len=Math.hypot(dx,dy),ratio=len>max?max/len:1,x=dx*ratio,y=dy*ratio;$('stick').style.transform=`translate(${x}px,${y}px)`;joy=len<max*.18?{x:0,y:0}:{x:x/max,y:y/max};}
- joyEl.addEventListener('pointerdown',e=>{if(playerCombat.locked||storyBusy()||joyId!==null)return;e.preventDefault();joyId=e.pointerId;joyEl.setPointerCapture(e.pointerId);setJoy(e);});
+ // A new touch on the stick always takes over, so a lost pointerup (iOS text-selection, tab switch) can never leave it stuck.
+ joyEl.addEventListener('pointerdown',e=>{if(playerCombat.locked||storyBusy())return;e.preventDefault();joyId=e.pointerId;try{joyEl.setPointerCapture(e.pointerId);}catch(_){}setJoy(e);});
  joyEl.addEventListener('pointermove',e=>{if(e.pointerId===joyId){e.preventDefault();setJoy(e);}});
  function endJoy(e){if(e.pointerId!==joyId)return;joyId=null;joy={x:0,y:0};$('stick').style.transform='';}
  ['pointerup','pointercancel','lostpointercapture'].forEach(type=>joyEl.addEventListener(type,endJoy));
- $('run').addEventListener('pointerdown',e=>{if(playerCombat.locked||storyBusy()||runId!==null)return;e.preventDefault();runId=e.pointerId;$('run').setPointerCapture(e.pointerId);touchRun=true;$('run').classList.add('active');});
+ $('run').addEventListener('pointerdown',e=>{if(playerCombat.locked||storyBusy())return;e.preventDefault();runId=e.pointerId;try{$('run').setPointerCapture(e.pointerId);}catch(_){}touchRun=true;$('run').classList.add('active');});
  function endRun(e){if(e.pointerId!==runId)return;runId=null;touchRun=false;$('run').classList.remove('active');}
  ['pointerup','pointercancel','lostpointercapture'].forEach(type=>$('run').addEventListener(type,endRun));
+ window.addEventListener('blur',resetInput);document.addEventListener('visibilitychange',()=>{if(document.hidden)resetInput();});
+ // iOS: a long press on the stage must never start text selection or the copy callout, which cancels the touch.
+ for(const el of [$('stage'),joyEl,$('run'),$('interact')])el.addEventListener('contextmenu',e=>e.preventDefault());
  $('interact').addEventListener('click',interact);
  canvas.addEventListener('pointerdown',e=>{
   canvas.focus({preventScroll:true});if(!loaded||changing||mapOpen()||playerCombat.locked||storyBusy()||joining||flight.state.active||$('dialog').open||window.V4_MENU.active||window.V3_INTRO?.active)return;
@@ -559,7 +568,7 @@
    dinoHome=town.indoor?null:dinoHomes[id]||null;dino=town.indoor?null:dinosaurs[id]||null;
    prepareEnemies(id);combat.clearEffects();
    background=img;Object.assign(player,{x,y,direction,frame:1,clock:0});
-   arrivalPortals.clear();
+   arrivalPortals.clear();arrivalPoint={x,y};
    for(const portal of town.landmarks)if(portal.to&&nearPortal(portal,x,y))arrivalPortals.add(portal.id);
    powers=makePowers();unicorn=window.FAMILY_UNICORN.create({blocked});squirrel.active=false;
    companions.enter(player);flight.enter(id,player);V4_SFX.play('door');

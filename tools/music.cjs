@@ -1,11 +1,11 @@
 #!/usr/bin/env node
 // Music manifest tool for the living version.
-//   node tools/music.cjs import [--from <folder>] [--bitrate 128k] [--force]   convert new/changed tracks from Music/ into v8/assets/music/*.mp3
+//   node tools/music.cjs import [--from <folder>] [--bitrate 128k] [--force] [--no-normalize]   convert new/changed tracks from Music/ into v8/assets/music/*.mp3 (loudness-normalized)
 //   node tools/music.cjs build                                                 sync track hashes with disk and regenerate v8/src/music-data.js
 //   node tools/music.cjs check                                                 fail if music.json or music-data.js are stale or inconsistent
 //
 // v8/data/music.json is the single source of truth:
-//   tracks     generated from files (id, title, file, hash, source, sourceHash). Edit "title" freely.
+//   tracks     generated from files (id, title, file, hash, source, sourceHash). Edit "title" freely; optional "gain" (0.1-2) trims a track.
 //   characters character id -> track id. Plays while that character is active (if character music is on).
 //   characterPlaces places where the active character's theme plays by default (others use their playlist).
 //   places     place -> ordered track ids. Places: village, world, jet, hawaii, nyc, battle, cafe, omen.
@@ -16,7 +16,7 @@ const fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypt
 const root=path.resolve(__dirname,'..'),live=path.join(root,'v8');
 const manifestPath=path.join(live,'data','music.json'),generatedPath=path.join(live,'src','music-data.js');
 const musicRoot=path.join(live,'assets','music'),defaultInbox=path.join(root,'Music');
-const PLACES=['village','world','jet','hawaii','nyc','battle','cafe','omen'];
+const PLACES=['village','world','jet','hawaii','nyc','montage','battle','cafe','omen'];
 const AUDIO=/\.(m4a|mp3|wav|ogg|flac|aac)$/i;
 
 const sha256=buffer=>crypto.createHash('sha256').update(buffer).digest('hex');
@@ -145,7 +145,9 @@ function importTracks(){
   const id=idFor(name),source=fs.readFileSync(path.join(inbox,name)),sourceHash=sha256(source),file=id+'.mp3',target=path.join(musicRoot,file);
   const current=data.tracks[id];
   if(current&&current.sourceHash===sourceHash&&fs.existsSync(target)&&!has('force')){skipped++;continue;}
-  const result=spawnSync(ffmpeg,['-y','-hide_banner','-loglevel','error','-i',path.join(inbox,name),'-vn','-codec:a','libmp3lame','-b:a',bitrate,'-ar','44100',target],{encoding:'utf8'});
+  // loudnorm evens out MIDI renders that differ wildly in level (EBU R128, -16 LUFS integrated, -1.5 dBTP ceiling).
+  const filters=has('no-normalize')?[]:['-af','loudnorm=I=-16:TP=-1.5:LRA=11'];
+  const result=spawnSync(ffmpeg,['-y','-hide_banner','-loglevel','error','-i',path.join(inbox,name),'-vn',...filters,'-codec:a','libmp3lame','-b:a',bitrate,'-ar','44100',target],{encoding:'utf8'});
   if(result.status!==0)throw new Error('ffmpeg failed for '+name+':\n'+result.stderr);
   data.tracks[id]={title:current?.title||titleFor(id),file,source:name,sourceHash};
   converted++;console.log(`  ${name}  →  ${file}  (${(fs.statSync(target).size/1048576).toFixed(1)} MB)`);

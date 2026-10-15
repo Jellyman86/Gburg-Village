@@ -56,8 +56,13 @@ return async function checkHawaii(page,{width,height,touch,artifactDir}={}){
  try{
   await page.goto(page.url().split('/v8/')[0]+'/v8/',{waitUntil:'domcontentloaded'});
   await page.waitForFunction(()=>GAME.ready&&V3_INTRO.state.ready);await activate('#intro-skip');
-  await page.evaluate(()=>{if(localStorage.getItem('village-music')==='off')throw new Error('Test context unexpectedly muted');});
+  await page.evaluate(()=>{if(localStorage.getItem('village-music')==='off')throw new Error('Test context unexpectedly muted');V8_MUSIC.setMode('themed');});
   await page.waitForFunction(()=>V5_MUSIC.state.playing&&V5_MUSIC.state.mode==='village');
+  // Turning straight around after arriving must work without walking away first: arrive in the plaza from the north
+  // (inside the marker radius) and immediately walk back up.
+  assert(await page.evaluate(()=>GAME.test.enterScene('plaza',[620/1536*1000,310/1024*1000],'down')),'Plaza arrival from the north');
+  await page.waitForFunction(()=>GAME.ready&&GAME.state.scene==='plaza');
+  await move(0,-1,700);await page.waitForFunction(()=>GAME.ready&&GAME.state.scene==='north',{timeout:4000});
   assert(await page.evaluate(()=>GAME.test.enterScene('world',[V8_TRAVEL.field.x/V8_TRAVEL.width*1000,V8_TRAVEL.field.y/V8_TRAVEL.height*1000])),'World entrance accepted');
   await activate('#travel-action');await page.waitForFunction(()=>V5_MUSIC.state.mode==='jet'&&V5_MUSIC.state.playing);
   const starts=await page.evaluate(()=>V5_MUSIC.state.startCount);

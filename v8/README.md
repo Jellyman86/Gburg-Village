@@ -40,7 +40,7 @@ Local read-only preview: `node .\v8\tools\server.cjs`, then http://127.0.0.1:518
 
 ## Music
 
-Each hero has a theme that starts when you play as them; the jet plays *Levels*; Hawaii and the cutscenes keep their original themes until a playlist is assigned. Music is always on (after your first tap). **Options** offers the music mode — On (place playlists) or Themed (hero themes), with Off for silence — a music-only volume slider, a track per place (or rotate a playlist) and an override for any hero's theme, all saved on your device. Tracks are MP3 and the original synthesized themes remain selectable. Shipped defaults: [data/music.json](data/music.json).
+Each hero has a theme; recruitment cutscenes play the new friend's theme, the jet plays *Levels*, the invasion montage has a dramatic theme, and Hawaii keeps its original theme until a playlist is assigned. Music is always on (after your first tap). The ♫ bubble on the stage flips between Default (place music) and Theme (the active hero's theme). **Options** has the same mode plus Off, a music-only volume slider, a track per place (or rotate a playlist) and an override for any hero's theme, all saved on your device. Tracks are loudness-normalized MP3s and the original synthesized themes remain selectable. Shipped defaults: [data/music.json](data/music.json).
 
 ## Collision editor
 

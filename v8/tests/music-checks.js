@@ -18,10 +18,24 @@ return async function checkMusic(page,{width,height,touch,artifactDir}={}){
   await page.evaluate(()=>{localStorage.removeItem('gburg-v8-music');localStorage.setItem('village-music','on');});
   await page.reload({waitUntil:'domcontentloaded'});
   await page.waitForFunction(()=>GAME.ready&&V3_INTRO.state.ready);await activate('#intro-skip');
-  // Coco starts in her room: village place, Coco's shipped theme.
-  await waitTrack('golden','village');
+  // Default is place music (On): Coco's room plays the original village theme. The ♫ bubble flips to hero themes.
+  await waitTrack('synth:village','village');
+  assert(await page.evaluate(()=>V8_MUSIC.state.music==='on'&&document.getElementById('music-toggle').textContent.includes('Default')),'Shipped default is place music with the bubble reading Default');
+  await activate('#music-toggle');await waitTrack('golden','village');
+  assert(await page.evaluate(()=>V8_MUSIC.state.music==='themed'&&document.getElementById('music-toggle').textContent.includes('Theme')),'Bubble switches to hero themes');
   const data=await page.evaluate(()=>V8_MUSIC_DATA);
-  assert(Object.keys(data.tracks).length>=10&&data.characters.coco==='golden'&&data.places.jet[0]==='avicii-levels','Shipped music data is loaded');
+  assert(Object.keys(data.tracks).length>=10&&data.characters.coco==='golden'&&data.places.jet[0]==='avicii-levels'&&data.places.montage.length>=1,'Shipped music data is loaded');
+  assert(await page.evaluate(()=>Object.values(V8_MUSIC_DATA.tracks).every(t=>!t.gain||(t.gain>=.1&&t.gain<=2))),'Track gains are sane');
+  // Recruitment cutscenes play the recruit's theme, then music returns; the montage has its own dramatic place.
+  assert(await page.evaluate(()=>V5_CINEMA.play('recruit-jeff')),'Recruit cutscene starts');
+  await page.waitForFunction(()=>V8_MUSIC.state.track==='sweet-home-alabama'&&V8_MUSIC.state.reason==='recruit');
+  await page.waitForFunction(()=>!document.getElementById('cutscene-skip').hidden);await activate('#cutscene-skip');await page.waitForFunction(()=>!V5_CINEMA.active);
+  await waitTrack('golden','village');
+  assert(await page.evaluate(()=>document.getElementById('music-toggle').hidden||getComputedStyle(document.getElementById('music-toggle')).display!=='none'),'Bubble is back after the cutscene');
+  assert(await page.evaluate(()=>V5_CINEMA.play('montage')),'Montage starts');
+  await page.waitForFunction(()=>V8_MUSIC.state.mode==='montage'&&V8_MUSIC.state.track===V8_MUSIC_DATA.places.montage[0]&&V8_MUSIC.state.playing);
+  await page.waitForFunction(()=>!document.getElementById('cutscene-skip').hidden);await activate('#cutscene-skip');await page.waitForFunction(()=>!V5_CINEMA.active);
+  await waitTrack('golden','village');
   // Switching heroes switches themes; a hero without a theme falls back to the place playlist (synth village).
   const plain=await page.evaluate(()=>Object.keys(CHARACTERS).find(id=>id!=='coco'&&id!=='connor'));
   await page.evaluate(id=>{for(const member of ['connor',id])V4_RPG.members[member].joined=true;V8_MUSIC.setCharacterTheme(id,null);},plain);
@@ -48,7 +62,7 @@ return async function checkMusic(page,{width,height,touch,artifactDir}={}){
   await page.evaluate(()=>{const v=document.getElementById('option-music-volume');v.value='30';v.dispatchEvent(new Event('input',{bubbles:true}));});
   assert(await page.evaluate(()=>Math.abs(V8_MUSIC.state.level-.3)<.001&&(V8_MUSIC.element.volume===1||Math.abs(V8_MUSIC.element.volume-V8_MUSIC.state.volume)<.001)&&V8_MUSIC.state.volume<.05&&V8_MUSIC.gainFor(1)===.8&&V8_MUSIC.gainFor(.1)<.005),'Volume slider drives the audio element on a quiet-at-the-bottom curve');
   await activate('#option-music-off');await page.waitForFunction(()=>V8_MUSIC.state.music==='off'&&!V8_MUSIC.state.playing);
-  assert(await page.evaluate(()=>!document.getElementById('music-toggle')),'No stage music button: music is always on and lives in Options');
+  assert(await page.evaluate(()=>document.getElementById('music-toggle').textContent.includes('Off')),'Bubble mirrors Off');
   await activate('#option-music-themed');await waitTrack('golden','village');
   await activate('#close-menu');await page.waitForFunction(()=>!document.getElementById('rpg-menu').open);
   // Preferences persist across reloads; the rest of the menu is unaffected.
@@ -58,6 +72,7 @@ return async function checkMusic(page,{width,height,touch,artifactDir}={}){
   await waitTrack('cliche','village');
   assert(await page.evaluate(()=>Math.abs(V8_MUSIC.state.level-.3)<.001),'Volume persisted');
   await page.evaluate(()=>{V8_MUSIC.setPlacePick('village',undefined);V8_MUSIC.setVolume(.5);});await waitTrack('golden','village');
+  assert(await page.evaluate(()=>V8_MUSIC.state.music==='themed'),'Themed mode persisted across the reload');
   assert(errors.length===0,'Unexpected page errors: '+errors.join('; '));assert(failed.length===0,'Failed assets: '+failed.join('; '));
   return {layout:width+'x'+height,touch:!!touch,pass:'Shipped music data, hero themes on switch, original-theme fallback, Options tab toggles/volume/place and character pickers, stage toggle mirror, persistence'};
  }catch(error){
