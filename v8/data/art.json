@@ -704,6 +704,14 @@
    "width": 2171,
    "height": 724
   },
+  "scene.egypt": {
+   "file": "scenes/egypt.webp",
+   "hash": "d8ba87e033c0ffb03eaf446b43ca312220e878cfd88ed8d81c14d04252bbdcf5",
+   "width": 1448,
+   "height": 1086,
+   "source": "Egypt All.png",
+   "sourceHash": "d413e05448859009cbb1d1a9c38e8a377077f5b664fb0fc97ceb38135f5fd873"
+  },
   "scene.five-guys-hq": {
    "file": "scenes/five-guys-hq.png",
    "hash": "c851412835aa8a63c852e08e69b7706812ac64ac052ffb339d2c4492c3adbc9b",
@@ -748,6 +756,14 @@
    "width": 1448,
    "height": 1086
   },
+  "scene.italy": {
+   "file": "scenes/italy.webp",
+   "hash": "22d614aaecd68724728f40cf6d563ee9bdd6db352f3279d48e0a4b178695dab6",
+   "width": 1536,
+   "height": 1024,
+   "source": "Italy all.png",
+   "sourceHash": "07f0b1b58e0c04a1aabb9f107c90c6a5b8db6055017dad467b340419e8d40b5e"
+  },
   "scene.meteor-crater": {
    "file": "scenes/meteor-crater.png",
    "hash": "ef3b74e8f97bfc32c28bb3457219176fb8c4f526e46a1604d719bb6706523004",
@@ -765,6 +781,78 @@
    "hash": "249523a9e173177d2e3046608be1e80e6e9cd8a9c7df69ec79de3f85e1733003",
    "width": 1254,
    "height": 1254
+  },
+  "scene.nyc-central": {
+   "file": "scenes/nyc-central.webp",
+   "hash": "d8e68307222dc8e6584d7fdf5e6fc75bdec7e5a6e32816b95c05283da90b814e",
+   "width": 1448,
+   "height": 1086,
+   "source": "Ny Central.png",
+   "sourceHash": "4a61ba7df07acb912a5eec29fd559c0ba2b0c70b99112e1d743d3c79e1e05a42"
+  },
+  "scene.nyc-east": {
+   "file": "scenes/nyc-east.webp",
+   "hash": "5ab78380b45277a64c25cfd08f354da3a339a57960398b68fb5c8fda98223fcb",
+   "width": 1448,
+   "height": 1086,
+   "source": "NY East.png",
+   "sourceHash": "96b413eaf82ebb600267046ff5ffba1e3ceb9a24d06a406906da7599e8e8e09b"
+  },
+  "scene.nyc-north": {
+   "file": "scenes/nyc-north.webp",
+   "hash": "300d886556e36a1339f6c557ecf38b39ce7773e1441ee2ec83caa68cc017fd85",
+   "width": 1448,
+   "height": 1086,
+   "source": "NY North.png",
+   "sourceHash": "182a55892d8d0e4dd9c7b3f44d17531aaecede7b63f3d4c714280c06ecb854d5"
+  },
+  "scene.nyc-west": {
+   "file": "scenes/nyc-west.webp",
+   "hash": "e615a0440e779c931b251687de9ab7acc3ccc04f4436032676bb32abcd201221",
+   "width": 1448,
+   "height": 1086,
+   "source": "NY West.png",
+   "sourceHash": "d74b38acfbcd2859b215cc62469a3b61ec8bfcdf60cc48c6a5b6e4cbd9a053ba"
+  },
+  "scene.paris-central": {
+   "file": "scenes/paris-central.webp",
+   "hash": "1cf72379990787662215a29576e41023910422bfd4f100d35f6e1a676eaf6981",
+   "width": 1448,
+   "height": 1086,
+   "source": "Paris Central.png",
+   "sourceHash": "7059349f35205db6fdb4641c752fde718bdb0fdc14ddc81a0ec6e50021a3aa3f"
+  },
+  "scene.paris-east": {
+   "file": "scenes/paris-east.webp",
+   "hash": "7a56f2547da8963fc429cc96cb6034442545cda38476c26294e0789064f5cbf8",
+   "width": 1448,
+   "height": 1086,
+   "source": "Paris East.png",
+   "sourceHash": "ad4cd9387c49ebd262f632bb410eff87a04bd5ca25a115ac2d1cc97cc7c0afe6"
+  },
+  "scene.paris-north": {
+   "file": "scenes/paris-north.webp",
+   "hash": "5fdcee1a8b996fdcc97257a54620dfd7b8c8fd816cf090809173bec6c9f01a42",
+   "width": 1448,
+   "height": 1086,
+   "source": "Paris North.png",
+   "sourceHash": "1f22ac5b00c1be07946e66dbfd2f325c392963ce7a686891ad2635504769bd26"
+  },
+  "scene.paris-west": {
+   "file": "scenes/paris-west.webp",
+   "hash": "af9159d3716b6ea41929f681b3922890af9237c92be551bb0fa5a6545238abf3",
+   "width": 1448,
+   "height": 1086,
+   "source": "Paris West.png",
+   "sourceHash": "ee977d169e969db52f5b66eb64675c93fb5d474f1341cc999c7003c7591bcffd"
+  },
+  "scene.philippines": {
+   "file": "scenes/philippines.webp",
+   "hash": "1e180c571924e9988daac36683be4d0436b7b70d1957320fadd2162d76f07650",
+   "width": 1448,
+   "height": 1086,
+   "source": "Philippines All.png",
+   "sourceHash": "ce4ba5805d018385842a9b15b43b30397777bdd5a2819826c7a363f2bfab4a31"
   },
   "scene.plaza": {
    "file": "scenes/plaza.png",

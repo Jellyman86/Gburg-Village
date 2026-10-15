@@ -3,12 +3,14 @@
  const tileSize=32,cols=128,rows=96,width=cols*tileSize,height=rows*tileSize;
  const sites=[
   {id:'gburg',name:'Gaithersburg',col:34,row:32,to:'north',arrival:[499,78],arrivalDirection:'down'},
-  {id:'nyc',name:'New York',col:36,row:29,to:'nyc',arrival:[500,895],arrivalDirection:'up'},
-  {id:'paris',name:'Paris',col:63,row:25},
-  {id:'egypt',name:'Egypt',col:73,row:39},
+  {id:'nyc',name:'New York',col:36,row:29,to:'nyc-central',arrival:[715/1448*1000,985/1086*1000],arrivalDirection:'up'},
+  {id:'paris',name:'Paris',col:63,row:25,to:'paris-central',arrival:[735/1448*1000,985/1086*1000],arrivalDirection:'up'},
+  {id:'egypt',name:'Egypt',col:73,row:39,to:'egypt',arrival:[724/1448*1000,1010/1086*1000],arrivalDirection:'up'},
   {id:'japan',name:'Japan',col:115,row:33},
   {id:'russia',name:'Russia',col:88,row:20},
-  {id:'hawaii',name:'Hawaii',col:8,row:42,to:'hawaii-central',arrival:[725/1448*1000,960/1086*1000],arrivalDirection:'up'}
+  {id:'hawaii',name:'Hawaii',col:8,row:42,to:'hawaii-central',arrival:[725/1448*1000,960/1086*1000],arrivalDirection:'up'},
+  {id:'italy',name:'Italy',col:67,row:31,to:'italy',arrival:[717/1536*1000,985/1024*1000],arrivalDirection:'up'},
+  {id:'philippines',name:'The Philippines',col:115,row:43,to:'philippines',arrival:[775/1448*1000,1010/1086*1000],arrivalDirection:'up'}
  ].map(site=>Object.freeze({...site,x:(site.col+.5)*tileSize,y:(site.row+.5)*tileSize,radius:38}));
  const start=Object.freeze({x:33.5*tileSize,y:33.5*tileSize});
  const field=Object.freeze({x:31.5*tileSize,y:33.5*tileSize});
@@ -28,9 +30,9 @@
   if(data.version!==1||data.tileSize!==tileSize||data.cols!==cols||data.rows!==rows||
    !Array.isArray(data.cells)||data.cells.length!==rows||data.cells.some(line=>typeof line!=='string'||line.length!==cols||/[^0-6]/.test(line)))throw new Error('Invalid V8 world terrain.');
   const cells=data.cells.map(line=>Array.from(line,Number));
-  function pad(cx,cy,radius){for(let y=cy-radius;y<=cy+radius;y++)for(let x=cx-radius;x<=cx+radius;x++)if(y>=0&&y<rows)cells[y][wrap(x,cols)]=2;}
-  for(const site of sites)pad(site.col,site.row,1);
-  pad(8,42,2); // Hawaii: a 5x5 island so there is room to set the jet down
+  // Every destination gets a 5x5 landing pad: water, forest and mountains become grass, while existing sand and snow stay.
+  function pad(cx,cy,radius){for(let y=cy-radius;y<=cy+radius;y++)for(let x=cx-radius;x<=cx+radius;x++)if(y>=0&&y<rows&&![2,3,5].includes(cells[y][wrap(x,cols)]))cells[y][wrap(x,cols)]=2;}
+  for(const site of sites)pad(site.col,site.row,site.to?2:1);
   pad(34,32,2);pad(31,33,1);
   for(let x=31;x<=36;x++)pad(x,32,0);
   for(let y=29;y<=33;y++)pad(36,y,0);
@@ -68,7 +70,9 @@
     actor.y=Math.max(12,Math.min(height-12,actor.y-Math.cos(heading)*distance));
    }
   }
-  return {terrain,blocked,nearPlane,board,land,update,cells,
+  // Developer jump: parks the jet at a spot on solid ground (used by Help > Jump to world map).
+  function park(x,y){plane={x:wrap(x,width),y};flying=false;boosting=false;bank=0;}
+  return {terrain,blocked,nearPlane,board,land,update,cells,park,
    get flying(){return flying;},get state(){return {flying,boosting,heading,bank,clock,plane:{...plane}};}};
  }
  const nycBuildings=[
@@ -81,16 +85,8 @@
   const scenes=root.SCENES;
   scenes.world={id:'world',name:'Earth · World Map',world:true,width,height,bounds:{left:0,top:0,right:width,bottom:height},
    spawn:{...start},obstacles:[],landmarks:sites.map(site=>({...site,name:site.name+(site.to?' · Enter':' · Future chapter'),
-    text:site.name+' is a future chapter. Its destination is mapped, but its playable streets and story are not built yet. You can fly onward or return to Gaithersburg.'})),
-   hint:'Walk the continents or board the nearby jet. Map shows every destination. Land on open grass, sand or snow; Gaithersburg, New York and Hawaii are playable.'};
-  scenes.nyc={id:'nyc',name:'New York · First city blocks',width:1280,height:1024,bounds:{left:32,top:32,right:1248,bottom:992},
-   spawn:{x:640,y:916},obstacles:nycObstacles,landmarks:[
-    {id:'nyc-exit',name:'↓ Return to world map',x:640,y:950,radius:42,to:'world',arrival:[sites[1].x/width*1000,(sites[1].y+48)/height*1000],arrivalDirection:'down',
-     roads:[{x:576,y:960,w:128,h:24,direction:'down'}]},
-    {id:'nyc-park',name:'Pocket park · First NYC stop',x:520,y:440,radius:48,text:'Welcome to New York! A first walkable district built from your supplied city art. The pocket park is a quiet stop; more blocks, friends and adventures will arrive in future chapters.'},
-    {id:'nyc-subway',name:'Subway · Future route',x:744,y:400,radius:40,text:'The subway is not running yet. For now, explore these blocks and take the southern exit back to the world map.'},
-    {id:'nyc-waterfront',name:'Waterfront overlook',x:1060,y:875,radius:42,text:'A whole world beyond the neighborhood. Your jet stays where you landed on the world map, ready for the trip home.'}
-   ],hint:'Explore the first NYC blocks and pocket park. The southern road returns to the world map. Buildings are solid; interiors and the subway are future content.'};
+    text:site.name+(site.to?' is a playable destination: land nearby and walk to its marker.':' is a future chapter. Its destination is mapped, but its playable streets and story are not built yet. You can fly onward or return to Gaithersburg.')})),
+   hint:'Walk the continents or board the nearby jet. Map shows every destination. Land on open grass, sand or snow; Gaithersburg, New York, Paris, Egypt, Italy, the Philippines and Hawaii are playable.'};
   scenes.north.landmarks.push({id:'to-world',name:'↑ Beyond the meteor · World map',x:767,y:65,radius:44,to:'world',arrival:[start.x/width*1000,start.y/height*1000],arrivalDirection:'down',
    roads:[{x:704,y:30,w:126,h:28,direction:'up'}]});
   scenes.north.hint+=' The road NORTH of the meteor leads to the world map and a nearby jet.';

@@ -39,8 +39,8 @@ return async function checkStudio(page,{width,height,artifactDir}={}){
   // Other scenes load, including code-drawn NYC and the Kentlands plaza.
   await page.evaluate(()=>STUDIO.loadScene('plaza'));await page.waitForFunction(()=>STUDIO.state.scene==='plaza');
   await page.waitForFunction(()=>document.getElementById('info').textContent.includes('1536 × 1024'));
-  await page.evaluate(()=>STUDIO.loadScene('nyc'));await page.waitForFunction(()=>STUDIO.state.scene==='nyc');
-  assert(await page.evaluate(()=>document.getElementById('info').textContent.includes('drawn by code')),'NYC loads without a background image');
+  await page.evaluate(()=>  STUDIO.loadScene('italy'));await page.waitForFunction(()=>STUDIO.state.scene==='italy');
+    assert(await page.evaluate(()=>document.getElementById('info').textContent.includes('1536')),'Studio loads a new destination with its background image');
   page.off('beforeunload',()=>{});
   await page.evaluate(()=>{window.onbeforeunload=null;});
   assert(errors.length===0,'Unexpected page errors: '+errors.join('; '));assert(failed.length===0,'Failed assets: '+failed.join('; '));

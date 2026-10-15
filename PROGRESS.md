@@ -8,7 +8,7 @@ Updated: 2026-10-14. One screen only. Git history is the detailed log; older han
 - Future releases are git tags and notes, **not new `vN/` folders**. See [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md).
 
 ## What works (V8, verified 2026-10-14)
-Opening story and 15 recruitable playable characters, FFVI-style party menu (roster, stats, items, equip, abilities), real-time dinosaur combat with healing and dog companions, Kentlands scenes, overworld Earth with jet flight, New York and four-zone Hawaii, original synthesized music/SFX, desktop keyboard + iPhone touch layouts. Progress is session-only (no saves yet).
+Opening story and 15 recruitable playable characters, FFVI-style party menu (roster, stats, items, equip, abilities), real-time dinosaur combat with healing and dog companions, Kentlands scenes, overworld Earth with jet flight, New York, Paris, Egypt, Italy, the Philippines and four-zone Hawaii, original synthesized music/SFX, desktop keyboard + iPhone touch layouts. Progress is session-only (no saves yet).
 
 ## Active work
 - **Tooling step 1 is live:** `285ca82` — freeze policy, `package.json` + task runner, tiered tests, archive check, docs reset. Node.js 24 LTS installed locally.
@@ -20,10 +20,12 @@ Opening story and 15 recruitable playable characters, FFVI-style party menu (ros
 - **Step 4 — collision editor is live:** `b071547`. `npm run studio` opens Gburg Studio: scene geometry drawn over the real backgrounds, select/move/resize/add/delete shapes, markers and road strips, live walk-test mask, undo/redo, Save → `v8/data/scene-geometry.json` applied by the game at load (landmarks merge by id). Geometry contract round-trips all 15 scenes with identical collision; studio browser suite covers drawing, undo, export and read-only mode.
 - **Polish round (branch `polish-round`):** exits trigger when crossing either edge of a road strip and arrival guards release after a 24 px step, so turning straight around works; joystick can no longer get stuck (new touch takes over, no iOS text selection/callout on the stage); all tracks loudness-normalized to −16 LUFS (Waka Waka was −39, Black or White −19); ♫ stage bubble toggles Theme/Default; recruitment cutscenes play the recruit's theme; montage plays *Star Wars Theme*; optional per-track `gain`; shipped default mode is now Default (place music). landing glides to the nearest clear ground within two tiles instead of refusing on coastlines; Hawaii is a 5×5 island so there is room to set down; the jet view uses the supplied `skybox v1` (imported as `world.skybox`, pans with heading).
 
+- **New destinations (branch `new-destinations`):** New York (4 zones: Fountain Plaza, Brooklyn Bridge, Park Pond, Broadway), Paris (4 zones), Egypt, Italy and the Philippines are playable, all from your ChatGPT scenes (imported via `import-art.cjs scene`; 153 manifest assets). Area shapes live in `v8/src/destinations.js` (first-pass traces — fine-tune them in Gburg Studio, which lists every scene). Italy and the Philippines were carved into the world grid; a contract test lands the jet from 169 offsets around every playable site (0 failures, including the Philippines archipelago). Help → **Developer jump** parks the jet beside any destination on the world map. The old procedural New York was replaced. New places have no playlists yet (they fall back to Village/Hawaii music) — add them in `music.json` `places`.
+
 ## Known limitations
 - No persistence; refreshing restarts as Coco.
 - Touch verification is Chromium emulation, not a physical iPhone. Audio has not been human-listened in CI.
-- Collision polygons are hand-traced against AI-generated backgrounds; expect occasional pathing fixes.
+- Collision polygons are hand-traced against AI-generated backgrounds; expect occasional pathing fixes (the new destinations were traced by script from the art, never walked by a human yet).
 - Hawaii shop interiors, new quests, saves and XP/leveling are not implemented.
 
 ## How to verify a change

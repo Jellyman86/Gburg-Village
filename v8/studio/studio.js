@@ -11,7 +11,7 @@
 
  // Hawaii-style areas are installed by index.html inline; do the same here, then snapshot code-defined geometry so a
  // scene can be reverted.
- if(!scenes['hawaii-central'])window.V8_AREAS.install(window.V8_HAWAII.defs,scenes);
+ if(!scenes['hawaii-central'])window.V8_AREAS.install(window.V8_DESTINATIONS.all,scenes);
  const originals=Object.fromEntries(Object.values(scenes).filter(s=>!s.world).map(s=>[s.id,G.extract(s)]));
  let document_={version:1,scenes:{}},revision=null,token=null,remote=false;
  let scene=null,image=null,zoom=1,pan={x:0,y:0},tool='select',selection=null,drag=null,drawing=null,spaceDown=false;

@@ -50,25 +50,26 @@ uniform[10][10]=3;assert.equal(travel.quadrant(uniform,10,10,0,true).row,3,'Dese
 uniform[10][10]=5;assert.equal(travel.quadrant(uniform,10,10,0,true).row,4,'Snow-to-grass transition');
 for(let y=0;y<96;y++)for(let x=0;x<128;x++)for(let q=0;q<4;q++)travel.quadrant(world.cells,x,y,q);
 assert.equal(JSON.stringify(world.cells),terrainBefore,'Visual selection never changes collision geography');
-const flightScope={window:{},SCENES:{world:{id:'world'},nyc:{id:'nyc'}},matchMedia:()=>({matches:false})};vm.createContext(flightScope);
+const flightScope={window:{},SCENES:{world:{id:'world'},'nyc-central':{id:'nyc-central',worldSite:'nyc'}},matchMedia:()=>({matches:false})};vm.createContext(flightScope);
 vm.runInContext(fs.readFileSync(path.join(__dirname,'..','src','flight.js'),'utf8'),flightScope);
 let grabs=0;const bird=flightScope.window.V4_FLIGHT.create({onGrab:()=>grabs++,onDrop(){}});
-for(const id of ['world','nyc']){bird.enter(id,actor);bird.update(60,actor,flightScope.SCENES[id]);assert(!bird.grab(actor,id));}
-assert.equal(grabs,0,'Old pterodactyl lift cannot interfere with jet travel or NYC');
+for(const id of ['world','nyc-central']){bird.enter(id,actor);bird.update(60,actor,flightScope.SCENES[id]);assert(!bird.grab(actor,id));}
+assert.equal(grabs,0,'Old pterodactyl lift cannot interfere with jet travel or New York');
 const scope={window:{}};vm.createContext(scope);
 for(const name of ['art','action-art','characters','powers','rpg'])vm.runInContext(fs.readFileSync(path.join(__dirname,'..','src',name+'.js'),'utf8'),scope);
 assert.equal(Object.keys(scope.window.CHARACTERS).length,15);assert.equal(scope.window.FAMILY_POWERS.definitions.grenade.cooldown,.6);
 assert(scope.window.CHARACTERS.jeff.sheet.startsWith('assets/characters/jeff.png?v='),'Cleaned Jeff resolves through the V8 art manifest');
 assert(Object.keys(scope.window.CHARACTERS).every(id=>scope.window.V8_ART.has('character.'+id+'.walk')&&scope.window.V8_ART.has('portrait.'+id)),'Every roster member has walk art and a portrait in the manifest');
 assert(fs.readFileSync(path.join(__dirname,'..','src','settings.js'),'utf8').includes('gburg-v8-preferences'),'Preferences are V8-isolated');
-const nycBlocked=(x,y)=>x<40||y<36||x>1240||y>988||travel.nycObstacles.some(o=>x+8>o.x&&x-8<o.x+o.w&&y+4>o.y&&y-4<o.y+o.h);
-const pending=[[640,912]],seen=new Set(['640,912']);
-for(let i=0;i<pending.length;i++){
- const [x,y]=pending[i];for(const [dx,dy] of [[16,0],[-16,0],[0,16],[0,-16]]){
-  const nx=x+dx,ny=y+dy,key=nx+','+ny;if(!seen.has(key)&&!nycBlocked(nx,ny)){seen.add(key);pending.push([nx,ny]);}
+const playable=travel.sites.filter(s=>s.to);
+assert(playable.length>=7,'Every finished destination is a playable world site');
+for(const site of playable){
+ const probe=travel.create(JSON.parse(fs.readFileSync(path.join(__dirname,'..','data','world-grid.json'),'utf8')));
+ let landed=0,total=0;
+ for(let dy=-96;dy<=96;dy+=16)for(let dx=-96;dx<=96;dx+=16){
+  probe.park(site.x,site.y);const pilot={x:site.x,y:site.y};assert(probe.board(pilot).ok,'Can board at '+site.id);
+  Object.assign(pilot,{x:site.x+dx,y:site.y+dy});total++;if(probe.land(pilot).ok)landed++;
  }
+ assert.equal(landed,total,'Jet lands from anywhere within three tiles of '+site.id+' ('+landed+'/'+total+')');
 }
-for(const [name,x,y] of [['park',520,440],['subway',744,400],['overlook',1060,875]]){
- assert(pending.some(([px,py])=>Math.hypot(px-x,py-y)<35),'NYC location has a connected walking route: '+name);
-}
-console.log('PASS: Earth schema/geography, neighbor-selected terrain corners, safe arrivals, camera-relative forward/reverse/turn/boost/wrap/poles, boost-only flame frames, rejected water/forest landing, plane persistence, full roster/shared art and connected NYC streets.');
+console.log('PASS: Earth schema/geography, neighbor-selected terrain corners, safe arrivals, camera-relative forward/reverse/turn/boost/wrap/poles, boost-only flame frames, rejected water/forest landing, plane persistence, full roster/shared art and landing within three tiles of every playable destination (including Italy and the Philippines).');

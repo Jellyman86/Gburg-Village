@@ -60,7 +60,7 @@ return async function checkWorld(page,{width,height,touch,artifactDir}={}){
    require('node:fs').writeFileSync(artifactDir+'\\v8-terrain-overview.png',Buffer.from(image,'base64'));
   }
   await activate('#open-world-map');assert(await page.evaluate(()=>GAME.state.map),'World overview opens');
-  await activate('[data-destination="paris"]');
+  await activate('[data-destination="japan"]');
   assert((await page.locator('#world-map-message').innerText()).includes('future chapter'),'Unfinished destination is explicit, not fake content');
   const paused=await page.evaluate(()=>JSON.stringify({player:GAME.state.player,travel:GAME.state.travel}));await page.keyboard.press('d');await page.keyboard.press('m');await page.waitForTimeout(150);
   assert(await page.evaluate(before=>JSON.stringify({player:GAME.state.player,travel:GAME.state.travel})===before&&!V4_MENU.active,paused),'Overview pauses movement and cannot stack the party menu');
@@ -107,23 +107,34 @@ return async function checkWorld(page,{width,height,touch,artifactDir}={}){
   await page.evaluate(()=>GAME.test.position(V8_TRAVEL.width-5,500));await move(0,-1,150);
   assert(await page.evaluate(()=>GAME.state.player.x<150),'Actual flight wraps east-west');
   await page.evaluate(()=>{const site=V8_TRAVEL.sites[1];GAME.test.position(site.x,site.y+32);});
-  assert(!await page.evaluate(()=>GAME.test.enterScene('nyc',[500,895])),'Cannot enter a city while airborne');
+  assert(!await page.evaluate(()=>GAME.test.enterScene('nyc-central',[715/1448*1000,985/1086*1000])),'Cannot enter a city while airborne');
   await activate('#travel-action');assert(await page.evaluate(()=>!GAME.state.travel.flying),'Clear destination ground allows landing');
   const parked=await page.evaluate(()=>GAME.state.travel.plane);
-  await interact();await page.waitForFunction(()=>GAME.state.scene==='nyc');
-  assert(await page.evaluate(()=>!GAME.blocked(GAME.state.player.x,GAME.state.player.y)&&GAME.blocked(200,200)),'NYC entrance safe and buildings solid');
+  await interact();await page.waitForFunction(()=>GAME.state.scene==='nyc-central');
+  assert(await page.evaluate(()=>!GAME.blocked(GAME.state.player.x,GAME.state.player.y)&&GAME.blocked(200,200)&&GAME.blocked(720,760)),'New York arrival safe and the hotel/fountain solid');
   const n0=await page.evaluate(()=>GAME.state.player);await move(-1,0,250);
   assert(await page.evaluate(before=>GAME.state.player.x<before.x-10,n0),'NYC keyboard/touch exploration works');
-  await page.evaluate(()=>GAME.test.position(520,440));await interact();
-  assert((await page.locator('#dialog-body').innerText()).includes('New York'),'Real pocket-park interaction works');await activate('#continue');await settle();
+  await page.evaluate(()=>  GAME.test.position(730,640));await interact();
+    assert((await page.locator('#dialog-body').innerText()).includes('fountain'),'Real fountain interaction works');await activate('#continue');await settle();
   if(artifactDir)await page.screenshot({path:artifactDir+'\\v8-nyc-'+width+'x'+height+'.png'});
-  await page.evaluate(()=>GAME.test.position(640,940));await move(0,1,250);await page.waitForFunction(()=>GAME.state.scene==='world');
+  await page.evaluate(()=>GAME.test.position(720,1000));await move(0,1,400);await page.waitForFunction(()=>GAME.state.scene==='world');
   assert(await page.evaluate(old=>GAME.state.travel.plane.x===old.x&&GAME.state.travel.plane.y===old.y,parked),'Jet remains parked after a NYC visit');
   await activate('#travel-action');await page.evaluate(()=>{const site=V8_TRAVEL.sites[0];GAME.test.position(site.x,site.y+32);});await activate('#travel-action');
   await interact();await page.waitForFunction(()=>GAME.state.scene==='north');
   assert(await page.evaluate(before=>V4_RPG.members.coco.hp===before.hp&&JSON.stringify(V4_RPG.inventory)===JSON.stringify(before.inventory)&&JSON.stringify(GAME.state.story.completed)===JSON.stringify(before.completed),snapshot),'Round trip preserves HP, inventory and story progress');
   assert(await page.locator('#travel-action').isHidden()&&await page.locator('#open-world-map').isHidden(),'Travel controls disappear back in the neighborhood');
+  await activate('#help');await page.selectOption('#jump-site','philippines');await activate('#jump-world');
+  await page.waitForFunction(()=>GAME.state.scene==='world'&&!document.getElementById('dialog').open);await settle();
+  assert(await page.evaluate(()=>{const s=V8_TRAVEL.sites.find(x=>x.id==='philippines'),t=GAME.state.travel;return !t.flying&&Math.hypot(t.plane.x-s.x,t.plane.y-s.y)<80;}),'Help developer jump parks the jet beside the Philippines');
+  await activate('#travel-action');assert(await page.evaluate(()=>GAME.state.travel.flying),'Jet boards right after a developer jump');
+  await activate('#travel-action');assert(await page.evaluate(()=>!GAME.state.travel.flying),'Jet lands again beside the Philippines');
+  await page.evaluate(()=>{const s=V8_TRAVEL.sites.find(x=>x.id==='philippines');GAME.test.position(s.x,s.y+8);});await interact();await page.waitForFunction(()=>GAME.state.scene==='philippines');
+  for(const id of ['nyc-north','nyc-east','nyc-west','paris-central','paris-north','paris-east','paris-west','egypt','italy','philippines']){
+   const result=await page.evaluate(async id=>{const ok=await GAME.test.enterScene(id,[SCENES[id].spawn.x/SCENES[id].width*1000,SCENES[id].spawn.y/SCENES[id].height*1000]);return {ok,scene:GAME.state.scene,safe:!GAME.blocked(GAME.state.player.x,GAME.state.player.y)};},id);
+   assert(result.ok&&result.scene===id&&result.safe,'New destination opens with a safe arrival: '+id);
+  }
+  if(artifactDir)await page.screenshot({path:artifactDir+'\\v8-destination-'+width+'x'+height+'.png'});
   assert(errors.length===0,'No world exceptions: '+errors.join('; '));assert(failed.length===0,'No failed world assets: '+failed.join('; '));
-  return {world:'passed',width,height,touch,flightFrameMs:Math.round(frames*10)/10,checks:['North-meteor road / overhead walking','Paused overview / future destination labels','Plane boarding / perspective flight / menu-hidden pause / terrain crossing / world wrap','Rejected ocean landing / safe NYC arrival / solid buildings / actual city interaction','NYC return / retained plane / Gaithersburg return / party-story preservation'],errors,failed};
+  return {world:'passed',width,height,touch,flightFrameMs:Math.round(frames*10)/10,checks:['Help developer jump / New York, Paris, Egypt, Italy and Philippines scenes open','North-meteor road / overhead walking','Paused overview / future destination labels','Plane boarding / perspective flight / menu-hidden pause / terrain crossing / world wrap','Rejected ocean landing / safe NYC arrival / solid buildings / actual city interaction','NYC return / retained plane / Gaithersburg return / party-story preservation'],errors,failed};
  }finally{await page.unroute(pattern);page.off('pageerror',onError);page.off('console',onConsole);page.off('response',onResponse);}
 };

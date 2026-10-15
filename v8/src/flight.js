@@ -1,7 +1,7 @@
 (() => {
  'use strict';
  function create({onGrab,onDrop}){
-  const unavailable=town=>town.indoor||town.id==='world'||town.id==='nyc'||town.ambientFlight===false;
+  const unavailable=town=>town.indoor||town.id==='world'||town.worldSite||town.ambientFlight===false;
   const pickupCooldown=20,absence=10,escapeDuration=1,scareRadius=150;
   let clock=0,cooldown=pickupCooldown,age=0,active=false,origin=null,scene=null,fleeing=false,fleeAge=0,hiddenFor=0,released=false;
   const bird={x:0,y:0,direction:'left',frame:0};

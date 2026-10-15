@@ -8,14 +8,14 @@ const fs=require('node:fs'),path=require('node:path'),vm=require('node:vm');
 const root=path.resolve(__dirname,'..'),live=path.join(root,'v8');
 const dataPath=path.join(live,'data','scene-geometry.json'),generatedPath=path.join(live,'src','scene-geometry-data.js');
 
-// Load SCENES the way index.html does, without a DOM: art, map, scenes, areas + hawaii. World/NYC are added by world-travel
-// only in a browser, so they are stubbed here for id validation.
+// Load SCENES the way index.html does, without a DOM: art, map, scenes, areas, hawaii and destinations. The world scene is
+// added by world-travel only in a browser, so it is stubbed here for id validation.
 function loadScenes(){
  const context={};context.window=context;context.globalThis=context;vm.createContext(context);
  const run=name=>vm.runInContext(fs.readFileSync(path.join(live,'src',name+'.js'),'utf8'),context,{filename:name+'.js'});
- for(const name of ['art','map','scenes','areas','hawaii','scene-geometry'])run(name);
- context.SCENES.world={id:'world',world:true,width:4096,height:3072};context.SCENES.nyc={id:'nyc'};
- context.V8_AREAS.install(context.V8_HAWAII.defs,context.SCENES);
+ for(const name of ['art','map','scenes','areas','hawaii','destinations','scene-geometry'])run(name);
+ context.SCENES.world={id:'world',world:true,width:4096,height:3072};
+ context.V8_AREAS.install(context.V8_DESTINATIONS.all,context.SCENES);
  return context;
 }
 

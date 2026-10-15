@@ -79,7 +79,7 @@
  document.addEventListener('v4-display-change',resetInput);
  document.addEventListener('v4-display-message',event=>toast(event.detail));
  window.addEventListener('blur',resetInput);document.addEventListener('visibilitychange',()=>{if(document.hidden)resetInput();previous=0;});
- function refreshParty(){for(const id of ids){buttons[id].hidden=!V4_RPG.members[id].joined;buttons[id].setAttribute('aria-pressed',String(player.id===id));}const objective=town.id==='world'?(airborne()?'Jet · Up forward · Left/right turn · Run boosts':'Earth · Board the jet to fly · Map / Q for destinations'):town.id==='nyc'?'New York · Explore the first blocks · Southern road returns to Earth':town.region==='Hawaii'?'Hawaii · Explore four zones · South of Fountain Plaza returns to Earth':V4_STORY.objective();if($('objective').textContent!==objective)$('objective').textContent=objective;}
+ function refreshParty(){for(const id of ids){buttons[id].hidden=!V4_RPG.members[id].joined;buttons[id].setAttribute('aria-pressed',String(player.id===id));}const objective=town.id==='world'?(airborne()?'Jet · Up forward · Left/right turn · Run boosts':'Earth · Board the jet to fly · Map / Q for destinations'):town.worldSite?town.region+' · Explore · Walk out the south gate to return to Earth':V4_STORY.objective();if($('objective').textContent!==objective)$('objective').textContent=objective;}
  function select(id){
   if(!characters[id])throw new Error('Unknown character: '+id);
   if(!V4_RPG.members[id].joined){toast('Find '+characters[id].name+' to add them to your party.');return false;}
@@ -287,7 +287,7 @@
  function landmarks(){return town.landmarks.filter(l=>(!l.pickup||!V4_RPG.discoveries[l.pickup])&&(l.id!=='dogs'||!V4_RPG.discoveries.dogs)&&(l.event!=='banquet'||V5_EVENTS.state.completed.includes('gary')&&!V5_EVENTS.state.completed.includes('banquet'))).concat(V4_STORY.encounters(town.id,player.id));}
  function goThrough(portal){
   if(airborne()){toast('Land before entering a destination.');return false;}
-  if((town.id==='world'||town.id==='nyc'||town.worldSite)&&Math.hypot(player.x-portal.x,player.y-portal.y)>portal.radius+8){toast('Walk closer to '+portal.name+'.');return false;}
+  if((town.id==='world'||town.worldSite)&&Math.hypot(player.x-portal.x,player.y-portal.y)>portal.radius+8){toast('Walk closer to '+portal.name+'.');return false;}
   if(unicorn.riding){toast('Hop off the unicorn before entering another area.');return false;}
   if(!V5_EVENTS.canTravel(portal.to))return false;
   enterScene(portal.to,portal.arrival,portal.arrivalDirection);return true;
@@ -334,9 +334,9 @@
  }
  function paintTravel(){
   const world=town.id==='world',available=world&&(travel.model().flying||travel.model().nearPlane(player));
-  document.body.classList.toggle('v8-travel',world||town.id==='nyc'||!!town.worldSite);
+  document.body.classList.toggle('v8-travel',world||!!town.worldSite);
   document.body.classList.toggle('v8-airborne',world&&travel.model().flying);
-  $('open-world-map').hidden=!world&&town.id!=='nyc'&&!town.worldSite;$('travel-action').hidden=!available;
+  $('open-world-map').hidden=!world&&!town.worldSite;$('travel-action').hidden=!available;
   $('travel-action').textContent=world&&travel.model().flying?'Land · E':'Board jet · E';
   $('travel-action').disabled=!loaded||changing||document.hidden||mapOpen()||storyBusy()||$('dialog').open||V4_MENU.active;
  }
@@ -348,7 +348,7 @@
  }
  $('travel-action').addEventListener('click',useJet);
  function openWorldMap(){
-  if(!loaded||changing||document.hidden||playerCombat.locked||storyBusy()||V3_INTRO.active||$('dialog').open||V4_MENU.active||!['world','nyc'].includes(town.id)&&!town.worldSite)return;
+  if(!loaded||changing||document.hidden||playerCombat.locked||storyBusy()||V3_INTRO.active||$('dialog').open||V4_MENU.active||town.id!=='world'&&!town.worldSite)return;
   resetInput();travel.drawOverview($('world-overview'),town.id==='world'?player:travel.sites.find(s=>s.id===(town.worldSite||town.id)));$('world-map').showModal();paintTravel();paintPower();
  }
  $('open-world-map').addEventListener('click',openWorldMap);
@@ -364,11 +364,11 @@
  function showDialog(title,body,tag='MARKET SQUARE'){resetInput();$('dialog-title').textContent=title;$('dialog-body').textContent=body;$('dialog-tag').textContent=tag;$('world-actions').hidden=tag!=='HOW TO PLAY';if(!$('dialog').open)$('dialog').showModal();paintPower();}
  $('help').addEventListener('click',()=>{
   if(mapOpen()||playerCombat.locked||storyBusy()||window.V3_INTRO?.active)return;
-  if(['world','nyc'].includes(town.id)){
-   showDialog('Island Skies','The road north of the meteor connects Gaithersburg to Earth. Walk with arrows / WASD or the joystick. On the world map, ocean and mountains block walking. Board the nearby jet with E / Board. W / Up flies forward into the camera view; S / Down reverses; A / D or Left / Right turns. Hold Shift / Run for faster flight and engine flames. Flight crosses any terrain and wraps east-west around Earth. E / Land sets down only on open grass, sand or snow. Curious flying dinosaurs may follow briefly, but never attack or grab you. Q / Map opens a paused overview with directions. Gaithersburg, New York and Hawaii are playable; Paris, Egypt, Japan and Russia are future chapters. Hawaii has four connected zones: Fountain Plaza, Tropical Market, Waikiki Beach and Scenic Overlook. Fountain Plaza’s south entrance returns to Earth. Your jet waits where you landed. Original flight and tropical music respect the Music toggle. Party, HP and inventory are shared. Progress is session-only; refreshing starts over.','HOW TO PLAY');return;
+  if(town.id==='world'){
+   showDialog('Island Skies','The road north of the meteor connects Gaithersburg to Earth. Walk with arrows / WASD or the joystick. On the world map, ocean and mountains block walking. Board the nearby jet with E / Board. W / Up flies forward into the camera view; S / Down reverses; A / D or Left / Right turns. Hold Shift / Run for faster flight and engine flames. Flight crosses any terrain and wraps east-west around Earth. E / Land sets down only on open grass, sand or snow. Curious flying dinosaurs may follow briefly, but never attack or grab you. Q / Map opens a paused overview with directions. Gaithersburg, New York, Paris, Egypt, Italy, the Philippines and Hawaii are playable; Japan and Russia are future chapters. New York, Paris and Hawaii each have four connected zones around a central plaza; Egypt, Italy and the Philippines are single large scenes. The central plaza’s south steps or gate return to Earth. Your jet waits where you landed. Original flight and tropical music respect the Music toggle. Party, HP and inventory are shared. Progress is session-only; refreshing starts over.','HOW TO PLAY');return;
   }
-  if(town.region==='Hawaii'){
-   showDialog('Aloha · Hawaii','Explore four connected zones. Fountain Plaza’s SOUTH entrance returns to Earth and your parked jet. North leads to Scenic Overlook, east to Waikiki Beach, and west to Tropical Market. Gold arrows and markers show routes; each zone has a return route. Water, cliffs, fountains, buildings and planted beds are solid. The skyline is scenery, and shop interiors are not open yet. Wild dinosaurs use the same combat and powers as home; check HP and heal in Menu. Map shows Hawaii’s position on Earth. The music is an original synthesized tropical theme, not a downloaded song. Gameplay progress is session-only.','HOW TO PLAY');return;
+  if(town.worldSite){
+   showDialog(town.region,'Explore this destination. The central plaza’s SOUTH gate or steps return to Earth and your parked jet; gold arrows and markers show routes between zones, and every route has a way back. Water, buildings, fountains and monuments are solid. Wild dinosaurs use the same combat and powers as home; check HP and heal in Menu. Map shows this destination’s position on Earth. Gameplay progress is session-only.','HOW TO PLAY');return;
   }
   showDialog("Coco's adventure","Find Connor next door, then go downstairs to Mom and Dad. Stories pause movement. Skip scene beside Expand fast-forwards the current cutscene with its normal one-time rewards. Coco remains the story protagonist when you switch heroes. Rescue neighbors at gold diamonds, then regroup near the family in Market Square. Gary waits inside Five Guys HQ and joins after his battle. The diamond north of the family meeting spot offers the Under the Lights banquet; Continue or Skip returns you as Gary. WASD / arrows move, Shift runs, E / Space interacts, X uses your power. Menu / M / Escape pauses for stats, items, equipment and one equipped ability. On a phone, drag the joystick and hold Run with another thumb. Home connects to Shops and Courts; Shops connects to Home and Market Square; Market Square connects to Shops and North Market. All trips are reversible. Indoors, dinosaurs appear only in cinematic window views. Find the sword downstairs, the reusable grenade north of Cinepolis, and Barney and Rosie on the northeast recreation street. Attacks damage wild dinosaurs: small ones disappear in smoke, large ones retreat. Chris uses a short-range Towel Whip. Strength and the sword boost damage. Wild dinosaurs warn before attacking; dodge their strikes and spit. A red flash and sound signal a hit. Check HP in Menu and heal with a hamburger. Fainting returns you safely to Five Guys without losing items or progress. Dogs rest when you stop, bite nearby dinosaurs and cannot be injured. Stories, flight and unicorn rides remain safe. Help toggles damage numbers and the once-per-playthrough Main Street bus gag; these preferences are remembered. Gameplay progress is session-only: refreshing starts over. Expand fills the browser; iPhone Home Screen mode can hide browser chrome.","HOW TO PLAY");
  });
@@ -536,7 +536,7 @@
   });
   if(town.id==='recreation'&&(!V4_RPG.members.jeff.joined||!V4_RPG.members.ari.joined))recreation.drawBall(ctx);
   if(town.id==='world')worldFlyers.drawOverhead(ctx,extraSheets.pterodactyl);
-  if(!town.indoor&&town.id!=='world'&&town.id!=='nyc'&&town.ambientFlight!==false&&flight.state.visible){
+  if(!town.indoor&&town.id!=='world'&&!town.worldSite&&town.ambientFlight!==false&&flight.state.visible){
    const bird=flight.state.bird,row={down:0,left:1,right:2,up:3}[bird.direction]+4;
    ctx.drawImage(extraSheets.pterodactyl,bird.frame*128,row*128,128,128,Math.round(bird.x)-64,Math.round(bird.y)-124,128,128);
   }
@@ -572,11 +572,22 @@
    for(const portal of town.landmarks)if(portal.to&&nearPortal(portal,x,y))arrivalPortals.add(portal.id);
    powers=makePowers();unicorn=window.FAMILY_UNICORN.create({blocked});squirrel.active=false;
    companions.enter(player);flight.enter(id,player);V4_SFX.play('door');
-   $('route-hint').textContent=town.hint;document.querySelector('.location strong').textContent=town.region|| (town.id==='world'?'Earth':town.id==='nyc'?'New York':'Kentlands');document.querySelector('.location small').textContent=town.id==='plaza'?'Market Square · Afternoon':town.name;nearest=null;updateCamera();updateNearby();toast(town.name);document.dispatchEvent(new Event('v8-travel-change'));
+   $('route-hint').textContent=town.hint;document.querySelector('.location strong').textContent=town.region||(town.id==='world'?'Earth':'Kentlands');document.querySelector('.location small').textContent=town.id==='plaza'?'Market Square · Afternoon':town.name;nearest=null;updateCamera();updateNearby();toast(town.name);document.dispatchEvent(new Event('v8-travel-change'));
    return true;
   }catch(error){town=old;dino=oldDino;dinoHome=oldHome;background=oldBackground;Object.assign(player,oldPlayer);toast('Could not open this area. Try again.');console.error(error);return false;}
   finally{changing=false;resetInput();$('stage').classList.remove('transitioning');if(!recovery)V5_EVENTS.check();if(!storyBusy())canvas.focus({preventScroll:true});}
  }
+ // Developer shortcut (Help): jump to the world map beside any destination, with the jet parked next to you.
+ function jumpToWorld(siteId){
+  const site=travel.sites.find(s=>s.id===siteId)||travel.sites[0];
+  if(!loaded||changing||playerCombat.locked||storyBusy()||V3_INTRO.active||flight.state.active||joining||pendingRecruit){toast('Finish this moment before jumping.');return;}
+  if($('dialog').open)$('dialog').close();
+  const model=travel.model();model.park(site.x+40,site.y+8);
+  const arrival=[(site.x)/travel.width*1000,(site.y+8)/travel.height*1000];
+  enterScene('world',arrival,'down');
+ }
+ $('jump-world').addEventListener('click',()=>jumpToWorld($('jump-site').value));
+ for(const site of travel.sites)$('jump-site').append(new Option(site.name,site.id));
  $('return-plaza').addEventListener('click',()=>{if($('dialog').open)$('dialog').close();enterScene('plaza',[50,84.47265625].map(v=>v*10));});
  function loadImage(path){return new Promise((resolve,reject)=>{const img=new Image();img.onload=()=>resolve(img);img.onerror=()=>reject(new Error('Could not load '+path));img.src=window.EMBEDDED_ASSETS?.[path]||path;});}
  const extraArt={...Object.fromEntries(Object.entries(recreation.dogData).map(([id,data])=>[id,data.sheet])),

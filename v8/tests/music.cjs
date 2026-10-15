@@ -1,5 +1,5 @@
 const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),vm=require('node:vm');
-const data=require('../src/music-data.js'),PLACES=['village','world','jet','hawaii','nyc','montage','battle','cafe','omen'];
+const data=require('../src/music-data.js'),PLACES=['village','world','jet','hawaii','nyc','paris','egypt','italy','philippines','montage','battle','cafe','omen'];
 const scope={window:{}};vm.createContext(scope);
 for(const name of ['art','action-art','characters'])vm.runInContext(fs.readFileSync(path.join(__dirname,'..','src',name+'.js'),'utf8'),scope);
 const characters=Object.keys(scope.window.CHARACTERS);

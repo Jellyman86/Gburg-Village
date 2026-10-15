@@ -13,7 +13,7 @@
 <button id="power" class="power-button" type="button" hidden disabled><span id="power-label">Power</span><small id="power-hint">X · Ready</small></button>
 <button id="travel-action" type="button" hidden>Board jet · E</button>
 <div id="recovery" hidden><p id="recovery-message" role="status"></p><button id="recovery-retry" type="button" hidden>Retry Five Guys</button></div>
-<dialog id="dialog"><button id="close-dialog" class="dialog-close" aria-label="Close">×</button><span id="dialog-tag" class="eyebrow">MARKET SQUARE</span><h2 id="dialog-title"></h2><p id="dialog-body"></p><div id="world-actions" hidden><p id="route-hint">Go north to the meteor roundabout, or east to Main Street.</p><p>For a browser-chrome-free view on iPhone: open this page in Safari, choose Share, then Add to Home Screen. Enable Open as Web App if offered, and launch the new icon. Expand alone cannot hide Safari's address bar.</p><div class="world-buttons"><button id="replay-intro" class="quiet" type="button">Replay intro</button><button id="return-plaza" class="quiet" type="button">Back to plaza</button><button id="damage-numbers" class="quiet" type="button" aria-pressed="true">Damage numbers: On</button><button id="bus-gag" class="quiet" type="button" aria-pressed="true">Bus gag: On</button></div></div><button id="continue" class="primary">Keep exploring</button></dialog></div>
+<dialog id="dialog"><button id="close-dialog" class="dialog-close" aria-label="Close">×</button><span id="dialog-tag" class="eyebrow">MARKET SQUARE</span><h2 id="dialog-title"></h2><p id="dialog-body"></p><div id="world-actions" hidden><p id="route-hint">Go north to the meteor roundabout, or east to Main Street.</p><p>For a browser-chrome-free view on iPhone: open this page in Safari, choose Share, then Add to Home Screen. Enable Open as Web App if offered, and launch the new icon. Expand alone cannot hide Safari's address bar.</p><div class="world-buttons"><button id="replay-intro" class="quiet" type="button">Replay intro</button><button id="return-plaza" class="quiet" type="button">Back to plaza</button><button id="damage-numbers" class="quiet" type="button" aria-pressed="true">Damage numbers: On</button><button id="bus-gag" class="quiet" type="button" aria-pressed="true">Bus gag: On</button></div><div class="world-buttons dev-jump"><label for="jump-site">Developer jump</label><select id="jump-site" aria-label="Destination to jump to"></select><button id="jump-world" class="quiet" type="button">Jump to world map</button></div></div><button id="continue" class="primary">Keep exploring</button></dialog></div>
 <footer><span id="status">Jason · Ready for a walk</span><span class="desktop-hint"><kbd>WASD</kbd> move <kbd>Shift</kbd> run <kbd>E</kbd> look <kbd>X</kbd> power <kbd>M / Esc</kbd> menu</span><span class="mobile-hint">Drag to move · Hold Run to hurry · Menu pauses</span></footer>
 </section></main>
 <dialog id="rpg-menu" aria-labelledby="menu-title">
@@ -29,8 +29,8 @@
 <div id="world-destinations" role="group" aria-label="Destination information"></div>
 <p id="world-map-message" role="status">Gold markers: playable Gaithersburg, New York and Hawaii. Silver markers: future chapters. Selecting a name gives directions, not fast travel. Exploration is paused.</p>
 </dialog>
-<script src="src/art.js?v=manifest-1"></script>
-<script src="src/music-data.js?v=music-1"></script>
+<script src="src/art.js?v=manifest-2"></script>
+<script src="src/music-data.js?v=music-2"></script>
 <script src="src/action-art.js?v=manifest-1"></script>
 <script src="src/characters.js?v=danger-1"></script>
 <script src="src/map.js?v=banquet-v5-1"></script>
@@ -46,24 +46,25 @@
 <script src="src/menu.js?v=music-1"></script>
 <script src="src/unicorn.js"></script>
 <script src="src/scenes.js?v=danger-1"></script>
-<script src="src/world-travel.js?v=terrain-2"></script>
+<script src="src/world-travel.js?v=terrain-3"></script>
 <script src="src/areas.js?v=hawaii-1"></script>
 <script src="src/hawaii.js?v=hawaii-1"></script>
+<script src="src/destinations.js?v=dest-1"></script>
 <script src="src/scene-geometry-data.js?v=studio-1"></script>
 <script src="src/scene-geometry.js?v=studio-1"></script>
 <script src="src/world-flyers.js?v=hawaii-1"></script>
-<script>V8_AREAS.install(V8_HAWAII.defs,SCENES);V8_GEOMETRY.apply(SCENES);</script>
+<script>V8_AREAS.install(V8_DESTINATIONS.all,SCENES);V8_GEOMETRY.apply(SCENES);</script>
 <script src="src/recreation.js"></script>
 <script src="src/companions.js?v=danger-1"></script>
-<script src="src/flight.js"></script>
+<script src="src/flight.js?v=dest-1"></script>
 <script src="src/sfx.js?v=danger-1"></script>
 <script src="src/gary-finale.js?v=world-story-v5-1"></script>
 <script src="src/banquet-finale.js?v=banquet-v5-1"></script>
 <script src="src/cinema-catalog.js?v=studio-v5-1"></script>
 <script src="src/scene-edits.js?v=studio-v5-1"></script>
 <script src="src/cinema.js?v=vito-clean-1"></script>
-<script src="src/game.js?v=music-1"></script>
-<script src="src/music.js?v=music-1"></script>
+<script src="src/game.js?v=dest-1"></script>
+<script src="src/music.js?v=music-2"></script>
 <script src="src/intro.js?v=danger-1"></script>
 <script src="src/display.js"></script>
 <script src="src/skip.js?v=combat-v6-1"></script></body></html>
