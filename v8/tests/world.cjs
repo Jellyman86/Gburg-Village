@@ -50,12 +50,14 @@ uniform[10][10]=3;assert.equal(travel.quadrant(uniform,10,10,0,true).row,3,'Dese
 uniform[10][10]=5;assert.equal(travel.quadrant(uniform,10,10,0,true).row,4,'Snow-to-grass transition');
 for(let y=0;y<96;y++)for(let x=0;x<128;x++)for(let q=0;q<4;q++)travel.quadrant(world.cells,x,y,q);
 assert.equal(JSON.stringify(world.cells),terrainBefore,'Visual selection never changes collision geography');
-const flightScope={window:{},SCENES:{world:{id:'world'},'nyc-central':{id:'nyc-central',worldSite:'nyc'}},matchMedia:()=>({matches:false})};vm.createContext(flightScope);
+const flightScope={window:{},SCENES:{world:{id:'world'},'hawaii-central':{id:'hawaii-central',worldSite:'hawaii',ambientFlight:false},'nyc-central':{id:'nyc-central',worldSite:'nyc',ambientFlight:true}},matchMedia:()=>({matches:false})};vm.createContext(flightScope);
 vm.runInContext(fs.readFileSync(path.join(__dirname,'..','src','flight.js'),'utf8'),flightScope);
-let grabs=0;const bird=flightScope.window.V4_FLIGHT.create({onGrab:()=>grabs++,onDrop(){}});
-for(const id of ['world','nyc-central']){bird.enter(id,actor);bird.update(60,actor,flightScope.SCENES[id]);assert(!bird.grab(actor,id));}
-assert.equal(grabs,0,'Old pterodactyl lift cannot interfere with jet travel or New York');
-const scope={window:{}};vm.createContext(scope);
+let grabs=0,drops=0;const bird=flightScope.window.V4_FLIGHT.create({onGrab:()=>grabs++,onDrop:()=>drops++});
+for(const id of ['world','hawaii-central']){bird.enter(id,actor);bird.update(60,actor,flightScope.SCENES[id]);assert(!bird.grab(actor,id));}
+assert.equal(grabs,0,'The pterodactyl lift never interferes with jet travel, the world map or Hawaii');
+bird.enter('nyc-central',actor);bird.update(60,actor,flightScope.SCENES['nyc-central']);bird.update(.1,actor,flightScope.SCENES['nyc-central']);
+assert.equal(grabs,1,'The pterodactyl lifts the player in the new destinations');
+bird.update(4,actor,flightScope.SCENES['nyc-central']);assert.equal(drops,1,'... and drops them safely');const scope={window:{}};vm.createContext(scope);
 for(const name of ['art','action-art','characters','powers','rpg'])vm.runInContext(fs.readFileSync(path.join(__dirname,'..','src',name+'.js'),'utf8'),scope);
 assert.equal(Object.keys(scope.window.CHARACTERS).length,15);assert.equal(scope.window.FAMILY_POWERS.definitions.grenade.cooldown,.6);
 assert(scope.window.CHARACTERS.jeff.sheet.startsWith('assets/characters/jeff.png?v='),'Cleaned Jeff resolves through the V8 art manifest');

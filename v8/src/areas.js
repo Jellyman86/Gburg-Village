@@ -32,7 +32,7 @@
    image=root.V8_ART.url(def.art);
   }
   if(!id||!name||!image||!Number.isFinite(width)||!Number.isFinite(height)||width<=0||height<=0||!spawn)throw new Error('Invalid area definition: '+id);
-  const scene={id,name,image,width,height,region:def.region,music:def.music,worldSite:def.worldSite,ambientFlight:false,
+  const scene={id,name,image,width,height,region:def.region,music:def.music,worldSite:def.worldSite,ambientFlight:def.ambientFlight===true,
    bounds:{left:0,top:0,right:width,bottom:height},spawn:{...spawn},
    walkable:paths.map(([x,y,w,h])=>({x,y,w,h})),walkablePolygons:polygons,
    obstacles:obstacles.map(([x,y,w,h])=>({x,y,w,h})),blockedPolygons,

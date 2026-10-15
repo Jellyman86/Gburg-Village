@@ -132,7 +132,12 @@ return async function checkWorld(page,{width,height,touch,artifactDir}={}){
   for(const id of ['nyc-north','nyc-east','nyc-west','paris-central','paris-north','paris-east','paris-west','egypt','italy','philippines','japan']){
    const result=await page.evaluate(async id=>{const ok=await GAME.test.enterScene(id,[SCENES[id].spawn.x/SCENES[id].width*1000,SCENES[id].spawn.y/SCENES[id].height*1000]);return {ok,scene:GAME.state.scene,safe:!GAME.blocked(GAME.state.player.x,GAME.state.player.y)};},id);
    assert(result.ok&&result.scene===id&&result.safe,'New destination opens with a safe arrival: '+id);
+   assert(await page.evaluate(i=>SCENES[i].ambientFlight===true,id),'Pterodactyl lift is enabled in '+id);
   }
+  await page.waitForFunction(()=>GAME.state.flight.active&&GAME.state.scene==='japan',null,{timeout:45000});
+  assert(await page.evaluate(()=>GAME.state.flight.active),'A pterodactyl lifts the player in a new destination');
+  await page.waitForFunction(()=>!GAME.state.flight.active,null,{timeout:10000});
+  assert(await page.evaluate(()=>!GAME.blocked(GAME.state.player.x,GAME.state.player.y)&&GAME.state.scene==='japan'),'The drop lands safely on walkable ground in the same scene');
   if(artifactDir)await page.screenshot({path:artifactDir+'\\v8-destination-'+width+'x'+height+'.png'});
   assert(errors.length===0,'No world exceptions: '+errors.join('; '));assert(failed.length===0,'No failed world assets: '+failed.join('; '));
   return {world:'passed',width,height,touch,flightFrameMs:Math.round(frames*10)/10,checks:['Help developer jump / New York, Paris, Egypt, Italy, Philippines and Japan scenes open','North-meteor road / overhead walking','Paused overview / future destination labels','Plane boarding / perspective flight / menu-hidden pause / terrain crossing / world wrap','Rejected ocean landing / safe NYC arrival / solid buildings / actual city interaction','NYC return / retained plane / Gaithersburg return / party-story preservation'],errors,failed};

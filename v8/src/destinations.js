@@ -10,7 +10,7 @@
  const portal=(id,name,x,y,to,tx,ty,direction,road,dims)=>({id,name,x,y,radius:42,to,
   arrival:to==='world'?[tx,ty]:arrival(tx,ty,dims),arrivalDirection:direction,roads:[road]});
  const rect=(x,y,w,h,direction)=>({x,y,w,h,direction});
- const zone=(def)=>({width:W,height:H,...def});
+ const zone=(def)=>({width:W,height:H,ambientFlight:true,...def});
 
  const defs=[
   // ---- New York ------------------------------------------------------------------------------------------------
@@ -102,7 +102,7 @@
    hint:'Climb the pyramid stairs or explore the courts. Pools, statues and obelisks are solid. The south steps return to Earth.'}),
 
   // ---- Italy -----------------------------------------------------------------------------------------------------
-  {id:'italy',name:'Italy · Piazza and Colosseum',art:'scene.italy',width:ITALY.width,height:ITALY.height,region:'Italy',music:'italy',worldSite:'italy',spawn:{x:717,y:960},
+  {id:'italy',name:'Italy · Piazza and Colosseum',art:'scene.italy',width:ITALY.width,height:ITALY.height,ambientFlight:true,region:'Italy',music:'italy',worldSite:'italy',spawn:{x:717,y:960},
    paths:[],
    polygons:[[[690,1015],[750,1015],[760,760],[870,700],[1010,640],[1180,580],[1270,490],[1060,450],[900,500],[880,360],[800,280],[640,330],[560,430],[430,470],[260,480],[240,570],[430,600],[610,640],[690,740]]],
    obstacles:[],blockedPolygons:[[[740,410],[860,410],[860,520],[740,520]]],

@@ -536,7 +536,7 @@
   });
   if(town.id==='recreation'&&(!V4_RPG.members.jeff.joined||!V4_RPG.members.ari.joined))recreation.drawBall(ctx);
   if(town.id==='world')worldFlyers.drawOverhead(ctx,extraSheets.pterodactyl);
-  if(!town.indoor&&town.id!=='world'&&!town.worldSite&&town.ambientFlight!==false&&flight.state.visible){
+  if(!town.indoor&&town.id!=='world'&&town.ambientFlight!==false&&flight.state.visible){
    const bird=flight.state.bird,row={down:0,left:1,right:2,up:3}[bird.direction]+4;
    ctx.drawImage(extraSheets.pterodactyl,bird.frame*128,row*128,128,128,Math.round(bird.x)-64,Math.round(bird.y)-124,128,128);
   }
