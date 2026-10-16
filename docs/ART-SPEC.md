@@ -25,7 +25,7 @@ Save files into `art inbox/` with these names so the tools can find them without
 > - Row 2: three standing poses facing **left**, then three facing **right**.
 > - Row 3: three **walking** frames facing down (left foot forward, passing, right foot forward), then three walking frames facing up.
 > - Row 4: three walking frames facing left, then three facing right.
-> Keep the character's feet on the same baseline within each row and the same overall height in every drawing. Consistent colours, no shadows, no text, no labels, no grid lines, no border, **no extra poses**.
+> Keep the character's feet on the same baseline within each row and the same overall height in every drawing. **The three walking frames in each group must have clearly different leg and arm positions** (left leg forward / legs passing / right leg forward — a visible stride, not three copies of one pose), and the three standing poses should differ only slightly (weight shift). Consistent colours, no shadows, no text, no labels, no grid lines, no border, **no extra poses**.
 
 Importer: `node tools/import-art.cjs sprite kate` (layout `walk6` is the default and matches this arrangement). Studio: Sprites tab → character → **Walk sheet** → pick the inbox file → preset `walk6` → Save.
 

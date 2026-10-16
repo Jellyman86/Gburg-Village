@@ -72,13 +72,14 @@
    const line=document.createElement('div');line.className='rowline';
    const label=document.createElement('span');label.className='name';label.title=kind==='walk'?T.WALK_ROW_NAMES[i]:'frames';
    const sw=document.createElement('i');sw.className='swatch';sw.style.background=ROW_COLORS[i];label.append(sw,kind==='walk'?T.WALK_ROW_NAMES[i]:'frames');
-   const spec=document.createElement('input');spec.type='text';spec.value=row.spec;spec.placeholder='band:a-b';spec.title='Row spec';spec.spellcheck=false;
+   const spec=document.createElement('input');spec.type='text';spec.className='spec';spec.value=row.spec;spec.placeholder='band:first-last  (e.g. 2:3-5)';spec.title='Row spec';spec.spellcheck=false;
    spec.addEventListener('input',()=>{row.spec=spec.value;$('preset').value='custom';analyse();});
+   const nudge=document.createElement('span');nudge.className='nudge';nudge.append('nudge');
    const dx=document.createElement('input'),dy=document.createElement('input');
-   for(const [el,key] of [[dx,'dx'],[dy,'dy']]){el.type='number';el.value=row[key];el.title=key+' nudge (px)';el.step=1;el.addEventListener('input',()=>{row[key]=Number(el.value)||0;analyse();});}
+   for(const [el,key] of [[dx,'dx'],[dy,'dy']]){el.type='number';el.value=row[key];el.title=key+' nudge (px)';el.step=1;el.addEventListener('input',()=>{row[key]=Number(el.value)||0;analyse();});nudge.append(el);}
    const pick=document.createElement('button');pick.type='button';pick.textContent='pick';pick.title='Then click cells on the source sheet';pick.setAttribute('aria-pressed',String(armed===i));
    pick.addEventListener('click',()=>{armed=armed===i?null:i;document.querySelectorAll('.rowline button').forEach((b,j)=>b.setAttribute('aria-pressed',String(armed===j)));drawSource();});
-   line.append(label,spec,dx,dy,pick);box.append(line);row.input=spec;
+   line.append(label,pick,spec,nudge);box.append(line);row.input=spec;row.label=label;
   });
  }
 
@@ -108,13 +109,32 @@
     // Replacing a hand-made pose sheet that holds exactly its distinct frames (e.g. 192 px for 3) keeps that width.
     const entry=manifest[artId()],distinct=parsed[0].distinct,frames=kind==='pose'&&entry&&entry.width===CELL*distinct?distinct:4;
     const {canvas,scale}=T.compose(source.src,det,parsed,{cell:CELL,smooth:$('smooth').checked,frames});
-    result={canvas,scale,rows:parsed};
+    result={canvas,scale,rows:parsed,still:stillRows(canvas,parsed,frames)};
+    rows.forEach((r,i)=>{const same=result.still.includes(i);r.label?.classList.toggle('same',same);if(r.label)r.label.title=(kind==='walk'?T.WALK_ROW_NAMES[i]:'frames')+(same?' — the frames are nearly identical, so this row will not visibly animate (the art needs distinct poses)':'');});
     if(kind==='pose'&&!existingPose())$('p-frames').value=parsed[0].distinct;
     if(kind==='walk')$('c-offset').value=String(canvas.height/CELL>=8?4:0);
    }
    setDirty(true);
   }catch(error){status(error.message,'error');}
   renderAll();
+ }
+
+ // Rows whose frames barely differ (ChatGPT often draws three near-identical "frames"): fraction of pixels that
+ // change between consecutive frames below 2.5 % means the walk or pose will look frozen in the game.
+ function stillRows(out,parsed,frames){
+  const ctx=out.getContext('2d',{willReadFrequently:true}),still=[];
+  parsed.forEach((row,r)=>{
+   const n=Math.min(frames,row.distinct);if(n<2)return;
+   let worst=0;
+   for(let f=1;f<n;f++){
+    const a=ctx.getImageData((f-1)*CELL,r*CELL,CELL,CELL).data,b=ctx.getImageData(f*CELL,r*CELL,CELL,CELL).data;
+    let changed=0,drawn=0;
+    for(let i=0;i<a.length;i+=4){const on=a[i+3]>64||b[i+3]>64;if(!on)continue;drawn++;if(Math.abs(a[i+3]-b[i+3])>64||Math.abs(a[i]-b[i])+Math.abs(a[i+1]-b[i+1])+Math.abs(a[i+2]-b[i+2])>90)changed++;}
+    worst=Math.max(worst,drawn?changed/drawn:0);
+   }
+   if(worst<.025)still.push(r);
+  });
+  return still;
  }
 
  // ---- rendering -----------------------------------------------------------------------------------------------
@@ -197,6 +217,7 @@
    const same=!entry||(entry.width===result.canvas.width&&entry.height===result.canvas.height);
    add('New',`${result.canvas.width}×${result.canvas.height}`,same?'ok':'warn');
    if(!same)add('Size',`differs from the current asset — tick "allow size change" to replace anyway`,'warn');
+   if(result.still?.length)add('Animation',`${result.still.map(i=>kind==='walk'?T.WALK_ROW_NAMES[i]:'frames').join(', ')}: frames nearly identical — will look frozen. Ask for clearly different leg/arm positions per frame.`,'warn');
   }
   if(source)add('Source',source.fromInbox?source.name+' (inbox, provenance recorded)':source.name+' (local file)');
   if(kind==='walk'){const c=existingCharacter();add('Roster',c?'existing character — settings on this panel are saved too':manifest['portrait.'+targetId()]?'new character — will join the roster on save':'new character — also import a portrait to join the roster','');}
