@@ -134,7 +134,7 @@ function registerCharacter(id,{name,walk,portrait,walkRowOffset}={}){
 }
 function registerPose(id,pose,{art:artId,frames,fps=6,frameWidth,frameHeight,foot,loop}={}){
  const data=readData();
- if(!data.characters[id])fail('Import the walk sheet for "'+id+'" first (sprites.json has no character "'+id+'").');
+ if(!data.characters[id])fail('sprites.json has no character "'+id+'" yet — import its walk sheet and portrait first, then re-run this pose import.');
  const clips=data.poses[id]=data.poses[id]||{},current=clips[pose];
  if(!current){
   const entry={art:artId||`character.${id}.${pose}`};

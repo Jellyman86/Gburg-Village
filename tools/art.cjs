@@ -12,6 +12,13 @@ const manifestPath=path.join(live,'data','art.json');
 const generatedPath=path.join(live,'src','art.js');
 const assetRoot=path.join(live,'assets');
 const IMAGE=/\.(png|webp)$/i;
+// Where each art category's files live under v8/assets/.
+const FOLDERS={character:'characters',portrait:'portraits',dinosaur:'dinosaurs',companion:'companions',item:'items',effect:'effects',gimmick:'gimmicks',scene:'scenes',finale:'scenes',world:'world'};
+function folderFor(artId){
+ const category=artId.split('.')[0];
+ if(!FOLDERS[category])throw new Error('Unknown art category "'+category+'". Known: '+Object.keys(FOLDERS).join(', '));
+ return FOLDERS[category];
+}
 
 const sha256=buffer=>crypto.createHash('sha256').update(buffer).digest('hex');
 
@@ -129,7 +136,7 @@ function check(){
  return true;
 }
 
-module.exports={readManifest,upsert,build,check,dimensions,sha256,manifestPath,assetRoot,live,root};
+module.exports={readManifest,upsert,build,check,dimensions,sha256,manifestPath,assetRoot,live,root,FOLDERS,folderFor,IMAGE};
 
 if(require.main===module){
  const command=process.argv[2];

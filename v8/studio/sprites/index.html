@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Gburg Studio · Sprites</title>
+<link rel="icon" href="../../assets/portraits/coco.png" type="image/png">
+<link rel="stylesheet" href="../studio.css?v=studio-3">
+<link rel="stylesheet" href="sprites.css?v=studio-3">
+</head>
+<body data-studio-tab="sprites" data-studio-root="../">
+<header class="bar">
+ <strong>Gburg Studio</strong>
+ <nav id="studio-tabs" class="tabs" aria-label="Studio sections"></nav>
+ <span id="target-pill" class="pill"></span>
+ <span class="spacer"></span>
+ <span id="status" class="status">Loading…</span>
+ <button id="save" class="primary" type="button" disabled>Save <small>Ctrl+S</small></button>
+</header>
+<main class="layout">
+ <aside class="tools">
+  <h2>Target</h2>
+  <label class="field">Character <select id="character"></select></label>
+  <label class="field" id="new-id-field" hidden>New id <input id="new-id" type="text" placeholder="e.g. nina" spellcheck="false" autocomplete="off"></label>
+  <div class="segmented" id="kind" role="radiogroup" aria-label="What to import">
+   <button type="button" data-kind="walk" aria-pressed="true">Walk sheet</button>
+   <button type="button" data-kind="pose" aria-pressed="false">Pose</button>
+   <button type="button" data-kind="portrait" aria-pressed="false">Portrait</button>
+  </div>
+  <label class="field" id="pose-field" hidden>Pose <input id="pose" type="text" list="pose-names" placeholder="surprised" spellcheck="false" autocomplete="off"><datalist id="pose-names"></datalist></label>
+  <h2>Source</h2>
+  <label class="field">Inbox <select id="inbox"><option value="">— choose a file —</option></select></label>
+  <div class="row"><button id="open-file" type="button">Open file…</button><input id="file" type="file" accept="image/png,image/webp,image/jpeg" hidden></div>
+  <p class="hint">Or drop an image anywhere on the canvas. Inbox files keep their provenance in art.json.</p>
+  <div id="detect-options">
+   <label class="field">Background <select id="key"><option value="">auto</option><option value="white">key out white</option><option value="none">transparent only</option></select></label>
+   <label class="field">Min gap <input id="gap" type="number" min="0" max="200" step="1" value="0" title="0 = automatic (8% of the drawing height)"></label>
+   <label><input id="smooth" type="checkbox"> Smooth scaling</label>
+  </div>
+  <h2 id="layout-heading">Layout</h2>
+  <div id="layout-options">
+   <label class="field">Preset <select id="preset"></select></label>
+   <div id="rows" class="rows"></div>
+   <p class="hint">Specs are <code>band:first-last</code> using the numbers drawn on the cells; add <code>!</code> to mirror. Press <b>pick</b> on a row, then click cells on the sheet (Shift+click extends the range). dx/dy nudge the drawings inside their cells.</p>
+  </div>
+  <h2>Save</h2>
+  <label><input id="allow-resize" type="checkbox"> Allow size change of an existing asset</label>
+ </aside>
+ <section id="viewport" class="viewport workshop">
+  <div id="drop-hint" class="drop-hint">Choose an inbox file or drop an image here.</div>
+  <div class="pane">
+   <div class="pane-title">Source · <span id="source-name">nothing loaded</span> <span id="detect-summary" class="muted"></span></div>
+   <div id="source-scroll" class="source-scroll"><canvas id="source"></canvas></div>
+  </div>
+  <div class="pane results">
+   <div class="pane-title">Result · <span id="result-summary" class="muted"></span>
+    <label class="inline"><input id="onion" type="checkbox" checked> Show current sheet underneath</label>
+    <label class="inline">Zoom <input id="preview-zoom" type="range" min="1" max="6" value="2"></label>
+   </div>
+   <div class="result-row">
+    <div class="sheet-wrap"><canvas id="sheet"></canvas></div>
+    <div class="anim-wrap"><div class="pane-title">In motion</div><canvas id="anim"></canvas><div id="anim-legend" class="muted"></div></div>
+   </div>
+  </div>
+ </section>
+ <aside class="props">
+  <h2>Asset</h2>
+  <dl id="asset-info" class="info"></dl>
+  <div id="character-props">
+   <h2>Character</h2>
+   <div class="field"><label for="c-name">Name</label><input id="c-name" type="text"></div>
+   <div class="field"><label for="c-speed">Walk px/s</label><input id="c-speed" type="number" min="10" max="1000"></div>
+   <div class="field"><label for="c-run">Run px/s</label><input id="c-run" type="number" min="10" max="1000"></div>
+   <div class="field"><label for="c-walkfps">Walk fps</label><input id="c-walkfps" type="number" min="1" max="60"></div>
+   <div class="field"><label for="c-runfps">Run fps</label><input id="c-runfps" type="number" min="1" max="60"></div>
+   <div class="field"><label for="c-offset">Walk rows</label><select id="c-offset"><option value="0">same rows as idle (4-row sheet)</option><option value="4">four rows below idle (8-row sheet)</option></select></div>
+   <label><input id="c-mirror" type="checkbox"> Mirror right-facing rows for left (sheet has no left rows)</label>
+  </div>
+  <div id="pose-props" hidden>
+   <h2>Pose clip</h2>
+   <div class="field"><label for="p-frames">Frames</label><input id="p-frames" type="number" min="1" max="4"></div>
+   <div class="field"><label for="p-fps">Fps</label><input id="p-fps" type="number" min="1" max="60" value="6"></div>
+   <label><input id="p-loop" type="checkbox" checked> Loop (untick for one-shots like hurt / win)</label>
+  </div>
+  <h2>Sprite data</h2>
+  <div class="row"><button id="export" type="button">Show JSON</button><button id="copy" type="button">Copy JSON</button></div>
+  <textarea id="json" hidden spellcheck="false"></textarea>
+ </aside>
+</main>
+<script src="../../src/art.js?v=manifest-3"></script>
+<script src="../../src/sprites-data.js?v=sprites-1"></script>
+<script src="../../src/characters.js?v=sprites-1"></script>
+<script src="../sheet-tools.js?v=studio-3"></script>
+<script src="../studio-common.js?v=studio-3"></script>
+<script src="sprites.js?v=studio-3"></script>
+</body></html>

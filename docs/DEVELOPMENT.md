@@ -42,7 +42,7 @@ The task runner ([tools/tasks.cjs](../tools/tasks.cjs)) auto-detects a browser: 
 | `node tools/import-art.cjs …` | Import sprites/portraits/scenes from the art inbox (see Art workflow) | ~5 s |
 | `npm run art:provenance` | Confirm imported files still match their inbox originals (skips if no inbox) | <1 s |
 | `node tools/music.cjs import` / `npm run music:build` | Convert tracks from `Music/`; sync `music.json` → `music-data.js` (see Music workflow) | ~10 s |
-| `npm run studio` | Gburg Studio (World collision editor; more tabs coming) + game preview on localhost (see Gburg Studio) | — |
+| `npm run studio` | Gburg Studio (World collision editor, Sprite Workshop) + game preview on localhost (see Gburg Studio) | — |
 | `npm run geometry:check` | Validate `scene-geometry.json` against the live scenes (runs inside `test:quick`) | <1 s |
 | `npm run sprites:build` / `sprites:check` | After editing `v8/data/sprites.json` (roster, walk quirks, pose clips): validate against the art manifest and regenerate `sprites-data.js` | <1 s |
 | `npm run serve` | Read-only local preview at http://127.0.0.1:5180/v8/ | — |
@@ -84,8 +84,8 @@ npm run studio        # http://127.0.0.1:5181/v8/studio/   (game preview at http
 
 Gburg Studio is the visual tool for everything that is data in `v8/data/`. It is one local server ([tools/studio-server.cjs](../tools/studio-server.cjs)) plus one plain page per tab under `v8/studio/`, sharing [studio-common.js](../v8/studio/studio-common.js) (server connection, tab bar) and `studio.css`. No build step, no framework.
 
-- **Server:** every editable document is registered in the server with its data file, a validator and a build step. `GET /api/studio` lists them; `GET/POST /api/doc/<name>` reads and saves one. Saves need the page's session token and the revision you loaded (a stale revision is refused with 409), are validated before anything is written, land atomically, and then regenerate the matching `v8/src/<name>-data.js`. Registered today: `geometry` (`scene-geometry.json`) and `sprites` (`sprites.json`). Everything else is read-only static files.
-- **Tabs:** **World** (below) is live. **Sprites** (import/replace sheets, poses, frame timing) and **Cinematics** (the V6 cutscene director, whose overrides V8 already reads from `scene-edits.json`) are planned next and show as inactive tabs until then.
+- **Server:** every editable document is registered in the server with its data file, a validator and a build step. `GET /api/studio` lists them; `GET/POST /api/doc/<name>` reads and saves one. Saves need the page's session token and the revision you loaded (a stale revision is refused with 409), are validated before anything is written, land atomically, and then regenerate the matching `v8/src/<name>-data.js`. Registered today: `geometry` (`scene-geometry.json`) and `sprites` (`sprites.json`). `GET /api/inbox` lists the ChatGPT inbox and `POST /api/asset` writes one PNG into `v8/assets/` and registers it in `art.json` (same token rules; replacing an asset keeps its file name and refuses a size change unless asked). Everything else is read-only static files.
+- **Tabs:** **World** and **Sprites** are live (below). **Cinematics** (the V6 cutscene director, whose overrides V8 already reads from `scene-edits.json`) is planned and shows as an inactive tab until then.
 - The pages are also published read-only (https://jellyman86.github.io/Gburg-Village/v8/studio/) as viewers; saving needs the local server.
 
 ### World tab (collision editor)
@@ -98,6 +98,18 @@ The World tab loads the game's own scene definitions and draws them over the rea
 - **Save (Ctrl+S)** writes `v8/data/scene-geometry.json` and regenerates `v8/src/scene-geometry-data.js`; reload the game preview to walk it. Commit and push to publish. **Revert scene to code defaults** drops a scene's override.
 
 How it fits the game: [v8/src/scene-geometry.js](../v8/src/scene-geometry.js) applies the override document right after scenes are installed (`V8_GEOMETRY.apply(SCENES)` in `index.html`). A scene without an entry keeps the geometry defined in `map.js` / `scenes.js` / `hawaii.js`; the first time you save a scene, its whole collision set is data-driven from then on. Landmarks merge by id, so exits, pickups and story markers keep their behaviour while you move them. `npm run geometry:check` (inside `test:quick`) validates the data against the live scenes, and the geometry contract test proves extract → apply round-trips every scene with identical collision results. No Tiled involved.
+
+### Sprites tab (Sprite Workshop)
+
+http://127.0.0.1:5181/v8/studio/sprites/ — import or replace a **walk sheet**, a **pose clip** or a **portrait** with no code edit. It runs the importer's own detection ([v8/studio/sheet-tools.js](../v8/studio/sheet-tools.js), shared with `tools/import-art.cjs`) in the browser.
+
+1. **Target:** pick a character (or *New character…* and type an id), then Walk sheet / Pose (type the pose name) / Portrait. The right panel shows the current asset, and the character's speeds and walk-row quirks or the clip's frames/fps/loop from `sprites.json`.
+2. **Source:** choose a file from the inbox list (provenance is recorded in `art.json`) or drop any image on the canvas. The detected drawings are numbered `band.cell` like the CLI preview; *Background* forces white keying on or off and *Min gap* splits drawings that touch.
+3. **Layout:** a preset (`walk6` matches the ART-SPEC brief; `walk4`/`walk8` for other arrangements; one row for poses) fills the row specs. Edit a spec, or press **pick** on a row and click cells on the sheet (Shift+click extends the range); `!` mirrors a row; dx/dy nudge the drawings inside their cells. Cells used by each row are tinted in the row's colour.
+4. **Result:** the composed sheet on the 64-px grid with the foot line, the current asset ghosted underneath (toggle), and an **In motion** preview that uses the game's `characterWalkPose` — so `walkRowOffset` and `mirrorLeft` look exactly as in play. Portraits preview at 128×128.
+5. **Save (Ctrl+S)** writes the PNG into `v8/assets/`, updates `art.json`/`art.js`, then saves `sprites.json`: a walk sheet + portrait pair adds the character to the roster (with the panel's speeds), a pose adds or updates its clip, and editing the panel alone (speeds, fps, loop) saves just the data. Replacing an existing asset keeps its size (a hand-made 3-frame pose sheet stays 192 px wide); tick *Allow size change* to override. Reload the game preview to see it.
+
+A character added this way plays immediately with average stats and no special power ([rpg.js](../v8/src/rpg.js) falls back to a default profile); recruitment scenes, a story location and a power are authored content and stay in code. Without the local server the page is a read-only previewer.
 
 ## Sprite data (`sprites.json`)
 
@@ -178,7 +190,7 @@ Game contracts: sprite cells 64×64 (128 for large dinosaurs), transparent backg
 Direction: one server and one tab bar, separate small pages per tab, every tab saving a validated `v8/data/*.json` document (the scene-geometry pattern). Not a single-page app, not a pixel editor (Pixelorama stays for real repainting), not Tiled.
 
 7. ✅ **Studio shell + sprite data** — generic document server (`/api/doc/<name>`), tab bar, `studio-common.js`; `v8/data/sprites.json` + `tools/sprites.cjs build|check` replace the hand-written `characters.js`/`action-art.js` tables (generated globals proven identical; contract test in `test:quick`); the importer registers characters and poses in the JSON itself.
-8. **Sprites tab (Sprite Workshop)** — the importer's cell detection running in the browser: pick a character and an inbox file, see numbered cells, map them to rows with presets or by dragging, preview on the 64-grid with foot line and onion skin, animate with the game's own draw code, Save writes PNG + `art.json` + `sprites.json` in one step. Also portraits, poses, per-cell nudge/flip, speck threshold. Shared detection module used by the CLI.
+8. ✅ **Sprites tab (Sprite Workshop)** — `v8/studio/sprites/`: the importer's detection as a shared browser module (`v8/studio/sheet-tools.js`, byte-identical CLI output), inbox or dropped files, numbered cells, presets or pick-by-click row mapping with mirror and nudge, 64-grid preview with foot line and onion skin, in-motion preview through `characterWalkPose`, Save = PNG + `art.json` + `sprites.json` via `POST /api/asset` and `/api/doc/sprites`. `rpg.js` tolerates roster members without a tuned profile.
 9. **Preview links** — dev URL params (`?scene=&hero=&x=&y=`) and "Open in game here" from every tab; optional localhost asset-reload ping.
 10. **Cinematics tab** — the V6 director (`v6/studio/`, frozen) re-created under `v8/studio/cinema/` against V8's `cinema.js` preview API, saving `scene-edits.json` through the document server.
 11. **World tab growth** — `enemies` and interaction `points` in the geometry override; later a `scenes.json` registry so a new destination is import + shapes + exits with no code.

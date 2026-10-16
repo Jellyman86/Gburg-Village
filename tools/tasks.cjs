@@ -150,7 +150,7 @@ const tasks={
    'music:import   convert new/changed tracks from Music/ into v8/assets/music/*.mp3 and update data/music.json',
    'music:build    sync track hashes and regenerate v8/src/music-data.js after editing data/music.json',
    'music:check    verify music.json, files and music-data.js agree',
-   'studio         Gburg Studio (World collision editor, more tabs to come) + game preview at http://127.0.0.1:5181/'+LIVE+'/studio/',
+   'studio         Gburg Studio (World collision editor, Sprite Workshop) + game preview at http://127.0.0.1:5181/'+LIVE+'/studio/',
    'geometry:build validate scene-geometry.json against the live scenes and regenerate scene-geometry-data.js',
    'geometry:check verify scene geometry data is valid and current',
    'sprites:build  validate v8/data/sprites.json against the art manifest and regenerate sprites-data.js',

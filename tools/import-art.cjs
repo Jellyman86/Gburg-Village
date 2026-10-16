@@ -18,15 +18,10 @@ const art=require('./art.cjs'),sprites=require('./sprites.cjs');
 const {resolvePlaywrightEnv}=require('./tasks.cjs');
 
 const root=art.root,inbox=path.join(root,'art inbox'),previews=path.join(root,'test-artifacts','import');
-const LAYOUTS={
- // Six cells per row: two facings x three phases. Rows: (down,up) idle, (left,right) idle, (down,up) walk, (left,right) walk.
- walk6:'0:0-2 1:0-2 1:3-5 0:3-5 2:0-2 3:0-2 3:3-5 2:3-5',
- // Four rows of 3-4 cells in down, left, right, up order: idle rows reuse the walk cells.
- walk4:'0:* 1:* 2:* 3:* 0:* 1:* 2:* 3:*',
- // One row per facing in down, left, right, up order followed by the same four walking rows.
- walk8:'0:* 1:* 2:* 3:* 4:* 5:* 6:* 7:*'
-};
-const FOLDERS={character:'characters',portrait:'portraits',dinosaur:'dinosaurs',companion:'companions',item:'items',effect:'effects',gimmick:'gimmicks',scene:'scenes',finale:'scenes',world:'world'};
+// Layout presets live with the shared sheet tools so the CLI and the studio agree.
+const sheetToolsPath=path.join(art.live,'studio','sheet-tools.js');
+const LAYOUTS=(()=>{const scope={};require('node:vm').runInNewContext(fs.readFileSync(sheetToolsPath,'utf8'),{globalThis:scope,window:undefined,document:undefined,Image:undefined});return scope.SHEET_TOOLS.LAYOUTS;})();
+const folderFor=art.folderFor;
 
 const args=process.argv.slice(2),command=args[0];
 const positional=args.slice(1).filter((a,i,list)=>!a.startsWith('--')&&!(i>0&&/^--(from|pose|layout|cell|gap|key|width|height|to)$/.test(list[i-1])));
@@ -54,12 +49,6 @@ function findSource(kind,id){
  throw new Error((matches.length?'Several inbox files match "'+id+'":\n  '+matches.join('\n  '):'No inbox file matches "'+id+'" for '+kind+'.')+'\nUse --from "<file name>".');
 }
 
-function folderFor(artId){
- const category=artId.split('.')[0];
- if(!FOLDERS[category])throw new Error('Unknown art category "'+category+'". Known: '+Object.keys(FOLDERS).join(', '));
- return FOLDERS[category];
-}
-
 async function withPage(fn){
  const env=resolvePlaywrightEnv();
  const {chromium}=require(env.PLAYWRIGHT_CORE||'playwright');
@@ -67,113 +56,12 @@ async function withPage(fn){
  try{const page=await browser.newPage();return await fn(page);}finally{await browser.close();}
 }
 
-// Everything pixel-related runs inside Chromium's Canvas. `job` is serialisable; the result carries base64 outputs.
-function processInBrowser(page,job){
- return page.evaluate(async job=>{
-  const load=async(base64,mime)=>{const img=new Image();img.src='data:'+mime+';base64,'+base64;await img.decode();return img;};
-  const canvasOf=(w,h)=>{const c=document.createElement('canvas');c.width=w;c.height=h;return c;};
-  const png=c=>c.toDataURL('image/png').split(',')[1];
-  const img=await load(job.base64,job.mime),W=img.naturalWidth,H=img.naturalHeight;
-  const source=canvasOf(W,H),sctx=source.getContext('2d',{willReadFrequently:true});sctx.drawImage(img,0,0);
-
-  function detect({gap,key}){
-   const d=sctx.getImageData(0,0,W,H).data;
-   let opaque=true;for(let i=3;i<d.length;i+=4)if(d[i]<255){opaque=false;break;}
-   const corners=[0,(W-1)*4,(H-1)*W*4,((H-1)*W+W-1)*4].every(i=>d[i]>=235&&d[i+1]>=235&&d[i+2]>=235);
-   const useKey=key==='white'||(key!=='none'&&opaque&&corners);
-   const solid=new Uint8Array(W*H);
-   for(let i=0,p=0;i<d.length;i+=4,p++){
-    const a=d[i+3];if(a<128)continue;
-    if(useKey&&d[i]>=235&&d[i+1]>=235&&d[i+2]>=235)continue;
-    solid[p]=1;
-   }
-   const rowCount=new Uint32Array(H);for(let y=0;y<H;y++){let n=0;for(let x=0;x<W;x++)n+=solid[y*W+x];rowCount[y]=n;}
-   const bands=[];let start=-1,blank=0;
-   for(let y=0;y<=H;y++){
-    const filled=y<H&&rowCount[y]>0;
-    if(filled){if(start<0)start=y;blank=0;}
-    else if(start>=0){blank++;if(blank>=4||y===H){const end=y-blank+(y===H&&filled?1:0);if(end-start>=8)bands.push({top:start,bottom:end});start=-1;blank=0;}}
-   }
-   const cells=[];
-   bands.forEach((band,b)=>{
-    const h=band.bottom-band.top,minGap=gap||Math.max(4,Math.round(h*.08));
-    const col=new Uint32Array(W);for(let x=0;x<W;x++){let n=0;for(let y=band.top;y<band.bottom;y++)n+=solid[y*W+x];col[x]=n;}
-    const segments=[];let s=-1,g=0;
-    for(let x=0;x<=W;x++){
-     const filled=x<W&&col[x]>0;
-     if(filled){if(s<0)s=x;g=0;}
-     else if(s>=0){g++;if(g>=minGap||x===W){segments.push([s,x-g+(x===W&&filled?1:0)]);s=-1;g=0;}}
-    }
-    const row=[];
-    for(const [x0,x1] of segments){
-     let top=band.bottom,bottom=band.top,left=x1,right=x0;
-     for(let y=band.top;y<band.bottom;y++)for(let x=x0;x<x1;x++)if(solid[y*W+x]){if(y<top)top=y;if(y+1>bottom)bottom=y+1;if(x<left)left=x;if(x+1>right)right=x+1;}
-     if(right-left<h*.1&&bottom-top<h*.1)continue; // stray speck
-     row.push({x:left,y:top,w:right-left,h:bottom-top});
-    }
-    row.forEach((c,i)=>cells.push({band:b,index:i,...c}));
-   });
-   return {bands,cells,useKey,solid};
-  }
-
-  function cellsPreview(det){
-   const scale=Math.min(1,900/W),c=canvasOf(Math.round(W*scale),Math.round(H*scale)),ctx=c.getContext('2d');
-   ctx.fillStyle='#223';ctx.fillRect(0,0,c.width,c.height);ctx.drawImage(source,0,0,c.width,c.height);
-   ctx.lineWidth=2;ctx.font='bold 14px system-ui';ctx.textBaseline='top';
-   for(const cell of det.cells){
-    ctx.strokeStyle='#ffd166';ctx.strokeRect(cell.x*scale,cell.y*scale,cell.w*scale,cell.h*scale);
-    const label=cell.band+'.'+cell.index;ctx.fillStyle='#000a';ctx.fillRect(cell.x*scale,cell.y*scale,ctx.measureText(label).width+8,18);ctx.fillStyle='#ffd166';ctx.fillText(label,cell.x*scale+4,cell.y*scale+2);
-   }
-   return png(c);
-  }
-
-  function drawCell(ctx,det,cell,dx,dy,dw,dh,flip){
-   // Draw only this cell's solid pixels so neighbouring artwork in the same crop box never leaks in.
-   const piece=canvasOf(cell.w,cell.h),pctx=piece.getContext('2d');
-   pctx.drawImage(source,cell.x,cell.y,cell.w,cell.h,0,0,cell.w,cell.h);
-   if(det.useKey){const id=pctx.getImageData(0,0,cell.w,cell.h),p=id.data;for(let i=0;i<p.length;i+=4)if(!det.solid[(cell.y+(i/4/cell.w|0))*W+cell.x+(i/4%cell.w)])p[i+3]=0;pctx.putImageData(id,0,0);}
-   ctx.save();if(flip){ctx.translate(dx+dw,dy);ctx.scale(-1,1);ctx.drawImage(piece,0,0,dw,dh);}else ctx.drawImage(piece,dx,dy,dw,dh);ctx.restore();
-  }
-
-  if(job.mode==='cells'){const det=detect(job);return {width:W,height:H,bands:det.bands.length,cells:det.cells.map(({solid,...c})=>c),useKey:det.useKey,preview:cellsPreview(det)};}
-
-  if(job.mode==='sprite'){
-   const det=detect(job),cell=job.cell,foot=cell-4;
-   const byBand=det.bands.map((_,b)=>det.cells.filter(c=>c.band===b));
-   const rows=job.rows.map(spec=>{
-    const m=/^(\d+):(\*|(\d+)(?:-(\d+))?)(!?)$/.exec(spec);if(!m)throw new Error('Bad row spec: '+spec);
-    const band=byBand[Number(m[1])];if(!band)throw new Error('Row spec '+spec+' refers to a band that was not detected (found '+byBand.length+').');
-    let picked=m[2]==='*'?band:band.slice(Number(m[3]),m[4]===undefined?Number(m[3])+1:Number(m[4])+1);
-    if(!picked.length)throw new Error('Row spec '+spec+' selected no cells.');
-    const order={1:[0,0,0,0],2:[0,1,0,1],3:[0,1,2,1],4:[0,1,2,3]}[picked.length];
-    if(!order)throw new Error('Row spec '+spec+' selected '+picked.length+' cells; use 1-4.');
-    return {cells:order.map(i=>picked[i]),flip:m[5]==='!'};
-   });
-   const used=rows.flatMap(r=>r.cells);
-   const scale=Math.min(...used.map(c=>Math.min(cell/c.w,foot/c.h)));
-   const out=canvasOf(cell*4,cell*rows.length),ctx=out.getContext('2d');ctx.imageSmoothingEnabled=!!job.smooth;ctx.imageSmoothingQuality='high';
-   rows.forEach((row,r)=>row.cells.forEach((c,f)=>{
-    const w=Math.max(1,Math.round(c.w*scale)),h=Math.max(1,Math.round(c.h*scale));
-    drawCell(ctx,det,c,f*cell+Math.round((cell-w)/2),r*cell+foot-h,w,h,row.flip);
-   }));
-   const zoom=Math.max(1,Math.floor(768/out.width)),sheet=canvasOf(out.width*zoom,out.height*zoom),zctx=sheet.getContext('2d');
-   zctx.fillStyle='#2b3a4a';zctx.fillRect(0,0,sheet.width,sheet.height);zctx.imageSmoothingEnabled=false;zctx.drawImage(out,0,0,sheet.width,sheet.height);
-   zctx.strokeStyle='#ffffff55';for(let x=0;x<=4;x++){zctx.beginPath();zctx.moveTo(x*cell*zoom,0);zctx.lineTo(x*cell*zoom,sheet.height);zctx.stroke();}
-   for(let y=0;y<=rows.length;y++){zctx.beginPath();zctx.moveTo(0,y*cell*zoom);zctx.lineTo(sheet.width,y*cell*zoom);zctx.stroke();}
-   zctx.strokeStyle='#ff6b6b88';for(let y=0;y<rows.length;y++){zctx.beginPath();zctx.moveTo(0,(y*cell+foot)*zoom);zctx.lineTo(sheet.width,(y*cell+foot)*zoom);zctx.stroke();}
-   return {width:out.width,height:out.height,scale,cells:det.cells.map(({solid,...c})=>c),bands:det.bands.length,useKey:det.useKey,rowFrames:rows.map(r=>new Set(r.cells).size),output:png(out),sheetPreview:png(sheet),cellsPreview:cellsPreview(det)};
-  }
-
-  if(job.mode==='portrait'||job.mode==='scene'||job.mode==='image'){
-   const w=job.width||W,h=job.height||H;
-   const out=canvasOf(w,h),ctx=out.getContext('2d');ctx.imageSmoothingEnabled=!!job.smooth;ctx.imageSmoothingQuality='high';ctx.drawImage(img,0,0,w,h);
-   if(job.format==='webp'){const url=out.toDataURL('image/webp',.92);if(!url.startsWith('data:image/webp'))throw new Error('WebP encoding unavailable');return {width:w,height:h,output:url.split(',')[1]};}
-   return {width:w,height:h,output:png(out)};
-  }
-  throw new Error('Unknown mode '+job.mode);
- },job);
+// Everything pixel-related runs inside Chromium's Canvas through the shared v8/studio/sheet-tools.js module (the same code
+// the studio's Sprites tab uses). `job` is serialisable; the result carries base64 outputs.
+async function processInBrowser(page,job){
+ await page.addScriptTag({content:fs.readFileSync(sheetToolsPath,'utf8')});
+ return page.evaluate(job=>window.SHEET_TOOLS.process(job),job);
 }
-
 function readSource(name){
  const file=path.join(inbox,name),bytes=fs.readFileSync(file);
  const mime={'.png':'image/png','.webp':'image/webp','.jpg':'image/jpeg','.jpeg':'image/jpeg'}[path.extname(name).toLowerCase()];

@@ -44,9 +44,9 @@ Each hero has a theme; recruitment cutscenes play the new friend's theme, the je
 
 ## Gburg Studio
 
-`npm run studio` opens Gburg Studio at http://127.0.0.1:5181/v8/studio/. The **World** tab shows every scene's walkable and blocked shapes, markers, road strips, spawn and bounds drawn over the real background, with a walk-test layer that shows exactly where the game blocks movement. Move, resize, add or delete shapes and Save; the game reads the result from [data/scene-geometry.json](data/scene-geometry.json) at load. Sprites and Cinematics tabs are planned (see [docs/DEVELOPMENT.md](../docs/DEVELOPMENT.md)). The same page is published read-only as a viewer: https://jellyman86.github.io/Gburg-Village/v8/studio/.
+`npm run studio` opens Gburg Studio at http://127.0.0.1:5181/v8/studio/. The **World** tab shows every scene's walkable and blocked shapes, markers, road strips, spawn and bounds drawn over the real background, with a walk-test layer that shows exactly where the game blocks movement. Move, resize, add or delete shapes and Save; the game reads the result from [data/scene-geometry.json](data/scene-geometry.json) at load. The **Sprites** tab imports or replaces walk sheets, poses and portraits from the ChatGPT inbox with a live in-game-style preview and writes the asset, `art.json` and `sprites.json` in one Save. A Cinematics tab is planned (see [docs/DEVELOPMENT.md](../docs/DEVELOPMENT.md)). The pages are published read-only as viewers: https://jellyman86.github.io/Gburg-Village/v8/studio/.
 
-The roster and every sprite clip are data in [data/sprites.json](data/sprites.json): importing a character's walk sheet and portrait with `node tools/import-art.cjs` adds them to the game with no code change.
+The roster and every sprite clip are data in [data/sprites.json](data/sprites.json): importing a character's walk sheet and portrait — in the studio or with `node tools/import-art.cjs` — adds them to the game with no code change.
 
 ## Limits and verification
 

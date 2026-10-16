@@ -5,16 +5,18 @@
 (() => {
  'use strict';
  const TABS=[
-  {id:'world',label:'World',href:'./',title:'Collision shapes, markers, exits and roads over the real backgrounds'},
-  {id:'sprites',label:'Sprites',href:'sprites/',title:'Sprite Workshop — coming in a later phase',soon:true},
+  {id:'world',label:'World',href:'',title:'Collision shapes, markers, exits and roads over the real backgrounds'},
+  {id:'sprites',label:'Sprites',href:'sprites/',title:'Sprite Workshop — import or replace walk sheets, poses and portraits'},
   {id:'cinema',label:'Cinematics',href:'cinema/',title:'Cutscene director — coming in a later phase',soon:true}
  ];
+ // Pages declare where the studio root is relative to them (body data-studio-root, default "./").
  function renderTabs(active){
   const nav=document.getElementById('studio-tabs');if(!nav)return;
+  const base=document.body.dataset.studioRoot||'./';
   for(const tab of TABS){
    const link=document.createElement(tab.soon?'span':'a');
    link.textContent=tab.label;link.title=tab.title;link.className='tab'+(tab.id===active?' active':'')+(tab.soon?' soon':'');
-   if(!tab.soon)link.href=tab.href;else link.setAttribute('aria-disabled','true');
+   if(!tab.soon)link.href=base+tab.href;else link.setAttribute('aria-disabled','true');
    if(tab.id===active)link.setAttribute('aria-current','page');
    nav.append(link);
   }
