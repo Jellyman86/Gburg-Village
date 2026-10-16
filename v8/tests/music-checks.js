@@ -15,6 +15,8 @@ return async function checkMusic(page,{width,height,touch,artifactDir}={}){
  const screenshot=async name=>{if(artifactDir)await page.screenshot({path:artifactDir+'\\v8-'+name+'-'+width+'x'+height+'.png'});};
  try{
   await page.goto(page.url().split('/v8/')[0]+'/v8/',{waitUntil:'domcontentloaded'});
+  // Let the first load finish its data requests; reloading mid-fetch would log aborted requests as page errors on a slow host.
+  await page.waitForFunction(()=>window.GAME&&GAME.ready);
   await page.evaluate(()=>{localStorage.removeItem('gburg-v8-music');localStorage.setItem('village-music','on');});
   await page.reload({waitUntil:'domcontentloaded'});
   await page.waitForFunction(()=>GAME.ready&&V3_INTRO.state.ready);await activate('#intro-skip');
