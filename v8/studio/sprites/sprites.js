@@ -35,13 +35,17 @@
   select.value=previous&&[...select.options].some(o=>o.value===previous)?previous:Object.keys(data().characters)[0];
   characterId=select.value;
  }
+ function clearSource(){
+  source=null;det=null;result=null;armed=null;$('inbox').value='';
+  $('viewport').classList.remove('loaded');$('source-name').textContent='nothing loaded';$('detect-summary').textContent='';
+ }
  function setKind(next){
-  kind=next;armed=null;
+  kind=next;clearSource();
   document.querySelectorAll('#kind button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.kind===kind)));
   $('pose-field').hidden=kind!=='pose';$('layout-options').hidden=kind==='portrait';$('layout-heading').hidden=kind==='portrait';$('detect-options').hidden=kind==='portrait';
   $('character-props').hidden=kind==='pose';$('pose-props').hidden=kind!=='pose';
-  fillPresets();buildRows();fillForms();
-  if(source)analyse();else{result=null;renderAll();}
+  fillPresets();buildRows();fillForms();setDirty(false);renderAll();
+  if(remote)status(`Target: ${kind==='walk'?'walk sheet':kind} for ${targetId()||'(new character)'} — choose its file from the inbox or drop it on the canvas.`);
  }
  function fillPoseNames(){
   const list=$('pose-names');list.replaceChildren();
@@ -165,7 +169,13 @@
  }
  function drawSheet(){
   const canvas=$('sheet'),ctx=canvas.getContext('2d'),z=Number($('preview-zoom').value);
-  if(!result){canvas.width=canvas.height=1;$('result-summary').textContent='';return;}
+  if(!result){
+   // Nothing loaded yet: show the asset as it is saved today, so switching targets never looks like losing work.
+   const current=currentImage();
+   if(!current){canvas.width=canvas.height=1;$('result-summary').textContent=manifest[artId()]?'loading current asset…':'no asset saved for this target yet';return;}
+   canvas.width=current.naturalWidth*z;canvas.height=current.naturalHeight*z;ctx.imageSmoothingEnabled=false;ctx.fillStyle='#1a2338';ctx.fillRect(0,0,canvas.width,canvas.height);ctx.drawImage(current,0,0,canvas.width,canvas.height);
+   $('result-summary').textContent=`current saved asset · ${current.naturalWidth}×${current.naturalHeight} — load a file to replace it`;return;
+  }
   const out=result.canvas;canvas.width=out.width*z;canvas.height=out.height*z;
   ctx.imageSmoothingEnabled=false;ctx.fillStyle='#2b3a4a';ctx.fillRect(0,0,canvas.width,canvas.height);
   const current=currentImage();
@@ -249,7 +259,7 @@
 
  // ---- controls ------------------------------------------------------------------------------------------------
  document.querySelectorAll('#kind button').forEach(b=>b.addEventListener('click',()=>setKind(b.dataset.kind)));
- $('character').addEventListener('change',()=>{characterId=$('character').value;$('new-id-field').hidden=characterId!=='__new';fillForms();setDirty(false);renderAll();});
+ $('character').addEventListener('change',()=>{characterId=$('character').value;$('new-id-field').hidden=characterId!=='__new';clearSource();fillForms();setDirty(false);renderAll();});
  $('new-id').addEventListener('input',()=>{fillForms();renderAll();});
  $('pose').addEventListener('input',()=>{pose=$('pose').value.trim().toLowerCase();fillForms();renderAll();});
  $('preset').addEventListener('change',()=>{buildRows($('preset').value);analyse();});

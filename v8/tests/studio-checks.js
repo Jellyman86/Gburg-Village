@@ -50,23 +50,29 @@ return async function checkStudio(page,{width,height,artifactDir}={}){
   assert(await page.evaluate(()=>document.querySelector('#studio-tabs .tab.active').textContent==='Sprites'&&document.querySelectorAll('#character option').length>=16),'Sprites tab is active and lists the roster plus "new character"');
   assert(await page.evaluate(()=>WORKSHOP.state.characterId==='jeff'&&WORKSHOP.state.artId==='character.jeff.walk'&&document.getElementById('c-speed').value==='120'&&document.getElementById('c-offset').value==='4'),'URL picks the character and the panel shows its sprites.json settings');
   // Synthetic ChatGPT-style export: four rows of six drawings on a transparent background, different heights per row.
-  await page.evaluate(()=>{
+  const loadSheet=()=>page.evaluate(()=>{
    const c=document.createElement('canvas');c.width=900;c.height=1000;const ctx=c.getContext('2d');
    for(let r=0;r<4;r++)for(let i=0;i<6;i++){const h=150-r*10,x=30+i*145,y=40+r*240+(160-h);ctx.fillStyle=['#c33','#3c3','#33c','#cc3'][r];ctx.fillRect(x,y,70,h);ctx.fillStyle='#fff';ctx.fillRect(x+10+i*5,y+10,12,12);}
    return WORKSHOP.loadDataURL(c.toDataURL('image/png'),'Test Sprites.png');
   });
+  await loadSheet();
   await page.waitForFunction(()=>WORKSHOP.state.result);
   const walk=await page.evaluate(()=>WORKSHOP.state);
   assert(walk.bands===4&&walk.cells===24&&walk.result.width===256&&walk.result.height===512&&walk.rows[0]==='0:0-2'&&walk.rows[7]==='2:3-5','walk6 preset maps 4x6 detected cells onto a 256x512 sheet');
   assert(walk.result.scale>.39&&walk.result.scale<.41,'Uniform scale fits the tallest drawing (150 px) on the 60 px foot line');
   assert(await page.evaluate(()=>{const c=document.getElementById('sheet');return c.width===512&&c.height===1024&&document.getElementById('anim').width===512;}),'Sheet preview at zoom 2 and the walking preview are drawn');
+  assert(await page.evaluate(()=>document.querySelectorAll('.rowline .name.same').length>=4&&document.getElementById('asset-info').textContent.includes('nearly identical')),'Rows whose frames barely differ are flagged');
   await page.evaluate(()=>WORKSHOP.setRows(['9:0-2']));
   assert(await page.evaluate(()=>!WORKSHOP.state.result&&document.getElementById('status').textContent.includes('Row 1')),'A spec pointing at a missing band is reported on its row');
-  await page.evaluate(()=>{WORKSHOP.setKind('pose');WORKSHOP.setPose('surprised');WORKSHOP.setRows(['1:0-2']);});
+  // Switching target drops the loaded image and shows the saved asset instead, so the next file cannot land on the wrong target.
+  await page.evaluate(()=>{WORKSHOP.setKind('pose');WORKSHOP.setPose('surprised');});
+  await page.waitForFunction(()=>!WORKSHOP.state.loaded&&document.getElementById('result-summary').textContent.includes('current saved asset'));
+  await loadSheet();await page.evaluate(()=>WORKSHOP.setRows(['1:0-2']));
   await page.waitForFunction(()=>WORKSHOP.state.result&&WORKSHOP.state.result.height===64);
   assert(await page.evaluate(()=>WORKSHOP.state.artId==='character.jeff.surprised'&&document.getElementById('p-frames').value==='3'&&document.getElementById('p-fps').value==='6'),'Pose target reads the existing clip settings and a 3-cell row');
   assert(await page.evaluate(()=>{document.getElementById('p-fps').value='9';document.getElementById('p-fps').dispatchEvent(new Event('input'));const d=WORKSHOP.buildDocument();return d.poses.jeff.surprised.fps===9&&d.poses.jeff.surprised.frames===3&&d.characters.jeff.speed===120&&Object.keys(d.characters).length===15;}),'Document builder applies the clip settings to a copy of sprites.json');
   await page.evaluate(()=>WORKSHOP.setKind('portrait'));
+  await loadSheet();
   await page.waitForFunction(()=>WORKSHOP.state.result&&WORKSHOP.state.result.width===128&&WORKSHOP.state.result.height===128);
   await page.evaluate(()=>WORKSHOP.save());
   await page.waitForFunction(()=>document.getElementById('status').textContent.includes('npm run studio'));
