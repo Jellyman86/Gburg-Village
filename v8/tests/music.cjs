@@ -18,6 +18,8 @@ for(const place of Object.keys(data.places))assert(PLACES.includes(place),'Known
 for(const place of PLACES)for(const track of data.places[place]||[])assert(data.tracks[track],`Place ${place} lists shipped track ${track}`);
 for(const place of data.characterPlaces)assert(PLACES.includes(place),'characterPlaces are known places');
 const music=fs.readFileSync(path.join(__dirname,'..','src','music.js'),'utf8');
-for(const mode of ['village','battle','cafe','omen','jet','hawaii'])assert(music.includes(mode+':'),'Original synthesized theme retained: '+mode);
+for(const mode of ['village','battle','cafe','omen','jet','hawaii','montage'])assert(music.includes(mode+':'),'Original synthesized theme retained: '+mode);
+assert(data.tracks.roses.trimStart>=1,'Roses keeps its trimmed-off silent intro (trimStart in music.json)');
+assert.deepEqual(data.places.montage,[],'The montage plays the original dramatic synth theme, not a licensed track');
 assert(!fs.readFileSync(path.join(__dirname,'..','src','game.js'),'utf8').includes('function compose('),'Synth composer lives in music.js, not game.js');
 console.log(`PASS: ${Object.keys(data.tracks).length} MP3 tracks present, ${Object.keys(data.characters).length} hero themes valid, place playlists valid, original themes retained.`);

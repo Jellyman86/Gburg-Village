@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // Music manifest tool for the living version.
-//   node tools/music.cjs import [--from <folder>] [--bitrate 128k] [--force] [--no-normalize]   convert new/changed tracks from Music/ into v8/assets/music/*.mp3 (loudness-normalized)
+//   node tools/music.cjs import [--from <folder>] [--bitrate 128k] [--force] [--no-normalize] [--trim <track>=<seconds>]   convert new/changed tracks from Music/ into v8/assets/music/*.mp3 (loudness-normalized)
 //   node tools/music.cjs build                                                 sync track hashes with disk and regenerate v8/src/music-data.js
 //   node tools/music.cjs check                                                 fail if music.json or music-data.js are stale or inconsistent
 //
@@ -66,6 +66,7 @@ function resolveTracks(data){
   const hash=sha256(fs.readFileSync(full));
   const resolved={title:entry.title||titleFor(id),file,hash};
   if(entry.source)resolved.source=entry.source;if(entry.sourceHash)resolved.sourceHash=entry.sourceHash;
+  if(entry.trimStart)resolved.trimStart=entry.trimStart;if(entry.gain)resolved.gain=entry.gain;
   if(entry.hash!==hash)changes.push(id+': hash '+(entry.hash?entry.hash.slice(0,10)+' → ':'set ')+hash.slice(0,10));
   next.tracks[id]=resolved;seenFiles.add(file);
  }
@@ -139,17 +140,19 @@ function importTracks(){
  const ffmpeg=findFfmpeg();
  if(!ffmpeg)throw new Error('ffmpeg was not found. Install it (winget install Gyan.FFmpeg) or set FFMPEG_PATH.');
  const data=readManifest(),bitrate=option('bitrate')||'128k';
+ // --trim roses=1.6 cuts that many seconds off the start of one track; it is remembered in music.json as trimStart so re-imports keep it.
+ const trims={};for(let i=0;i<args.length;i++)if(args[i]==='--trim'&&args[i+1]){const [id,seconds]=args[i+1].split('=');if(!(Number(seconds)>=0)||!seconds)throw new Error('--trim needs track=seconds, e.g. --trim roses=1.6');trims[id]=Number(seconds);}
  fs.mkdirSync(musicRoot,{recursive:true});
  let converted=0,skipped=0;
  for(const name of files){
   const id=idFor(name),source=fs.readFileSync(path.join(inbox,name)),sourceHash=sha256(source),file=id+'.mp3',target=path.join(musicRoot,file);
-  const current=data.tracks[id];
-  if(current&&current.sourceHash===sourceHash&&fs.existsSync(target)&&!has('force')){skipped++;continue;}
+  const current=data.tracks[id],trimStart=trims[id]!==undefined?trims[id]:current?.trimStart||0;
+  if(current&&current.sourceHash===sourceHash&&fs.existsSync(target)&&!has('force')&&trims[id]===undefined){skipped++;continue;}
   // loudnorm evens out MIDI renders that differ wildly in level (EBU R128, -16 LUFS integrated, -1.5 dBTP ceiling).
   const filters=has('no-normalize')?[]:['-af','loudnorm=I=-16:TP=-1.5:LRA=11'];
-  const result=spawnSync(ffmpeg,['-y','-hide_banner','-loglevel','error','-i',path.join(inbox,name),'-vn',...filters,'-codec:a','libmp3lame','-b:a',bitrate,'-ar','44100',target],{encoding:'utf8'});
+  const result=spawnSync(ffmpeg,['-y','-hide_banner','-loglevel','error',...(trimStart?['-ss',String(trimStart)]:[]),'-i',path.join(inbox,name),'-vn',...filters,'-codec:a','libmp3lame','-b:a',bitrate,'-ar','44100',target],{encoding:'utf8'});
   if(result.status!==0)throw new Error('ffmpeg failed for '+name+':\n'+result.stderr);
-  data.tracks[id]={title:current?.title||titleFor(id),file,source:name,sourceHash};
+  data.tracks[id]={...current,title:current?.title||titleFor(id),file,source:name,sourceHash,...(trimStart?{trimStart}:{})};
   converted++;console.log(`  ${name}  →  ${file}  (${(fs.statSync(target).size/1048576).toFixed(1)} MB)`);
  }
  fs.writeFileSync(manifestPath,JSON.stringify(data,null,1)+'\n');

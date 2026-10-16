@@ -7,8 +7,8 @@
  if(!stage||window.V8_MUSIC)return;
  const data=window.V8_MUSIC_DATA||{root:'assets/music/',tracks:{},characters:{},places:{},characterPlaces:[]};
  const PLACES=['village','world','jet','hawaii','nyc','paris','egypt','italy','philippines','japan','montage','battle','cafe','omen'];
- const SYNTH={village:'Village theme',battle:'Battle theme',cafe:'Café theme',omen:'Omen theme',jet:'Jet theme',hawaii:'Hawaii theme'};
- const FALLBACK={world:'village',nyc:'village',paris:'village',egypt:'village',italy:'village',philippines:'hawaii',japan:'hawaii',montage:'omen'};
+ const SYNTH={village:'Village theme',battle:'Battle theme',cafe:'Café theme',omen:'Omen theme',jet:'Jet theme',hawaii:'Hawaii theme',montage:'Montage theme'};
+ const FALLBACK={world:'village',nyc:'village',paris:'village',egypt:'village',italy:'village',philippines:'hawaii',japan:'hawaii'};
  const CHARACTER_PLACES=new Set(data.characterPlaces&&data.characterPlaces.length?data.characterPlaces:['village','world','nyc']);
  const PREFS_KEY='gburg-v8-music',LEGACY_KEY='village-music';
  const AudioContextClass=window.AudioContext||window.webkitAudioContext;
@@ -92,7 +92,7 @@
   return fileStarted&&!audio.paused&&!audio.ended&&audio.readyState>=2;
  }
  function compose(mode){
-  const battle=mode==='battle',cafe=mode==='cafe',omen=mode==='omen',jet=mode==='jet',hawaii=mode==='hawaii',rate=22050,beat=60/(battle?164:cafe?116:omen?132:jet?138:hawaii?104:92),duration=16*4*beat;
+  const battle=mode==='battle',cafe=mode==='cafe',omen=mode==='omen',jet=mode==='jet',hawaii=mode==='hawaii',montage=mode==='montage',rate=22050,beat=60/(montage?152:battle?164:cafe?116:omen?132:jet?138:hawaii?104:92),duration=(montage?32:16)*4*beat;
   const result=context.createBuffer(1,Math.round(duration*rate),rate),data=result.getChannelData(0);
   function note(midi,at,length,volume,voice){
    const frequency=440*Math.pow(2,(midi-69)/12),start=Math.round(at*rate),count=Math.floor(length*rate);
@@ -114,6 +114,35 @@
    for(let i=0;i<count;i++){const t=i/rate,noise=Math.sin(i*127.1)*Math.sin(i*311.7),wave=snare?noise:Math.sin(2*Math.PI*(90-240*t)*t);
     data[(start+i)%data.length]+=wave*Math.exp(-t*30)*(snare?.075:.14);}
   }
+  // Original invasion-montage theme (32 bars): pounding drums, a pulsing bass ostinato and brass stabs over a minor-key
+  // progression, then a rising arpeggio, a repeat an octave up and a snare-roll build that loops back into the opening.
+  function scoreMontage(){
+   const chords={Dm:{root:38,tri:[62,65,69]},Bb:{root:34,tri:[58,62,65]},A:{root:33,tri:[61,64,69]},Gm:{root:31,tri:[59,62,67]},C:{root:36,tri:[60,64,67]},Eb:{root:39,tri:[58,63,67]}};
+   const progression=['Dm','Dm','Bb','A','Dm','Dm','Gm','A','Bb','Bb','Gm','A','Bb','C','Eb','A','Dm','Dm','Bb','A','Dm','Dm','Gm','A','Dm','Eb','Dm','Eb','Bb','C','A','A'];
+   const motif=[[0,74,.5],[.5,74,.5],[1,77,1],[2,76,.5],[2.5,74,.5],[3,72,1]];
+   const lead=[motif,motif,[[0,70,1],[1,74,1],[2,77,1],[3,76,1]],[[0,73,.5],[.5,76,.5],[1,81,1],[2,80,1],[3,76,1]],motif,
+    [[0,74,.5],[.5,77,.5],[1,81,1],[2,79,.5],[2.5,77,.5],[3,76,1]],[[0,70,1],[1,74,1],[2,79,1],[3,77,1]],[[0,76,.5],[.5,73,.5],[1,69,1],[2,73,.5],[2.5,76,.5],[3,81,1]]];
+   const climb=[74,75,77,79,77,79,81,82];
+   for(let bar=0;bar<32;bar++){
+    const chord=chords[progression[bar]],at=bar*4*beat,section=bar>>3;
+    chord.tri.forEach(n=>note(n,at,2*beat,.04,'organ'));
+    for(let i=0;i<8;i++)note(chord.root+(i%4===2?12:0),at+i*.5*beat,.45*beat,.15,'pluck');
+    for(let i=0;i<4;i++)drum(at+i*beat,false);
+    drum(at+beat,true);drum(at+3*beat,true);
+    if(section===2)for(let i=0;i<8;i++)drum(at+i*.5*beat,true);
+    if(section<3)for(const offset of [0,1.5])chord.tri.forEach(n=>note(n+12,at+offset*beat,.4*beat,.06,'brass'));
+    if(section===0)lead[bar%8].forEach(([o,n,l])=>note(n,at+o*beat,l*.95*beat,.12,'brass'));
+    if(section===1)for(let i=0;i<8;i++)note(chord.tri[i%3]+12*(1+Math.min(1,Math.floor(i/4))),at+i*.5*beat,.45*beat,.09,'brass');
+    if(section===2)lead[bar%8].forEach(([o,n,l])=>{note(n+12,at+o*beat,l*.95*beat,.1,'brass');note(n,at+o*beat,l*.95*beat,.08,'bell');});
+    if(section===3){
+     for(let i=0;i<8;i++)note(bar===31?69+i:climb[bar-24],at+i*.5*beat,.45*beat,.1,'brass');
+     if(bar>=30)for(let i=0;i<(bar===31?16:8);i++)drum(at+i*(bar===31?.25:.5)*beat,true);
+    }
+   }
+   let peak=0;for(let i=0;i<data.length;i++)peak=Math.max(peak,Math.abs(data[i]));
+   if(peak>0){const scale=.7/peak;for(let i=0;i<data.length;i++)data[i]*=scale;}
+  }
+  if(montage){scoreMontage();return result;}
   for(let bar=0;bar<16;bar++){
    const chord=chords[bar%chords.length],at=bar*4*beat;
    chord.forEach(n=>note(n,at,4.5*beat,omen?.04:.055,omen?'organ':'pad'));

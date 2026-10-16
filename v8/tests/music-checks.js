@@ -24,7 +24,7 @@ return async function checkMusic(page,{width,height,touch,artifactDir}={}){
   await activate('#music-toggle');await waitTrack('golden','village');
   assert(await page.evaluate(()=>V8_MUSIC.state.music==='themed'&&document.getElementById('music-toggle').textContent.includes('Theme')),'Bubble switches to hero themes');
   const data=await page.evaluate(()=>V8_MUSIC_DATA);
-  assert(Object.keys(data.tracks).length>=10&&data.characters.coco==='golden'&&data.places.jet[0]==='avicii-levels'&&data.places.montage.length>=1,'Shipped music data is loaded');
+  assert(Object.keys(data.tracks).length>=10&&data.characters.coco==='golden'&&data.places.jet[0]==='avicii-levels'&&data.places.montage.length===0&&data.characters.kate==='taylor-swift-love-story','Shipped music data is loaded (montage uses the original dramatic theme, Kate has Love Story)');
   assert(await page.evaluate(()=>Object.values(V8_MUSIC_DATA.tracks).every(t=>!t.gain||(t.gain>=.1&&t.gain<=2))),'Track gains are sane');
   // Recruitment cutscenes play the recruit's theme, then music returns; the montage has its own dramatic place.
   assert(await page.evaluate(()=>V5_CINEMA.play('recruit-jeff')),'Recruit cutscene starts');
@@ -33,7 +33,7 @@ return async function checkMusic(page,{width,height,touch,artifactDir}={}){
   await waitTrack('golden','village');
   assert(await page.evaluate(()=>document.getElementById('music-toggle').hidden||getComputedStyle(document.getElementById('music-toggle')).display!=='none'),'Bubble is back after the cutscene');
   assert(await page.evaluate(()=>V5_CINEMA.play('montage')),'Montage starts');
-  await page.waitForFunction(()=>V8_MUSIC.state.mode==='montage'&&V8_MUSIC.state.track===V8_MUSIC_DATA.places.montage[0]&&V8_MUSIC.state.playing);
+  await page.waitForFunction(()=>V8_MUSIC.state.mode==='montage'&&V8_MUSIC.state.track==='synth:montage'&&V8_MUSIC.state.playing);
   await page.waitForFunction(()=>!document.getElementById('cutscene-skip').hidden);await activate('#cutscene-skip');await page.waitForFunction(()=>!V5_CINEMA.active);
   await waitTrack('golden','village');
   // Switching heroes switches themes; a hero without a theme falls back to the place playlist (synth village).

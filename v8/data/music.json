@@ -89,9 +89,10 @@
   "roses": {
    "title": "Roses",
    "file": "roses.mp3",
-   "hash": "0afb492b853998f5af4a0f21d3b0c1aef61b011500e93d61590d235fd7a9a81b",
+   "hash": "5526d5bdd1e4a1f43bc5ff8afd31665dd31e20635df014eb95d28f15559b1fbe",
    "source": "Roses_SNES_Game.m4a",
-   "sourceHash": "a93985a6ef8a3673e334007f6142359fd35e08ec3c5bec3b3999b5fb74611f6e"
+   "sourceHash": "a93985a6ef8a3673e334007f6142359fd35e08ec3c5bec3b3999b5fb74611f6e",
+   "trimStart": 1.58
   },
   "seven-nation-army": {
    "title": "Seven Nation Army",
@@ -128,6 +129,13 @@
    "source": "Takedown_SNES_Game.m4a",
    "sourceHash": "a6525284b83396d379d396c9c47e82fa390b99bf836a665fa69c3865f0dab4c7"
   },
+  "taylor-swift-love-story": {
+   "title": "Taylor Swift Love Story",
+   "file": "taylor-swift-love-story.mp3",
+   "hash": "c232278a2bd8d27c07f56967a7ef8d2b68079c6d3f48c624b44d40ca9b411a46",
+   "source": "Taylor_Swift_Love_Story_SNES_Game.m4a",
+   "sourceHash": "256242de8f25d3ac22bbc520e3c467519478b7600bf31ce012ee9e5345ff1a96"
+  },
   "the-way-you-make-me-feel": {
    "title": "The Way You Make Me Feel",
    "file": "the-way-you-make-me-feel.mp3",
@@ -160,7 +168,7 @@
   "coco": "golden",
   "adam": "karma-chameleon",
   "chris": "nirvana-smells-like-teen-spirit",
-  "kate": "just-cant-wait-to-be-king",
+  "kate": "taylor-swift-love-story",
   "ari": "waka-waka",
   "vito": "hate-it-or-love-it",
   "mark": "oasis-wonderwall",
@@ -180,9 +188,7 @@
   "italy": [],
   "philippines": [],
   "japan": [],
-  "montage": [
-   "star-wars-theme"
-  ],
+  "montage": [],
   "battle": [],
   "cafe": [],
   "omen": []
