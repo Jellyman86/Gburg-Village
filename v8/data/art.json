@@ -74,6 +74,18 @@
    "width": 192,
    "height": 64
   },
+  "character.bryce-young.surprised": {
+   "file": "characters/bryce-young-surprised.png",
+   "hash": "1d634d9ac631ae6d757660452420186ded1ebe2a4c45ed70b38509d909b8e609",
+   "width": 256,
+   "height": 64
+  },
+  "character.bryce-young.walk": {
+   "file": "characters/bryce-young.png",
+   "hash": "aae5cb8eab0bf96387668de2186df69880300d81cf861ac6ee7092687402ac11",
+   "width": 256,
+   "height": 512
+  },
   "character.chris.hurt": {
    "file": "characters/chris-hurt.png",
    "hash": "3e43b2c267746a974ab25f5b0466350993d490ca8ec0cbcf62abb820847803bf",
@@ -611,6 +623,12 @@
   "portrait.brie": {
    "file": "portraits/brie.png",
    "hash": "dccf7dd6d525dbdf0f9e0ae08f7f62502aa60f4e53e3d1c97d9f45cf51a997e0",
+   "width": 128,
+   "height": 128
+  },
+  "portrait.bryce-young": {
+   "file": "portraits/bryce-young.png",
+   "hash": "070af3025569cbbf5d9e4cdeb5af81c052041305f675bd6cbd2e856d49211ce7",
    "width": 128,
    "height": 128
   },

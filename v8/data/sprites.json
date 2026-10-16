@@ -161,6 +161,17 @@
    "runFPS": 12,
    "walkRowOffset": 4,
    "mirrorLeft": true
+  },
+  "bryce-young": {
+   "name": "Bryce Young",
+   "walk": "character.bryce-young.walk",
+   "portrait": "portrait.bryce-young",
+   "speed": 120,
+   "runSpeed": 205,
+   "walkFPS": 8,
+   "runFPS": 12,
+   "walkRowOffset": 4,
+   "joined": true
   }
  },
  "poses": {
@@ -494,6 +505,13 @@
     "art": "character.gary.run",
     "frames": 3,
     "fps": 8
+   }
+  },
+  "bryce-young": {
+   "surprised": {
+    "art": "character.bryce-young.surprised",
+    "frames": 3,
+    "fps": 6
    }
   }
  },

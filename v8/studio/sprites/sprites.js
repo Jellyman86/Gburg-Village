@@ -87,7 +87,18 @@
   });
  }
 
- // ---- source ------------------------------------------------------------------------------------------------
+ // "Bryce Young Shocked Sprite.png" → "surprised": drop the character's name and the word Sprite, map common synonyms.
+ const POSE_SYNONYMS={shocked:'surprised',startled:'surprised',startle:'surprised',talking:'talk',speaking:'talk',fainting:'faint',fainted:'faint',laughing:'laugh',celebrating:'win',celebrate:'win',victory:'win',hurting:'hurt',injured:'hurt',interacting:'interact'};
+ function guessPose(fileName){
+  const id=targetId(),c=existingCharacter();
+  let words=fileName.replace(/\.[a-z0-9]+$/i,'').toLowerCase().split(/[^a-z0-9]+/).filter(Boolean);
+  const drop=new Set(['sprite','sprites','pose','png',...id.split('-'),...(c?c.name.toLowerCase().split(/\s+/):[])]);
+  words=words.filter(w=>!drop.has(w));
+  if(!words.length)return;
+  const guess=POSE_SYNONYMS[words[words.length-1]]||words[words.length-1];
+  if(!ID.test(guess))return;
+  pose=guess;$('pose').value=guess;fillForms();
+ }
  async function loadSource(blobOrUrl,name,{fromInbox=false}={}){
   status('Loading '+name+'…');
   try{
@@ -96,6 +107,7 @@
    let image;try{image=await T.load(url);}finally{URL.revokeObjectURL(url);}
    const hash=crypto.subtle?[...new Uint8Array(await crypto.subtle.digest('SHA-256',bytes))].map(b=>b.toString(16).padStart(2,'0')).join(''):undefined;
    source={image,src:T.sourceOf(image),name,bytes,hash,fromInbox};
+   if(kind==='pose'&&!pose)guessPose(name);
    $('source-name').textContent=`${name} · ${source.src.W}×${source.src.H}`;$('viewport').classList.add('loaded');
    analyse();if(result)status('Loaded '+name+'.','ok');
   }catch(error){status('Could not load '+name+': '+error.message,'error');}

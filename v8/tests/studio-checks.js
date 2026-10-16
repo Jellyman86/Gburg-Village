@@ -70,7 +70,7 @@ return async function checkStudio(page,{width,height,artifactDir}={}){
   await loadSheet();await page.evaluate(()=>WORKSHOP.setRows(['1:0-2']));
   await page.waitForFunction(()=>WORKSHOP.state.result&&WORKSHOP.state.result.height===64);
   assert(await page.evaluate(()=>WORKSHOP.state.artId==='character.jeff.surprised'&&document.getElementById('p-frames').value==='3'&&document.getElementById('p-fps').value==='6'),'Pose target reads the existing clip settings and a 3-cell row');
-  assert(await page.evaluate(()=>{document.getElementById('p-fps').value='9';document.getElementById('p-fps').dispatchEvent(new Event('input'));const d=WORKSHOP.buildDocument();return d.poses.jeff.surprised.fps===9&&d.poses.jeff.surprised.frames===3&&d.characters.jeff.speed===120&&Object.keys(d.characters).length===15;}),'Document builder applies the clip settings to a copy of sprites.json');
+  assert(await page.evaluate(()=>{document.getElementById('p-fps').value='9';document.getElementById('p-fps').dispatchEvent(new Event('input'));const d=WORKSHOP.buildDocument();return d.poses.jeff.surprised.fps===9&&d.poses.jeff.surprised.frames===3&&d.characters.jeff.speed===120&&Object.keys(d.characters).length===Object.keys(V8_SPRITES_DATA.characters).length;}),'Document builder applies the clip settings to a copy of sprites.json');
   await page.evaluate(()=>WORKSHOP.setKind('portrait'));
   await loadSheet();
   await page.waitForFunction(()=>WORKSHOP.state.result&&WORKSHOP.state.result.width===128&&WORKSHOP.state.result.height===128);
