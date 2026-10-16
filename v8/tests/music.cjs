@@ -19,6 +19,8 @@ for(const place of PLACES)for(const track of data.places[place]||[])assert(data.
 for(const place of data.characterPlaces)assert(PLACES.includes(place),'characterPlaces are known places');
 const music=fs.readFileSync(path.join(__dirname,'..','src','music.js'),'utf8');
 for(const mode of ['village','battle','cafe','omen','jet','hawaii','montage'])assert(music.includes(mode+':'),'Original synthesized theme retained: '+mode);
+assert(data.tracks['black-or-white'].trimStart>=2,'Black or White keeps its silent intro trimmed');
+assert(data.tracks['black-or-white'].gain<1&&data.tracks['karma-chameleon'].gain<1,'The bright, harsh-sounding tracks are trimmed down by gain in music.json');
 assert(data.tracks.roses.trimStart>=1,'Roses keeps its trimmed-off silent intro (trimStart in music.json)');
 assert.deepEqual(data.places.montage,[],'The montage plays the original dramatic synth theme, not a licensed track');
 assert(!fs.readFileSync(path.join(__dirname,'..','src','game.js'),'utf8').includes('function compose('),'Synth composer lives in music.js, not game.js');

@@ -12,9 +12,11 @@
   "black-or-white": {
    "title": "Black Or White",
    "file": "black-or-white.mp3",
-   "hash": "a23854c30f134c5261e1656eefcde07b597d88961ce3168c22931dcd819d100f",
+   "hash": "4056b0422775ec45c51e345f95e4ef5ec20d2fe5e56e38f69c03534e1a4b01e6",
    "source": "Black_or_White_SNES_Game.m4a",
-   "sourceHash": "51c8db7ff5ad25e59ad2738b158f62e44ae1724a4058865b3ed9147800e3decb"
+   "sourceHash": "51c8db7ff5ad25e59ad2738b158f62e44ae1724a4058865b3ed9147800e3decb",
+   "trimStart": 2.03,
+   "gain": 0.63
   },
   "cherry-pie": {
    "title": "Cherry Pie",
@@ -70,7 +72,8 @@
    "file": "karma-chameleon.mp3",
    "hash": "8d1e602d20b6d9e3dab1001a0a6973d519a10f38f52a2554f8c30bd831575579",
    "source": "Karma_Chameleon_SNES_Game.m4a",
-   "sourceHash": "a21a4cd17e3e1d23bd1b3cab548d1373f99ace4b7dd07e1e76cc3235ab549bbb"
+   "sourceHash": "a21a4cd17e3e1d23bd1b3cab548d1373f99ace4b7dd07e1e76cc3235ab549bbb",
+   "gain": 0.75
   },
   "nirvana-smells-like-teen-spirit": {
    "title": "Smells Like Teen Spirit",
