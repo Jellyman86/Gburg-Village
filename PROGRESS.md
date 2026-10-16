@@ -1,6 +1,6 @@
 # Gburg Village — current status
 
-Updated: 2026-10-14. One screen only. Git history is the detailed log; older handoff prose is in [docs/archive](docs/archive/).
+Updated: 2026-10-16. One screen only. Git history is the detailed log; older handoff prose is in [docs/archive](docs/archive/).
 
 ## Living version
 - **`v8/` is the only version under development.** Play: https://jellyman86.github.io/Gburg-Village/v8/ · [V8 guide](v8/README.md)
@@ -23,6 +23,8 @@ Opening story and 15 recruitable playable characters, FFVI-style party menu (ros
 - **New destinations (branch `new-destinations`):** New York (4 zones: Fountain Plaza, Brooklyn Bridge, Park Pond, Broadway), Paris (4 zones), Egypt, Italy, the Philippines and Japan are playable, all from your ChatGPT scenes (imported via `import-art.cjs scene`; 153 manifest assets). Area shapes live in `v8/src/destinations.js` (first-pass traces — fine-tune them in Gburg Studio, which lists every scene). Italy, the Philippines and Japan (Cherry Blossom Plaza: shrine, harbor docks, east bridge, south torii steps) were carved into the world grid; a contract test lands the jet from 169 offsets around every playable site (0 failures, including the Philippines archipelago). Help → **Developer jump** parks the jet beside any destination on the world map. The old procedural New York was replaced. New places have no playlists yet (they fall back to Village/Hawaii music) — add them in `music.json` `places`.
 
 - **Music + studio update:** Kate's theme is Taylor Swift's *Love Story*; Roses has its 1.6 s silent intro trimmed (`--trim` option, remembered as `trimStart`); the invasion montage now plays an original 50-second synthesized dramatic theme instead of Star Wars (the track stays in the library); Studio edits for Italy, New York East, Paris East and the Philippines are committed; `gain` in `music.json` is now preserved by `music:build`. Pterodactyl lifts are on in all new destinations (not the world map). If a phone doesn't show a new feature, it is running a cached page: reload the tab, or remove and re-add the Home Screen icon.
+
+- **Studio expansion, steps 7 (branch `studio-shell-sprites`):** Gburg Studio is now a shell — one server with a generic validated document API (`/api/doc/geometry|sprites`), a World / Sprites / Cinematics tab bar and shared `studio-common.js`; the World tab is unchanged in behaviour. The roster and all 51 pose clips moved from `characters.js`/`action-art.js` into `v8/data/sprites.json` (`npm run sprites:build|check`, contract test in `test:quick`; generated `CHARACTERS`/`V5_ACTION_ART` verified identical to the old objects, roster order included). `import-art.cjs sprite|portrait` registers new characters and poses in the JSON, so adding a character needs no code edit. Plan for steps 8–12 (Sprite Workshop, preview links, Cinematics tab, World growth, costume variants) is in `docs/DEVELOPMENT.md`.
 
 ## Known limitations
 - No persistence; refreshing restarts as Coco.

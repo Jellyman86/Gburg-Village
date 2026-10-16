@@ -11,9 +11,10 @@
 // Sprite layouts map detected cells (band.cell, numbered in the cells preview) onto output rows. Each output row is
 // "band:first-last" (3 cells become frames [0,1,2,1]; 4 cells are used as-is; 1 cell repeats). Append "!" to mirror.
 // Output rows for walk sheets are down, left, right, up idle followed by the same four walking rows (walkRowOffset 4).
+// Character imports also register the roster entry / pose clip in v8/data/sprites.json, so no code edit is needed.
 'use strict';
 const fs=require('node:fs'),path=require('node:path');
-const art=require('./art.cjs');
+const art=require('./art.cjs'),sprites=require('./sprites.cjs');
 const {resolvePlaywrightEnv}=require('./tasks.cjs');
 
 const root=art.root,inbox=path.join(root,'art inbox'),previews=path.join(root,'test-artifacts','import');
@@ -160,7 +161,7 @@ function processInBrowser(page,job){
    zctx.strokeStyle='#ffffff55';for(let x=0;x<=4;x++){zctx.beginPath();zctx.moveTo(x*cell*zoom,0);zctx.lineTo(x*cell*zoom,sheet.height);zctx.stroke();}
    for(let y=0;y<=rows.length;y++){zctx.beginPath();zctx.moveTo(0,y*cell*zoom);zctx.lineTo(sheet.width,y*cell*zoom);zctx.stroke();}
    zctx.strokeStyle='#ff6b6b88';for(let y=0;y<rows.length;y++){zctx.beginPath();zctx.moveTo(0,(y*cell+foot)*zoom);zctx.lineTo(sheet.width,(y*cell+foot)*zoom);zctx.stroke();}
-   return {width:out.width,height:out.height,scale,cells:det.cells.map(({solid,...c})=>c),bands:det.bands.length,useKey:det.useKey,output:png(out),sheetPreview:png(sheet),cellsPreview:cellsPreview(det)};
+   return {width:out.width,height:out.height,scale,cells:det.cells.map(({solid,...c})=>c),bands:det.bands.length,useKey:det.useKey,rowFrames:rows.map(r=>new Set(r.cells).size),output:png(out),sheetPreview:png(sheet),cellsPreview:cellsPreview(det)};
   }
 
   if(job.mode==='portrait'||job.mode==='scene'||job.mode==='image'){
@@ -215,6 +216,24 @@ async function sprite(){
  console.log(`Detected ${result.bands} bands / ${result.cells.length} cells${result.useKey?' (white background keyed out)':''}; uniform scale ${result.scale.toFixed(3)}.`);
  write(artId,file,Buffer.from(result.output,'base64'),source);
  console.log('  Previews: '+path.relative(root,cellsFile)+'  |  '+path.relative(root,sheetFile));
+ if(category==='character'){
+  if(pose==='walk')registerCharacter(id,{walkRowOffset:rows.length>=8?4:0});
+  else{
+   const status=sprites.registerPose(id,pose,{frames:result.rowFrames[0],fps:6,frameWidth:cell,frameHeight:cell});
+   console.log(status==='added'?`  Registered pose "${pose}" for ${id} in sprites.json (${result.rowFrames[0]} frame(s), 6 fps, looping) — adjust fps/loop there if needed.`:`  sprites.json already describes ${id}.${pose}; kept its settings.`);
+  }
+ }
+}
+
+// A character joins the roster once both its walk sheet and portrait exist in the manifest.
+function registerCharacter(id,fields){
+ const assets=art.readManifest().assets;
+ if(!assets[`character.${id}.walk`]||!assets[`portrait.${id}`]){
+  if(!sprites.readData().characters[id])console.log(`  ${id} is not in the roster yet: import the ${assets[`portrait.${id}`]?'walk sheet':'portrait'} too and it will be registered in sprites.json automatically.`);
+  return;
+ }
+ const status=sprites.registerCharacter(id,fields);
+ console.log(status==='added'?`  Added ${id} to the playable roster in sprites.json (default speeds; edit there to tune).`:`  sprites.json already lists ${id}; kept its settings.`);
 }
 
 async function cells(){
@@ -233,6 +252,7 @@ async function portrait(){
  const artId='portrait.'+id,source=readSource(findSource('portrait',id));
  const result=await withPage(page=>processInBrowser(page,{mode:'portrait',base64:source.base64,mime:source.mime,width:128,height:128,smooth:has('smooth')}));
  write(artId,'portraits/'+id+'.png',Buffer.from(result.output,'base64'),source);
+ registerCharacter(id,{});
 }
 
 async function scene(){

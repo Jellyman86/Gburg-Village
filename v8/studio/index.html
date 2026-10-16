@@ -1,12 +1,13 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Gburg Studio · Collision editor</title>
+<title>Gburg Studio · World</title>
 <link rel="icon" href="../assets/portraits/coco.png" type="image/png">
-<link rel="stylesheet" href="studio.css?v=studio-1">
+<link rel="stylesheet" href="studio.css?v=studio-2">
 </head>
-<body>
+<body data-studio-tab="world">
 <header class="bar">
  <strong>Gburg Studio</strong>
+ <nav id="studio-tabs" class="tabs" aria-label="Studio sections"></nav>
  <label>Scene <select id="scene"></select></label>
  <span id="override-state" class="pill"></span>
  <span class="spacer"></span>
@@ -62,5 +63,6 @@
 <script src="../src/destinations.js?v=dest-1"></script>
 <script src="../src/scene-geometry-data.js?v=studio-1"></script>
 <script src="../src/scene-geometry.js?v=studio-1"></script>
-<script src="studio.js?v=studio-1"></script>
+<script src="studio-common.js?v=studio-2"></script>
+<script src="studio.js?v=studio-2"></script>
 </body></html>

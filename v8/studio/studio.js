@@ -13,7 +13,7 @@
  // scene can be reverted.
  if(!scenes['hawaii-central'])window.V8_AREAS.install(window.V8_DESTINATIONS.all,scenes);
  const originals=Object.fromEntries(Object.values(scenes).filter(s=>!s.world).map(s=>[s.id,G.extract(s)]));
- let document_={version:1,scenes:{}},revision=null,token=null,remote=false;
+ let document_={version:1,scenes:{}},server=null,remote=false;
  let scene=null,image=null,zoom=1,pan={x:0,y:0},tool='select',selection=null,drag=null,drawing=null,spaceDown=false;
  const layers={walkable:true,blocked:true,landmarks:true,roads:true,bounds:true,mask:false};
  let opacity=.45,dirty=false,history=[],future=[],maskCanvas=null,maskTimer=0;
@@ -322,10 +322,7 @@
   if(document_.scenes[scene.id])document_.scenes[scene.id]=exportScene();
   status('Saving…');
   try{
-   const response=await fetch('/api/geometry',{method:'POST',headers:{'Content-Type':'application/json','X-Studio-Token':token},body:JSON.stringify({revision,data:document_})});
-   const body=await response.json();
-   if(!response.ok)throw new Error(body.error||response.statusText);
-   revision=body.revision;document_=body.data;setDirty(false);status('Saved to v8/data/scene-geometry.json at '+new Date().toLocaleTimeString()+' — reload the game to see it.','ok');paintOverrideState();
+   document_=await server.save(document_);setDirty(false);status('Saved to v8/data/scene-geometry.json at '+new Date().toLocaleTimeString()+' — reload the game to see it.','ok');paintOverrideState();
   }catch(error){status('Save failed: '+error.message,'error');}
  }
  $('save').addEventListener('click',save);
@@ -335,11 +332,9 @@
  async function boot(){
   const select=$('scene');
   for(const s of Object.values(scenes).filter(s=>!s.world).sort((a,b)=>a.id.localeCompare(b.id)))select.append(new Option(s.name?`${s.id} — ${s.name}`:s.id,s.id));
-  try{
-   const response=await fetch('/api/geometry',{cache:'no-store'});
-   if(!response.ok)throw new Error('no api');
-   const body=await response.json();document_=body.data;revision=body.revision;token=body.token;remote=true;status('Connected to the studio server.','ok');
-  }catch{document_=clone(window.V8_SCENE_GEOMETRY_DATA||{version:1,scenes:{}});status('Read-only preview (no studio server). Use Copy JSON to export.','dirty');}
+  server=await STUDIO_SERVER.open('geometry',clone(window.V8_SCENE_GEOMETRY_DATA||{version:1,scenes:{}}));
+  document_=server.data;remote=server.remote;
+  status(remote?'Connected to the studio server.':'Read-only preview (no studio server). Use Copy JSON to export.',remote?'ok':'dirty');
   G.apply(scenes,document_);
   loadScene(new URLSearchParams(location.search).get('scene')||'plaza');
   new ResizeObserver(resize).observe(viewport);resize();

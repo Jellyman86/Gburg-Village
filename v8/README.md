@@ -42,9 +42,11 @@ Local read-only preview: `node .\v8\tools\server.cjs`, then http://127.0.0.1:518
 
 Each hero has a theme; recruitment cutscenes play the new friend's theme, the jet plays *Levels*, the invasion montage has a dramatic theme, and Hawaii keeps its original theme until a playlist is assigned. Music is always on (after your first tap). The ♫ bubble on the stage flips between Default (place music) and Theme (the active hero's theme). **Options** has the same mode plus Off, a music-only volume slider, a track per place (or rotate a playlist) and an override for any hero's theme, all saved on your device. Tracks are loudness-normalized MP3s and the original synthesized themes remain selectable. Shipped defaults: [data/music.json](data/music.json).
 
-## Collision editor
+## Gburg Studio
 
-`npm run studio` opens Gburg Studio at http://127.0.0.1:5181/v8/studio/: every scene's walkable and blocked shapes, markers, road strips, spawn and bounds drawn over the real background, with a walk-test layer that shows exactly where the game blocks movement. Move, resize, add or delete shapes and Save; the game reads the result from [data/scene-geometry.json](data/scene-geometry.json) at load. The same page is published read-only as a viewer: https://jellyman86.github.io/Gburg-Village/v8/studio/.
+`npm run studio` opens Gburg Studio at http://127.0.0.1:5181/v8/studio/. The **World** tab shows every scene's walkable and blocked shapes, markers, road strips, spawn and bounds drawn over the real background, with a walk-test layer that shows exactly where the game blocks movement. Move, resize, add or delete shapes and Save; the game reads the result from [data/scene-geometry.json](data/scene-geometry.json) at load. Sprites and Cinematics tabs are planned (see [docs/DEVELOPMENT.md](../docs/DEVELOPMENT.md)). The same page is published read-only as a viewer: https://jellyman86.github.io/Gburg-Village/v8/studio/.
+
+The roster and every sprite clip are data in [data/sprites.json](data/sprites.json): importing a character's walk sheet and portrait with `node tools/import-art.cjs` adds them to the game with no code change.
 
 ## Limits and verification
 

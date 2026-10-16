@@ -22,6 +22,8 @@
     "studio": "node tools/tasks.cjs studio",
     "geometry:build": "node tools/tasks.cjs geometry:build",
     "geometry:check": "node tools/tasks.cjs geometry:check",
+    "sprites:build": "node tools/tasks.cjs sprites:build",
+    "sprites:check": "node tools/tasks.cjs sprites:check",
     "predeploy": "node tools/tasks.cjs predeploy",
     "serve": "node tools/tasks.cjs serve",
     "env": "node tools/tasks.cjs env",

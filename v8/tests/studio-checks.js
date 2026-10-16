@@ -1,6 +1,6 @@
 return async function checkStudio(page,{width,height,artifactDir}={}){
  const assert=(v,m)=>{if(!v)throw new Error(m);},errors=[],failed=[];
- const onError=e=>errors.push(e.message),onConsole=m=>{if(m.type()==='error'&&!m.text().includes('404'))errors.push(m.text());},onResponse=r=>{if(r.status()>=400&&!r.url().endsWith('/api/geometry'))failed.push(r.url());};
+ const onError=e=>errors.push(e.message),onConsole=m=>{if(m.type()==='error'&&!m.text().includes('404'))errors.push(m.text());},onResponse=r=>{if(r.status()>=400&&!r.url().includes('/api/'))failed.push(r.url());};
  page.on('pageerror',onError);page.on('console',onConsole);page.on('response',onResponse);
  const screenshot=async name=>{if(artifactDir)await page.screenshot({path:artifactDir+'\\v8-'+name+'-'+width+'x'+height+'.png'});};
  try{
@@ -8,6 +8,7 @@ return async function checkStudio(page,{width,height,artifactDir}={}){
   await page.waitForFunction(()=>window.STUDIO&&STUDIO.state.scene==='hawaii-central'&&document.querySelectorAll('#scene option').length>=15);
   await page.waitForFunction(()=>document.getElementById('status').textContent.includes('Read-only'));
   assert(await page.evaluate(()=>document.getElementById('info').textContent.includes('1448 × 1086')),'Scene info shows the real size');
+  assert(await page.evaluate(()=>document.querySelectorAll('#studio-tabs .tab').length===3&&document.querySelector('#studio-tabs .tab.active').textContent==='World'),'Studio tab bar renders with World active');
   // Draws the actual background and overlays.
   await page.waitForFunction(()=>{const c=document.getElementById('canvas'),ctx=c.getContext('2d');const d=ctx.getImageData(c.width/2|0,c.height/2|0,1,1).data;return d[0]+d[1]+d[2]>60;});
   await page.evaluate(()=>{document.querySelector('[data-layer=mask]').click();});

@@ -58,7 +58,7 @@ assert.equal(grabs,0,'The pterodactyl lift never interferes with jet travel, the
 bird.enter('nyc-central',actor);bird.update(60,actor,flightScope.SCENES['nyc-central']);bird.update(.1,actor,flightScope.SCENES['nyc-central']);
 assert.equal(grabs,1,'The pterodactyl lifts the player in the new destinations');
 bird.update(4,actor,flightScope.SCENES['nyc-central']);assert.equal(drops,1,'... and drops them safely');const scope={window:{}};vm.createContext(scope);
-for(const name of ['art','action-art','characters','powers','rpg'])vm.runInContext(fs.readFileSync(path.join(__dirname,'..','src',name+'.js'),'utf8'),scope);
+for(const name of ['art','sprites-data','characters','powers','rpg'])vm.runInContext(fs.readFileSync(path.join(__dirname,'..','src',name+'.js'),'utf8'),scope);
 assert.equal(Object.keys(scope.window.CHARACTERS).length,15);assert.equal(scope.window.FAMILY_POWERS.definitions.grenade.cooldown,.6);
 assert(scope.window.CHARACTERS.jeff.sheet.startsWith('assets/characters/jeff.png?v='),'Cleaned Jeff resolves through the V8 art manifest');
 assert(Object.keys(scope.window.CHARACTERS).every(id=>scope.window.V8_ART.has('character.'+id+'.walk')&&scope.window.V8_ART.has('portrait.'+id)),'Every roster member has walk art and a portrait in the manifest');

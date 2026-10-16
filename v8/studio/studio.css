@@ -12,6 +12,11 @@ kbd{float:right;font:10px system-ui;border:1px solid var(--edge);border-radius:3
 select,input[type=text],input[type=number],textarea{background:#0d1538;border:1px solid var(--edge);border-radius:4px;padding:5px 7px}
 .bar{display:flex;align-items:center;gap:14px;padding:8px 14px;background:var(--panel);border-bottom:1px solid var(--edge);height:50px}
 .bar strong{font-size:16px;color:var(--gold)}
+.tabs{display:flex;gap:2px;margin-right:6px}
+.tabs .tab{padding:5px 11px;border-radius:4px;color:var(--muted);text-decoration:none;border:1px solid transparent}
+.tabs a.tab:hover{background:#1d2c66;color:var(--ink)}
+.tabs .tab.active{background:#1d2c66;border-color:var(--edge);color:var(--gold)}
+.tabs .tab.soon{opacity:.45;cursor:default}
 .spacer{flex:1}
 .pill{font-size:11px;padding:3px 8px;border-radius:999px;border:1px solid var(--edge);color:var(--muted)}
 .pill.on{border-color:var(--gold);color:var(--gold)}

@@ -1,16 +1,29 @@
-// All characters share a 64 x 64 frame contract and foot anchor. Art ids resolve through V8_ART (see data/art.json).
-window.CHARACTERS=Object.fromEntries(['jason','connor','coco','peachy','stephanie','mark','adam','kate','brie','vito','jaime','chris','jeff','ari'].map(id=>[id,{
- id,name:id[0].toUpperCase()+id.slice(1),sheet:V8_ART.url('character.'+id+'.walk'),portrait:V8_ART.url('portrait.'+id),
- frameWidth:64,frameHeight:64,frames:4,rows:{down:0,left:1,right:2,up:3},
- foot:{x:32,y:60},speed:120,runSpeed:205,walkFPS:8,runFPS:12
-}]));
-// Later recruits' sheets place walking frames four rows below their idle rows.
-for(const id of ['jaime','chris','jeff','ari'])window.CHARACTERS[id].walkRowOffset=4;
-window.CHARACTERS.jaime.speed=155;window.CHARACTERS.jaime.runSpeed=245;
-window.CHARACTERS.coco.emotions={sheet:V8_ART.url('character.coco.emotions'),frames:3,fps:6,rows:{talk:0,surprised:1}};
-window.CHARACTERS.gary={...window.CHARACTERS.jason,...window.V5_GARY_WALK,id:'gary',name:'Gary',
- portrait:V8_ART.url('portrait.gary'),speed:135,runSpeed:230,walkFPS:8,runFPS:12,mirrorLeft:true};
-window.characterWalkPose=(character,direction,moving)=>{
- const flip=!!character.mirrorLeft&&direction==='left';
- return {row:character.rows[flip?'right':direction]+(moving?(character.walkRowOffset||0):0),flip};
-};
+// Builds the character and pose globals from data/sprites.json (generated into sprites-data.js by `npm run sprites:build`).
+// All walk sheets share one contract: 64 x 64 cells, 4 frames per row, rows down/left/right/up, foot anchor (32,60).
+// Characters imported later keep their walking frames four rows below the idle rows (walkRowOffset 4).
+// Art ids resolve through V8_ART (see data/art.json); nothing here hard-codes a file path.
+(()=>{
+ 'use strict';
+ const data=window.V8_SPRITES_DATA,cell=data.cell,foot={...data.foot},rows={...data.walkRows};
+ window.CHARACTERS=Object.fromEntries(Object.entries(data.characters).map(([id,c])=>{
+  const character={id,name:c.name,sheet:V8_ART.url(c.walk),portrait:V8_ART.url(c.portrait),
+   frameWidth:cell,frameHeight:cell,frames:4,rows:{...rows},foot:{...foot},
+   speed:c.speed,runSpeed:c.runSpeed,walkFPS:c.walkFPS,runFPS:c.runFPS};
+  if(c.walkRowOffset)character.walkRowOffset=c.walkRowOffset;
+  if(c.mirrorLeft)character.mirrorLeft=true;
+  if(c.emotions)character.emotions={sheet:V8_ART.url(c.emotions.art),frames:c.emotions.frames,fps:c.emotions.fps,rows:{...c.emotions.rows}};
+  return [id,character];
+ }));
+ // Action/emotion clips are drawn at native size, subtracting the clip foot from the actor's world anchor.
+ window.V5_ACTION_ART=Object.fromEntries(Object.entries(data.poses).map(([id,clips])=>[id,Object.fromEntries(Object.entries(clips).map(([pose,clip])=>{
+  const entry={sheet:V8_ART.url(clip.art),frameWidth:clip.frameWidth??cell,frameHeight:clip.frameHeight??cell,foot:{...(clip.foot||foot)},frames:clip.frames,fps:clip.fps};
+  if(clip.loop===false)entry.loop=false;
+  if(clip.scale!==undefined)entry.scale=clip.scale;
+  return [pose,entry];
+ }))]));
+ window.V5_WINDOW_ART={sheet:V8_ART.url(data.windowHead.art),frameWidth:data.windowHead.frameWidth,frameHeight:data.windowHead.frameHeight,frames:data.windowHead.frames};
+ window.characterWalkPose=(character,direction,moving)=>{
+  const flip=!!character.mirrorLeft&&direction==='left';
+  return {row:character.rows[flip?'right':direction]+(moving?(character.walkRowOffset||0):0),flip};
+ };
+})();

@@ -95,8 +95,10 @@ const tasks={
   const env=resolvePlaywrightEnv();
   node('Art manifest',path.join(root,'tools','art.cjs'),['check']);
   node('Music manifest',path.join(root,'tools','music.cjs'),['check']);
+  node('Sprite data',path.join(root,'tools','sprites.cjs'),['check']);
   node('Scene geometry',path.join(root,'tools','geometry.cjs'),['check']);
   node('Geometry contracts',path.join(live,'tests','geometry.cjs'),[],env);
+  node('Sprite contracts',path.join(live,'tests','sprites.cjs'),[],env);
   node('Music contracts',path.join(live,'tests','music.cjs'),[],env);
   node('Area contracts',path.join(live,'tests','areas.cjs'),[],env);
   node('World contracts',path.join(live,'tests','world.cjs'),[],env);
@@ -122,6 +124,8 @@ const tasks={
  'music:check'(){node('Music manifest',path.join(root,'tools','music.cjs'),['check']);},
  'geometry:build'(){node('Scene geometry build',path.join(root,'tools','geometry.cjs'),['build']);},
  'geometry:check'(){node('Scene geometry',path.join(root,'tools','geometry.cjs'),['check']);},
+ 'sprites:build'(){node('Sprite data build',path.join(root,'tools','sprites.cjs'),['build']);},
+ 'sprites:check'(){node('Sprite data',path.join(root,'tools','sprites.cjs'),['check']);},
  studio(){node('Gburg Studio',path.join(root,'tools','studio-server.cjs'));},
  'art:provenance'(){node('Inbox provenance',path.join(root,'tools','import-art.cjs'),['check'],resolvePlaywrightEnv());},
  predeploy(){tasks['check:archive']();tasks['test:full']();},
@@ -146,9 +150,11 @@ const tasks={
    'music:import   convert new/changed tracks from Music/ into v8/assets/music/*.mp3 and update data/music.json',
    'music:build    sync track hashes and regenerate v8/src/music-data.js after editing data/music.json',
    'music:check    verify music.json, files and music-data.js agree',
-   'studio         collision editor + game preview at http://127.0.0.1:5181/'+LIVE+'/studio/ (saves v8/data/scene-geometry.json)',
+   'studio         Gburg Studio (World collision editor, more tabs to come) + game preview at http://127.0.0.1:5181/'+LIVE+'/studio/',
    'geometry:build validate scene-geometry.json against the live scenes and regenerate scene-geometry-data.js',
    'geometry:check verify scene geometry data is valid and current',
+   'sprites:build  validate v8/data/sprites.json against the art manifest and regenerate sprites-data.js',
+   'sprites:check  verify sprite data (roster, walk quirks, pose clips) is valid and current',
    'predeploy      check:archive + test:full',
    'serve          read-only local preview at http://127.0.0.1:5180/'+LIVE+'/',
    'env            print the Node/Playwright/browser the tasks will use'].join('\n'));
