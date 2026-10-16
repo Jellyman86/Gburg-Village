@@ -21,7 +21,7 @@
  for(const id of V8_ART.ids())manifest[id]=V8_ART.entry(id);
  const assetUrl=entry=>'../../'+V8_ART.root+entry.file+'?v='+entry.hash.slice(0,10);
 
- const targetId=()=>characterId==='__new'?$('new-id').value.trim().toLowerCase():characterId;
+ const targetId=()=>characterId==='__new'?$('new-id').value.trim().toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,''):characterId;
  const artId=()=>{const id=targetId();if(!id)return '';return kind==='portrait'?'portrait.'+id:kind==='walk'?`character.${id}.walk`:pose?`character.${id}.${pose}`:'';};
  const data=()=>handle?handle.data:window.V8_SPRITES_DATA;
  const existingCharacter=()=>data().characters[targetId()]||null;
@@ -53,7 +53,7 @@
   const c=existingCharacter(),id=targetId();
   $('c-name').value=c?.name||(id?id[0].toUpperCase()+id.slice(1):'');
   $('c-speed').value=c?.speed??120;$('c-run').value=c?.runSpeed??205;$('c-walkfps').value=c?.walkFPS??8;$('c-runfps').value=c?.runFPS??12;
-  $('c-offset').value=String(c?.walkRowOffset||(c?0:4));$('c-mirror').checked=!!c?.mirrorLeft;
+  $('c-offset').value=String(c?.walkRowOffset||(c?0:4));$('c-mirror').checked=!!c?.mirrorLeft;$('c-joined').checked=c?!!c.joined:true;
   const p=existingPose();
   $('p-frames').value=p?.frames??(result?.rows?.[0]?.distinct||3);$('p-fps').value=p?.fps??6;$('p-loop').checked=!p||p.loop!==false;
   fillPoseNames();
@@ -92,7 +92,7 @@
    const hash=crypto.subtle?[...new Uint8Array(await crypto.subtle.digest('SHA-256',bytes))].map(b=>b.toString(16).padStart(2,'0')).join(''):undefined;
    source={image,src:T.sourceOf(image),name,bytes,hash,fromInbox};
    $('source-name').textContent=`${name} · ${source.src.W}×${source.src.H}`;$('viewport').classList.add('loaded');
-   analyse();status('Loaded '+name+'.','ok');
+   analyse();if(result)status('Loaded '+name+'.','ok');
   }catch(error){status('Could not load '+name+': '+error.message,'error');}
  }
  function analyse(){
@@ -234,7 +234,7 @@
  $('preset').addEventListener('change',()=>{buildRows($('preset').value);analyse();});
  for(const id of ['gap','key','smooth'])$(id).addEventListener('change',analyse);
  for(const id of ['onion','preview-zoom'])$(id).addEventListener('input',drawSheet);
- for(const id of ['c-name','c-speed','c-run','c-walkfps','c-runfps','c-offset','c-mirror','p-frames','p-fps','p-loop'])$(id).addEventListener('input',()=>{setDirty(true);startAnim();});
+ for(const id of ['c-name','c-speed','c-run','c-walkfps','c-runfps','c-offset','c-mirror','c-joined','p-frames','p-fps','p-loop'])$(id).addEventListener('input',()=>{setDirty(true);startAnim();});
  $('export').addEventListener('click',()=>{const area=$('json');area.hidden=!area.hidden;area.value=JSON.stringify(buildDocument(),null,1);});
  $('copy').addEventListener('click',async()=>{try{await navigator.clipboard.writeText(JSON.stringify(buildDocument(),null,1));status('sprites.json copied.','ok');}catch{$('json').hidden=false;$('json').value=JSON.stringify(buildDocument(),null,1);$('json').select();}});
  window.addEventListener('resize',drawSource);
@@ -254,6 +254,7 @@
     c.speed=Number($('c-speed').value)||120;c.runSpeed=Number($('c-run').value)||205;c.walkFPS=Number($('c-walkfps').value)||8;c.runFPS=Number($('c-runfps').value)||12;
     const offset=Number($('c-offset').value)||0;if(offset)c.walkRowOffset=offset;else delete c.walkRowOffset;
     if($('c-mirror').checked)c.mirrorLeft=true;else delete c.mirrorLeft;
+    if($('c-joined').checked)c.joined=true;else delete c.joined;
     doc.characters[id]=c;
    }
   }

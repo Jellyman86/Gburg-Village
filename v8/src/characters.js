@@ -11,6 +11,7 @@
    speed:c.speed,runSpeed:c.runSpeed,walkFPS:c.walkFPS,runFPS:c.runFPS};
   if(c.walkRowOffset)character.walkRowOffset=c.walkRowOffset;
   if(c.mirrorLeft)character.mirrorLeft=true;
+  if(c.joined)character.joined=true; // in the party from the start (no recruitment scene)
   if(c.emotions)character.emotions={sheet:V8_ART.url(c.emotions.art),frames:c.emotions.frames,fps:c.emotions.fps,rows:{...c.emotions.rows}};
   return [id,character];
  }));

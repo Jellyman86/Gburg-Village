@@ -11,7 +11,7 @@
  const DEFAULT_PROFILE=[100,10,12,12,10];
  const members=Object.fromEntries(Object.keys(window.CHARACTERS).map(id=>{
   const [maxHP,strength,quickness,dexterity,defense]=profiles[id]||DEFAULT_PROFILE;
-  return [id,{id,joined:id==='coco',level:1,hp:maxHP,maxHP,xp:0,nextLevelXP:100,strength,quickness,dexterity,defense,
+  return [id,{id,joined:id==='coco'||!!window.CHARACTERS[id].joined,level:1,hp:maxHP,maxHP,xp:0,nextLevelXP:100,strength,quickness,dexterity,defense,
    equipment:{weapon:null,accessory:null},ability:window.FAMILY_POWERS.definitions[id]?id:null}];
  }));
  const items=Object.freeze({

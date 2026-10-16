@@ -39,7 +39,7 @@ function validate(data,assets=art.readManifest().assets){
  for(const [id,c] of Object.entries(data.characters)){
   if(!ID.test(id))fail('Invalid character id: '+id);
   const label='characters.'+id;
-  keys(c,['name','walk','portrait','speed','runSpeed','walkFPS','runFPS','walkRowOffset','mirrorLeft','emotions'],label);
+  keys(c,['name','walk','portrait','speed','runSpeed','walkFPS','runFPS','walkRowOffset','mirrorLeft','emotions','joined'],label);
   if(typeof c.name!=='string'||!c.name.trim())fail(label+'.name is required.');
   const walk=sheet(c.walk,label+'.walk'),rowOffset=c.walkRowOffset||0;
   if(c.walkRowOffset!==undefined)integer(c.walkRowOffset,0,8,label+'.walkRowOffset');
@@ -49,6 +49,7 @@ function validate(data,assets=art.readManifest().assets){
   if(portrait.width!==128||portrait.height!==128)fail(label+'.portrait ('+c.portrait+') must be 128x128.');
   number(c.speed,10,1000,label+'.speed');number(c.runSpeed,10,1000,label+'.runSpeed');number(c.walkFPS,1,60,label+'.walkFPS');number(c.runFPS,1,60,label+'.runFPS');
   if(c.mirrorLeft!==undefined&&c.mirrorLeft!==true)fail(label+'.mirrorLeft must be true or omitted.');
+  if(c.joined!==undefined&&c.joined!==true)fail(label+'.joined must be true or omitted (true = in the party from the start).');
   if(c.emotions!==undefined){
    keys(c.emotions,['art','frames','fps','rows'],label+'.emotions');
    const e=sheet(c.emotions.art,label+'.emotions.art');
@@ -126,7 +127,7 @@ function check(){
 // their tuned values; only missing fields are filled in. Returns what changed ('added' | 'kept').
 function registerCharacter(id,{name,walk,portrait,walkRowOffset}={}){
  const data=readData(),current=data.characters[id];
- const entry=current||{name:name||id[0].toUpperCase()+id.slice(1),walk:walk||`character.${id}.walk`,portrait:portrait||`portrait.${id}`,speed:120,runSpeed:205,walkFPS:8,runFPS:12};
+ const entry=current||{name:name||id[0].toUpperCase()+id.slice(1),walk:walk||`character.${id}.walk`,portrait:portrait||`portrait.${id}`,speed:120,runSpeed:205,walkFPS:8,runFPS:12,joined:true};
  if(walkRowOffset)entry.walkRowOffset=walkRowOffset;else if(walkRowOffset===0)delete entry.walkRowOffset;
  data.characters[id]=entry;
  validate(data);writeData(data);build({quiet:true});

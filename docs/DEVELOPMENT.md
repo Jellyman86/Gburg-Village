@@ -109,7 +109,7 @@ http://127.0.0.1:5181/v8/studio/sprites/ — import or replace a **walk sheet**,
 4. **Result:** the composed sheet on the 64-px grid with the foot line, the current asset ghosted underneath (toggle), and an **In motion** preview that uses the game's `characterWalkPose` — so `walkRowOffset` and `mirrorLeft` look exactly as in play. Portraits preview at 128×128.
 5. **Save (Ctrl+S)** writes the PNG into `v8/assets/`, updates `art.json`/`art.js`, then saves `sprites.json`: a walk sheet + portrait pair adds the character to the roster (with the panel's speeds), a pose adds or updates its clip, and editing the panel alone (speeds, fps, loop) saves just the data. Replacing an existing asset keeps its size (a hand-made 3-frame pose sheet stays 192 px wide); tick *Allow size change* to override. Reload the game preview to see it.
 
-A character added this way plays immediately with average stats and no special power ([rpg.js](../v8/src/rpg.js) falls back to a default profile); recruitment scenes, a story location and a power are authored content and stay in code. Without the local server the page is a read-only previewer.
+A character added this way plays immediately with average stats and no special power ([rpg.js](../v8/src/rpg.js) falls back to a default profile). Leave **In the party from the start** ticked (`"joined": true` in `sprites.json`) so they are playable right away; untick it only if you are writing a recruitment scene for them, which — like a story location or a power — is authored content and stays in code. Without the local server the page is a read-only previewer.
 
 ## Sprite data (`sprites.json`)
 
