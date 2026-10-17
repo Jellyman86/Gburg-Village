@@ -233,6 +233,17 @@
    "runFPS": 12,
    "walkRowOffset": 4,
    "role": "npc"
+  },
+  "manny": {
+   "name": "Manny",
+   "walk": "character.manny.walk",
+   "portrait": "portrait.manny",
+   "speed": 120,
+   "runSpeed": 205,
+   "walkFPS": 8,
+   "runFPS": 12,
+   "walkRowOffset": 4,
+   "joined": true
   }
  },
  "poses": {
@@ -634,6 +645,20 @@
     "art": "character.kelce.win",
     "frames": 3,
     "fps": 6
+   }
+  },
+  "manny": {
+   "hurt": {
+    "art": "character.manny.hurt",
+    "frames": 3,
+    "fps": 6,
+    "loop": false
+   },
+   "win": {
+    "art": "character.manny.win",
+    "frames": 1,
+    "fps": 6,
+    "loop": false
    }
   }
  },

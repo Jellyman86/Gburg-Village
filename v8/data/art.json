@@ -10,7 +10,7 @@
   },
   "character.alex.hurt": {
    "file": "characters/alex-hurt.png",
-   "hash": "779efcb29fcf8c196f95275b0e9ea18a3446ad9070c588c5b687a3dfc678b7f6",
+   "hash": "5a6939d331770c8ae0a746dce78c1a1c901b1803d24d233949803f6f9c139431",
    "width": 256,
    "height": 64
   },
@@ -196,7 +196,7 @@
   },
   "character.drew.hurt": {
    "file": "characters/drew-hurt.png",
-   "hash": "91fe9799b9011cebf5e25f6a2a3585a7d5fecbcfc350f3671ad9f77aed370911",
+   "hash": "525eff447905a0a4c8199ff4e1dcdc8926bfde5a99049a02621857ba7137efe3",
    "width": 256,
    "height": 64
   },
@@ -395,6 +395,24 @@
   "character.kelce.win": {
    "file": "characters/kelce-win.png",
    "hash": "2c658cf264419b1068d09801f8c341b40db817da4cf790c2bdfb80f10e64410f",
+   "width": 256,
+   "height": 64
+  },
+  "character.manny.hurt": {
+   "file": "characters/manny-hurt.png",
+   "hash": "bb0bdaf91822c8d99a69c9a73a2837237e21ee0f3bb6868587b1f90624fdfef9",
+   "width": 256,
+   "height": 64
+  },
+  "character.manny.walk": {
+   "file": "characters/manny.png",
+   "hash": "7bb96bcafe8ca18f705f3de579c006f37119b60c1d4a494b9cd149855f2bbaa3",
+   "width": 256,
+   "height": 512
+  },
+  "character.manny.win": {
+   "file": "characters/manny-win.png",
+   "hash": "3e9d87da5df50851ff1f3f74b78f4130c04e2357f400d2c4d155df64d2e1dba7",
    "width": 256,
    "height": 64
   },
@@ -823,6 +841,12 @@
   "portrait.kelce": {
    "file": "portraits/kelce.png",
    "hash": "e1adf2dd26a88827e4c33dc5656ec9fdee278e4130c8c9bb0b04d37fb2715915",
+   "width": 128,
+   "height": 128
+  },
+  "portrait.manny": {
+   "file": "portraits/manny.png",
+   "hash": "d781ef281bbdda487b206610fc92496de13a745243a680a1f216125d2b5f1a27",
    "width": 128,
    "height": 128
   },
