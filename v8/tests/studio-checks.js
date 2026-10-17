@@ -67,6 +67,8 @@ return async function checkStudio(page,{width,height,artifactDir}={}){
   // Switching target drops the loaded image and shows the saved asset instead, so the next file cannot land on the wrong target.
   await page.evaluate(()=>{WORKSHOP.setKind('pose');WORKSHOP.setPose('surprised');});
   await page.waitForFunction(()=>!WORKSHOP.state.loaded&&document.getElementById('result-summary').textContent.includes('current saved asset'));
+  await page.waitForFunction(()=>document.getElementById('anim-legend').textContent.includes('saved asset')&&document.getElementById('anim').width===128);
+  assert(await page.evaluate(()=>{const c=document.getElementById('anim'),d=c.getContext('2d').getImageData(0,0,c.width,c.height).data;let lit=0;for(let i=0;i<d.length;i+=4)if(Math.abs(d[i]-0x1f)+Math.abs(d[i+1]-0x3b)+Math.abs(d[i+2]-0x3d)>60)lit++;return lit>200;}),'In motion animates the saved asset when no file is loaded');
   await loadSheet();await page.evaluate(()=>WORKSHOP.setRows(['1:0-2']));
   await page.waitForFunction(()=>WORKSHOP.state.result&&WORKSHOP.state.result.height===64);
   assert(await page.evaluate(()=>WORKSHOP.state.artId==='character.jeff.surprised'&&document.getElementById('p-frames').value==='3'&&document.getElementById('p-fps').value==='6'),'Pose target reads the existing clip settings and a 3-cell row');

@@ -178,7 +178,7 @@
  }
  function currentImage(){
   const id=artId(),entry=manifest[id];if(!entry)return null;
-  if(!currentImages.has(id)){currentImages.set(id,null);const img=new Image();img.onload=()=>{currentImages.set(id,img);drawSheet();};img.src=assetUrl(entry);}
+  if(!currentImages.has(id)){currentImages.set(id,null);const img=new Image();img.onload=()=>{currentImages.set(id,img);drawSheet();startAnim();};img.src=assetUrl(entry);}
   return currentImages.get(id);
  }
  function drawSheet(){
@@ -207,19 +207,21 @@
  function startAnim(){
   cancelAnimationFrame(animTimer);
   const canvas=$('anim'),ctx=canvas.getContext('2d');
-  if(!result){canvas.width=canvas.height=1;$('anim-legend').textContent='';return;}
-  const out=result.canvas,z=2;
-  if(kind==='portrait'){canvas.width=canvas.height=128*z;ctx.imageSmoothingEnabled=false;ctx.drawImage(out,0,0,canvas.width,canvas.height);$('anim-legend').textContent='128 × 128 menu portrait';return;}
+  // With no file loaded, animate the asset as it is saved today.
+  const out=result?result.canvas:currentImage(),z=2,suffix=result?'':' · saved asset';
+  if(!out){canvas.width=canvas.height=1;$('anim-legend').textContent=manifest[artId()]?'loading…':'nothing saved for this target yet';return;}
+  const outHeight=result?out.height:out.naturalHeight;
+  if(kind==='portrait'){canvas.width=canvas.height=128*z;ctx.imageSmoothingEnabled=false;ctx.drawImage(out,0,0,canvas.width,canvas.height);$('anim-legend').textContent='128 × 128 menu portrait'+suffix;return;}
   if(kind==='pose'){
    const frames=Math.max(1,Math.min(4,Number($('p-frames').value)||1)),fps=Number($('p-fps').value)||6,loop=$('p-loop').checked;
-   canvas.width=CELL*z;canvas.height=CELL*z;$('anim-legend').textContent=`${frames} frame(s) · ${fps} fps · ${loop?'looping':'one-shot (repeats every 2 s)'}`;
+   canvas.width=CELL*z;canvas.height=CELL*z;$('anim-legend').textContent=`${frames} frame(s) · ${fps} fps · ${loop?'looping':'one-shot (repeats every 2 s)'}${suffix}`;
    const start=performance.now();
    const tick=now=>{const t=(now-start)/1000,frame=loop?Math.floor(t*fps)%frames:Math.min(frames-1,Math.floor((t%2)*fps));ctx.imageSmoothingEnabled=false;ctx.fillStyle='#1f3b3d';ctx.fillRect(0,0,canvas.width,canvas.height);ctx.drawImage(out,frame*CELL,0,CELL,CELL,0,0,CELL*z,CELL*z);animTimer=requestAnimationFrame(tick);};
    animTimer=requestAnimationFrame(tick);return;
   }
   const character={rows:{...data().walkRows},walkRowOffset:Number($('c-offset').value)||0,mirrorLeft:$('c-mirror').checked,walkFPS:Number($('c-walkfps').value)||8};
-  const dirs=['down','left','right','up'],rowsAvailable=out.height/CELL;
-  canvas.width=4*CELL*z;canvas.height=2*CELL*z;$('anim-legend').textContent='walking (top) and idle (bottom) · down, left, right, up';
+  const dirs=['down','left','right','up'],rowsAvailable=outHeight/CELL;
+  canvas.width=4*CELL*z;canvas.height=2*CELL*z;$('anim-legend').textContent='walking (top) and idle (bottom) · down, left, right, up'+suffix;
   const start=performance.now();
   const tick=now=>{
    const t=(now-start)/1000;ctx.imageSmoothingEnabled=false;ctx.fillStyle='#1f3b3d';ctx.fillRect(0,0,canvas.width,canvas.height);
