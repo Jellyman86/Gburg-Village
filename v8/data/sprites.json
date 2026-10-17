@@ -182,7 +182,8 @@
    "walkFPS": 8,
    "runFPS": 12,
    "walkRowOffset": 4,
-   "joined": true
+   "joined": true,
+   "mirrorLeft": true
   },
   "kelce": {
    "name": "Kelce",
@@ -210,6 +211,17 @@
    "name": "Alex",
    "walk": "character.alex.walk",
    "portrait": "portrait.alex",
+   "speed": 120,
+   "runSpeed": 205,
+   "walkFPS": 8,
+   "runFPS": 12,
+   "walkRowOffset": 4,
+   "joined": true
+  },
+  "panthersplayer": {
+   "name": "Panthersplayer",
+   "walk": "character.panthersplayer.walk",
+   "portrait": "portrait.panthersplayer",
    "speed": 120,
    "runSpeed": 205,
    "walkFPS": 8,
@@ -567,7 +579,8 @@
    "hurt": {
     "art": "character.drew.hurt",
     "frames": 3,
-    "fps": 6
+    "fps": 6,
+    "loop": false
    }
   },
   "alex": {
@@ -579,7 +592,16 @@
    "hurt": {
     "art": "character.alex.hurt",
     "frames": 1,
-    "fps": 6
+    "fps": 6,
+    "loop": false
+   }
+  },
+  "panthersplayer": {
+   "hurt": {
+    "art": "character.panthersplayer.hurt",
+    "frames": 1,
+    "fps": 6,
+    "loop": false
    }
   }
  },

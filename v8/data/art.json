@@ -190,7 +190,7 @@
   },
   "character.drew.walk": {
    "file": "characters/drew.png",
-   "hash": "83e08bdfce399e2f222856d1bc8aecc18168341612f19a3d3c581e87b59414d1",
+   "hash": "68415a4f9cebe846f2995ae07df3276e596a6e9f8c2b919adb54f457756975a2",
    "width": 256,
    "height": 512
   },
@@ -392,9 +392,15 @@
    "width": 256,
    "height": 256
   },
+  "character.panthersplayer.hurt": {
+   "file": "characters/panthersplayer-hurt.png",
+   "hash": "ab6c1b59a04b9cb2aae2e900cfb0175597bdb8bd7df30119c83c73121ec7cb35",
+   "width": 256,
+   "height": 64
+  },
   "character.panthersplayer.walk": {
    "file": "characters/panthersplayer.png",
-   "hash": "8adf9bc381c923289dc10a4c30a898fa261d3a482efe22ea52046a316a6e314e",
+   "hash": "ed3912f24d8e102f1389f62280669106a1db9072e6d2e5ced88e073047dddbc2",
    "width": 256,
    "height": 512
   },
@@ -755,6 +761,12 @@
   "portrait.mark": {
    "file": "portraits/mark.png",
    "hash": "70b6d18efb79a2aa85fa4743c62b3df6efd6f2913d7efde72a12cd6541e9eee4",
+   "width": 128,
+   "height": 128
+  },
+  "portrait.panthersplayer": {
+   "file": "portraits/panthersplayer.png",
+   "hash": "070af3025569cbbf5d9e4cdeb5af81c052041305f675bd6cbd2e856d49211ce7",
    "width": 128,
    "height": 128
   },
