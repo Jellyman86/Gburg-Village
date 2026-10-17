@@ -80,8 +80,13 @@
      patrol(kelce,loopK,150,dt,host.blocked);patrol(taylor,loopT,150,dt,host.blocked);
      for(const e of scripted())if(e.alive&&e.prey){e.mode='chase';e.timer=99;}
      if(scripted().every(e=>!e.alive)){
-      phase='thanks';clock=0;kelce.moving=taylor.moving=false;kelce.direction=taylor.direction='down';
-      host.say('Kelce & Taylor',"Thank you! Those compies were relentless. Kelce can throw a football through a brick wall, and Taylor's voice knocks dinosaurs flat — we're with you.",'PANTHERS STADIUM');
+      // Celebrate with the win animation for a few seconds, then thank the player and join the party.
+      phase='celebrate';clock=0;for(const a of [kelce,taylor]){a.moving=false;a.direction='down';setPose(a,'win');}
+     }
+    }else if(phase==='celebrate'){
+     if(clock>3.6){
+      phase='thanks';clock=0;for(const a of [kelce,taylor]){a.pose=null;a.direction='down';}
+      host.say('Kelce & Taylor',"Thank you! Those raptors were relentless. Kelce can throw a football through a brick wall, and Taylor's voice knocks dinosaurs flat — we're with you.",'PANTHERS STADIUM');
       host.recruit('kelce');host.recruit('taylor');
      }
     }else if(phase==='thanks'){if(clock>2.5)phase='done';}
@@ -91,10 +96,12 @@
  }
 
  // ---- Charlotte · Panthers Field: the ultimate battle -----------------------------------------------------------------
- // Wave 1: Bryce, seven Panthers and three Chiefs fight 20 compies, two T. rexes, raptors and a Dilophosaurus while the
- // player roams free. Players lie hurt around the turf as set dressing and two fighters eventually fall.
- // Wave 2: the Spinosaurus boss (a hidden, scripted enemy of the scene) crashes in as soon as the field is clear; whoever
- // is still standing helps. Bryce joins the party when it falls.
+ // Wave 1: Bryce, seven Panthers and three Chiefs fight 20 compies, two T. rexes, a Triceratops, an Ankylosaurus, raptors and
+ // a Dilophosaurus while the player roams free. Players lie hurt around the turf as set dressing and two fighters eventually
+ // fall.
+ // Wave 2: the Spinosaurus boss (a hidden, scripted enemy of the scene) crashes in as soon as the field is clear. It hunts the
+ // football players too: most who tackle it, and everyone near its stomps, are flattened into the hurt pose (two always keep
+ // fighting; Bryce can never fall). Bryce does his win animation when it falls, then joins the party.
  function panthersField(host){
   const bryce=actor('bryce-young',724,730,{direction:'up'});
   const squad=[
@@ -108,10 +115,13 @@
    ['chiefsplayer',390,470],['chiefsplayer',560,740],['chiefsplayer',900,470],['chiefsplayer',1090,740],['chiefsplayer',790,660]]
    .map(([id,x,y])=>actor(id,x,y,{pose:'hurt'}));
   const props=[{x:380,y:620},{x:1100,y:660}]; // hurt-panther props on the turf
-  let phase='battle',clock=0,throwTimer=0;
+  let phase='battle',clock=0,throwTimer=0,huntTimer=0,huntUntil=0;
   const living=()=>host.enemies().filter(e=>e.alive&&!e.hidden);
   const boss=()=>host.enemies().find(e=>e.boss);
   const nearest=(list,from)=>list.reduce((best,e)=>!best||dist(e,from)<dist(best,from)?e:best,null);
+  const standing=()=>fighters.filter(f=>f.state!=='down');
+  // Bryce is not in `fighters`: he can never be knocked out.
+  const flatten=f=>{f.state='down';f.flatten=false;f.lift=0;f.moving=false;setPose(f,'hurt');host.sound('impact');};
   return {
    actors(){return phase==='done'?down.concat(fighters):[bryce].concat(fighters,down);},
    props(){return props;},
@@ -134,11 +144,15 @@
       if(!f.target||!f.target.alive){f.state='return';continue;}
       const dx=f.target.x-f.x,dy=f.target.y-f.y,d=Math.hypot(dx,dy),step=320*dt,reach=18+(f.target.hitRadius||21)*.6;
       f.direction=facing(dx,dy);f.moving=true;f.clock+=dt*14;f.frame=Math.floor(f.clock)%4;f.lift=Math.sin(Math.min(1,d/140)*Math.PI)*10;
-      if(d<=reach){host.hitEnemy(f.target,{x:f.x,y:f.y,dx:dx/d,dy:dy/d},f.target.boss?5:9);f.vx=-dx/d*260;f.vy=-dy/d*260;f.state='bounce';f.timer=.35;f.tackles++;}
+      if(d<=reach){
+       host.hitEnemy(f.target,{x:f.x,y:f.y,dx:dx/d,dy:dy/d},f.target.boss?5:9);f.vx=-dx/d*260;f.vy=-dy/d*260;f.state='bounce';f.timer=.35;f.tackles++;
+       // The boss retaliates hard against anyone who tackles it: most of them are knocked out after the bounce (never fewer than two left standing).
+       if(f.target.boss&&standing().length>2&&Math.random()<.6){f.flatten=true;host.sound('impact');}
+      }
       else{f.x+=dx/d*step;f.y+=dy/d*step;}
      }else if(f.state==='bounce'){
       f.x+=f.vx*dt;f.y+=f.vy*dt;f.vx*=Math.exp(-6*dt);f.vy*=Math.exp(-6*dt);f.lift=Math.max(0,(f.lift||0)-dt*40);
-      if(f.timer<=0){if(f.tackles>=f.limit){f.state='down';setPose(f,'hurt');f.lift=0;}else f.state='return';}
+      if(f.timer<=0){if(f.tackles>=f.limit||f.flatten)flatten(f);else f.state='return';}
      }else if(f.state==='return'){
       f.lift=0;if(walkTo(f,f.home.x,f.home.y,180,dt,()=>false)){f.state='wait';f.timer=(phase==='boss'?.3:.6)+Math.random()*(phase==='boss'?.7:1.2);}
      }
@@ -146,19 +160,36 @@
     const spino=boss();
     if(phase==='battle'&&!enemies.length){
      if(spino&&spino.alive){
-      phase='boss';clock=0;spino.hidden=false;spino.flash=.5;spino.mode='chase';spino.timer=99;
+      phase='boss';clock=0;huntTimer=2.5;huntUntil=0;spino.hidden=false;spino.flash=.5;spino.mode='chase';spino.timer=99;
       host.sound('roar');host.toast('A Spinosaurus crashes onto the field!');
      }else phase='victory';
     }
     if(phase==='boss'&&spino){
      // The boss never loses interest: whenever it finishes an attack it turns back to chase.
      if(spino.alive&&spino.mode!=='chase'&&spino.windup<=0&&spino.stunned<=0){spino.mode='chase';spino.timer=6;}
-     if(!spino.alive)phase='victory';
+     // Every few seconds it turns on the football players: it runs one down and stomps everyone around it.
+     huntTimer-=dt;
+     if(!spino.prey&&huntTimer<=0&&standing().length>2){
+      const victim=nearest(standing(),spino);if(victim){spino.prey=victim;huntUntil=clock+2.4;}
+     }
+     if(spino.prey){
+      const v=spino.prey;
+      if(v.state==='down'||dist(spino,v)<100||clock>huntUntil){
+       if(dist(spino,v)<125)for(const f of standing().sort((a,b)=>dist(a,spino)-dist(b,spino)))if(dist(f,spino)<125&&standing().length>2)flatten(f);
+       spino.prey=null;spino.attackPose=.3;huntTimer=3.2+Math.random()*2;host.sound('roar');
+      }
+     }
+     if(!spino.alive){spino.prey=null;phase='victory';}
     }
     if(phase==='victory'){
-     phase='thanks';clock=0;bryce.direction='down';
-     host.say('Bryce Young',"Field's clear — that was a goal-line stand for the ages. You've got an arm; let's team up. I'll bring the footballs.",'PANTHERS FIELD');
-     host.recruit('bryce-young');
+     // Bryce celebrates with his win animation before thanking the player.
+     phase='celebrate';clock=0;bryce.direction='down';setPose(bryce,'win');
+    }else if(phase==='celebrate'){
+     if(clock>3.6){
+      phase='thanks';clock=0;bryce.pose=null;bryce.direction='down';
+      host.say('Bryce Young',"Field's clear — that was a goal-line stand for the ages. You've got an arm; let's team up. I'll bring the footballs.",'PANTHERS FIELD');
+      host.recruit('bryce-young');
+     }
     }else if(phase==='thanks'&&clock>2.5)phase='done';
    },
    get state(){const b=boss();return {phase,fighters:fighters.map(f=>f.state),boss:b?{alive:b.alive,hidden:b.hidden,hp:b.hp,maxHP:b.maxHP}:null};}

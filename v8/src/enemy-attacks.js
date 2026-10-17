@@ -8,8 +8,10 @@
   triceratops:{damage:14,range:38,windup:.6,cooldown:3.5},
   dilophosaurus:{damage:8,range:145,windup:.65,cooldown:3.8,spit:true},
   ankylosaurus:{damage:15,range:62,windup:.75,cooldown:3.8},
-  brontosaurus:{damage:14,range:74,windup:.85,cooldown:4},
-  spinosaurus:{damage:20,range:82,windup:.7,cooldown:3}
+  // Boss-class dinosaurs hit hard and from farther away (their sprites are huge, so a 70 px reach felt like a miss).
+  brontosaurus:{damage:24,range:105,windup:.55,cooldown:2.6},
+  stegosaurus:{damage:28,range:105,windup:.6,cooldown:2.6},
+  spinosaurus:{damage:34,range:105,windup:.5,cooldown:2.2}
  });
  function create({getActor,blocked,onHit,onSound,isActive=()=>true}){
   const projectiles=[];

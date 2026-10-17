@@ -32,6 +32,8 @@ Opening story and 15 recruitable playable characters, FFVI-style party menu (ros
 
 - **Ultimate battle + dinosaurs (1017 batch 2):** Panthers Field is now a two-wave fight — 20 compies, 2 T. rexes, a Triceratops, an Ankylosaurus, 2 raptors and a Dilophosaurus against Bryce, 7 Panthers and 3 Chiefs (hurt players sprinkled around the turf), then a **Spinosaurus** boss (275 HP, 224 px) spawns once the field is clear and Bryce joins when it falls. Las Vegas is overrun (14–18 compies per zone via the new area `swarms`), with a **Brontosaurus** in Central and a **Triceratops** in East. Chiefs Player is an `npc` extra. Importer: `--columns N` separates figures by connected shape (needed for the dinosaur sheets), and new species support `size`/`hitRadius`/`barWidth`.
 
+- **Battle tuning round:** Stadium chasers are now raptors that trail behind Kelce and Taylor (no overlap), and Kelce/Taylor/Bryce do their `win` animations for ~3.5 s before thanking you and joining. The Spinosaurus hunts the football players (most who tackle it and everyone near its stomps go down in the hurt pose; two always keep fighting, Bryce can't fall) and hits you for 34; Brontosaurus 320 HP and hits for 24; big dinosaurs now notice you from afar, chase for 10+ s and rest only a few seconds. Vegas pool party adds two T. rexes. New **Stegosaurus** boss (330 HP) holds the Vegas East plaza. **Fixed:** Drew's walk sheet had been overwritten with Alex's bearded sheet (they looked identical when they ran); restored Drew's original and added a test that the two sheets differ.
+
 ## Known limitations
 - No persistence; refreshing restarts as Coco.
 - Touch verification is Chromium emulation, not a physical iPhone. Audio has not been human-listened in CI.

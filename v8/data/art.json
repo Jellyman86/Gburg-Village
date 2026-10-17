@@ -104,6 +104,12 @@
    "width": 256,
    "height": 512
   },
+  "character.bryce-young.win": {
+   "file": "characters/bryce-young-win.png",
+   "hash": "346ba2356907709b52a224af3a59194d3d1c06887c2ed3afacc047e414a8f5bf",
+   "width": 256,
+   "height": 64
+  },
   "character.chiefsplayer.hurt": {
    "file": "characters/chiefsplayer-hurt.png",
    "hash": "1f16292eb5ea0024bb178ecf304c6a996beb36e17cab0764c9faa92d5b7f2616",
@@ -202,7 +208,7 @@
   },
   "character.drew.walk": {
    "file": "characters/drew.png",
-   "hash": "68415a4f9cebe846f2995ae07df3276e596a6e9f8c2b919adb54f457756975a2",
+   "hash": "83e08bdfce399e2f222856d1bc8aecc18168341612f19a3d3c581e87b59414d1",
    "width": 256,
    "height": 512
   },
@@ -385,6 +391,12 @@
    "hash": "a5236880670c6038c5df248f0a34e4ddf9ef66d503eb239860ba4625dddf4f5b",
    "width": 256,
    "height": 512
+  },
+  "character.kelce.win": {
+   "file": "characters/kelce-win.png",
+   "hash": "2c658cf264419b1068d09801f8c341b40db817da4cf790c2bdfb80f10e64410f",
+   "width": 256,
+   "height": 64
   },
   "character.mark.surprised": {
    "file": "characters/mark-surprised.png",
@@ -587,6 +599,14 @@
    "height": 1792,
    "source": "1017/Spino.png",
    "sourceHash": "3dd47e0de7be73bb7ead2bde8a41194a64740046bbd9a98b4cbe5819acfe075e"
+  },
+  "dinosaur.stegosaurus": {
+   "file": "dinosaurs/stegosaurus.png",
+   "hash": "2582b9e6f20d57239d6b6b73c7f6987013f67979a435a6470029e34bec1bb7e4",
+   "width": 896,
+   "height": 1792,
+   "source": "1017/Stego.png",
+   "sourceHash": "10f3432d891dea3862b99292b883c6cee8fcdecf819d28e056a5a4fc8b3213e4"
   },
   "dinosaur.trex": {
    "file": "dinosaurs/trex.png",

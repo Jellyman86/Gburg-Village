@@ -138,7 +138,7 @@
    if(!home&&swarm)return null;
    if(!home)throw new Error('No safe '+kind+' spawn in '+id);
    // `scripted:true` dinosaurs stay hidden (invisible, untargetable) until the scene script reveals them.
-   const enemy=V6_COMBAT.init({...home,home,kind,scripted,direction:'right',facing:1,clock:0,stars:0,mode:'wander',timer:8,target:null,turnTimer:0,moving:false});
+   const enemy=V6_COMBAT.init({...home,home,kind,scripted,direction:'right',facing:1,clock:0,stars:0,mode:'wander',timer:V6_COMBAT.species[kind].aggressive?1.2:8,target:null,turnTimer:0,moving:false});
    if(scripted)enemy.hidden=true;
    if(boss)enemy.boss=true;
    return enemy;
@@ -180,11 +180,12 @@
  powerButton.addEventListener('pointerdown',e=>{e.preventDefault();activatePower();canvas.focus({preventScroll:true});});
  powerButton.addEventListener('click',e=>{if(e.detail===0)activatePower();});
  function dinoRest(message,enemy=dino){
-  enemy.mode='wander';enemy.timer=14+Math.random()*12;enemy.target=null;
+  const rest=V6_COMBAT.species[enemy.kind].restTime;
+  enemy.mode='wander';enemy.timer=rest!==undefined?rest+Math.random()*2:14+Math.random()*12;enemy.target=null;
   if(message)toast(message);
  }
  function updateDino(dt,enemy,home){
-  const dino=enemy,dinoHome=home;
+  const dino=enemy,dinoHome=home,profile=V6_COMBAT.species[dino.kind];
   if(!dino.alive)return;
   dino.stars+=dt;
   if(dino.stunned>0){dino.stunned=Math.max(0,dino.stunned-dt);dino.moving=false;return;}
@@ -195,8 +196,8 @@
   const distance=Math.hypot(quarry.x-dino.x,quarry.y-dino.y);
   if(dino.mode==='chase'){
    if(dino.timer<=0)dinoRest(null,dino);
-  }else if(dino.timer<=0&&distance<185){
-   dino.mode='chase';dino.timer=5+Math.random()*2;dino.target=null;
+  }else if(dino.timer<=0&&distance<(profile.sight||185)){
+   dino.mode='chase';dino.timer=profile.chaseTime||5+Math.random()*2;dino.target=null;
   }
   if(dino.mode==='wander'&&(!dino.target||dino.turnTimer<=0||
     Math.hypot(dino.target.x-dino.x,dino.target.y-dino.y)<12)){
@@ -212,7 +213,14 @@
   dino.moving=false;
   if(!target)return;
   const angle=Math.atan2(target.y-dino.y,target.x-dino.x);
-  const speed=(dino.mode==='chase'?158:68)*({ankylosaurus:.65}[dino.kind]||V6_COMBAT.species[dino.kind].speed||1),step=speed*dt;
+  // Chasing a scene actor: trail behind it instead of running into it, so the pursuer never overlaps who it is chasing.
+  if(dino.prey&&dino.mode==='chase'&&distance<(dino.trail??72)){
+   const dx=Math.cos(angle),dy=Math.sin(angle);
+   if(Math.abs(dx)>.1)dino.facing=dx>0?1:-1;
+   dino.direction=Math.abs(dx)>Math.abs(dy)?(dx>0?'right':'left'):(dy>0?'down':'up');
+   return;
+  }
+  const speed=(dino.mode==='chase'?158:68)*({ankylosaurus:.65}[dino.kind]||profile.speed||1),step=speed*dt;
   // Try nearby headings, checking small steps to respect all scenery.
   for(const turn of [0,.45,-.45,.9,-.9,1.4,-1.4,2,-2]){
    const dx=Math.cos(angle+turn)*step,dy=Math.sin(angle+turn)*step;
@@ -624,7 +632,7 @@
  $('return-plaza').addEventListener('click',()=>{if($('dialog').open)$('dialog').close();enterScene('plaza',[50,84.47265625].map(v=>v*10));});
  function loadImage(path){return new Promise((resolve,reject)=>{const img=new Image();img.onload=()=>resolve(img);img.onerror=()=>reject(new Error('Could not load '+path));img.src=window.EMBEDDED_ASSETS?.[path]||path;});}
  const extraArt={...Object.fromEntries(Object.entries(recreation.dogData).map(([id,data])=>[id,data.sheet])),
-  ...Object.fromEntries(['trex','raptor','triceratops','pterodactyl','dilophosaurus','ankylosaurus','compy','brontosaurus','spinosaurus'].map(id=>[id,V8_ART.url('dinosaur.'+id)])),
+  ...Object.fromEntries(['trex','raptor','triceratops','pterodactyl','dilophosaurus','ankylosaurus','compy','brontosaurus','spinosaurus','stegosaurus'].map(id=>[id,V8_ART.url('dinosaur.'+id)])),
   barneyPoses:V8_ART.url('companion.barney.poses'),rosiePoses:V8_ART.url('companion.rosie.poses'),grenade:V8_ART.url('item.grenade'),grenadeIcon:V4_RPG.items.grenade.image,
   towel:V8_ART.url('item.towel-whip'),bus:V8_ART.url('gimmick.bus'),swim:V8_ART.url('character.chris.swim'),sword:V8_ART.url('item.sword-slash'),swordIcon:V4_RPG.items.sword.image,hurtPanther:V8_ART.url('gimmick.hurt-panther')};
  const extraIds=Object.keys(window.EXTRAS||{});

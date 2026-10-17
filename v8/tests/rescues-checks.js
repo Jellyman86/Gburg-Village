@@ -34,6 +34,9 @@ return async function checkRescues(page,{width,height,touch,artifactDir}={}){
   for(const id of ['drew','alex','kelce','taylor','bryce-young'])assert(!roster.joined.includes(id),id+' starts unrecruited');
   assert(roster.abilities.drew==='drew'&&roster.abilities.taylor==='taylor'&&roster.abilities.kelce==='kelce'&&roster.abilities['bryce-young']==='bryce-young','New heroes own their powers');
   assert(await page.evaluate(()=>FAMILY_POWERS.definitions.taylor.kind==='song'&&FAMILY_POWERS.definitions.drew.kind==='song'&&FAMILY_POWERS.definitions.kelce.kind==='football'&&FAMILY_POWERS.definitions['bryce-young'].kind==='football'),'Singing and football powers are defined');
+  // Drew and Alex must be visibly different people (a mis-saved walk sheet once made them identical).
+  const lookDifference=await page.evaluate(async()=>{const load=u=>new Promise(r=>{const i=new Image();i.onload=()=>r(i);i.src=u;});const [a,b]=await Promise.all([CHARACTERS.drew.sheet,CHARACTERS.alex.sheet].map(load));const px=img=>{const c=document.createElement('canvas');c.width=c.height=64;const x=c.getContext('2d');x.drawImage(img,0,0,64,64,0,0,64,64);return x.getImageData(0,0,64,64).data;};const A=px(a),B=px(b);let d=0,n=0;for(let i=0;i<A.length;i+=4)if(A[i+3]>64||B[i+3]>64){n++;d+=Math.abs(A[i]-B[i])+Math.abs(A[i+1]-B[i+1])+Math.abs(A[i+2]-B[i+2]);}return d/Math.max(1,n)/3;});
+  assert(lookDifference>12,'Drew and Alex walk sheets look different (difference '+lookDifference.toFixed(1)+')');
   // World sites and icons
   assert(await page.evaluate(()=>['vegas','charlotte'].every(id=>V8_TRAVEL.sites.some(s=>s.id===id&&s.to&&s.icon))),'Las Vegas and Charlotte are playable world sites with icons');
   // ---- Las Vegas · Encore pool party ------------------------------------------------------------------------------
@@ -43,7 +46,8 @@ return async function checkRescues(page,{width,height,touch,artifactDir}={}){
   assert(s.enemies.filter(e=>e.kind==='compy'&&!e.scripted&&!e.hidden).length>=14,'Vegas is overrun with compies (pool party deck)');
   await page.evaluate(()=>{for(const e of GAME.test.enemies())if(!e.scripted&&e.alive)GAME.test.defeat(e);});
   assert(s.scriptActors.length===2&&s.scriptActors.every(a=>!a.pose),'Drew and Alex wait by the stage');
-  assert(s.enemies.filter(e=>e.scripted).length===3&&s.enemies.filter(e=>e.scripted).every(e=>e.hidden),'Scripted dinosaurs are hidden until triggered');
+  assert(s.enemies.filter(e=>e.scripted).length===5&&s.enemies.filter(e=>e.scripted).every(e=>e.hidden),'Scripted dinosaurs are hidden until triggered');
+  assert(s.enemies.filter(e=>e.kind==='trex'&&e.scripted).length===2,'Two T. rexes crash the pool party');
   await music('vegas-north','Pool party plays its own music place');
   await page.evaluate(()=>GAME.test.position(790,330));
   await page.waitForFunction(()=>GAME.state.script.phase==='shock',null,{timeout:5000});
@@ -79,19 +83,27 @@ return async function checkRescues(page,{width,height,touch,artifactDir}={}){
    const crowd=await state();
    assert(crowd.enemies.filter(e=>e.kind==='compy'&&!e.hidden).length>=16,id+' is overrun with compies');
    if(id==='vegas-central')assert(crowd.enemies.some(e=>e.kind==='brontosaurus'&&e.alive),'A Brontosaurus lumbers through Vegas Central');
-   if(id==='vegas-east')assert(crowd.enemies.some(e=>e.kind==='triceratops'&&e.alive),'A Triceratops guards the Sphere plaza');
+   if(id==='vegas-east')assert(crowd.enemies.some(e=>e.kind==='triceratops'&&e.alive)&&crowd.enemies.some(e=>e.kind==='stegosaurus'&&e.boss&&e.alive&&!e.hidden),'A Triceratops and the Stegosaurus boss guard the Sphere plaza');
   }
   // ---- Charlotte · Panthers Stadium ---------------------------------------------------------------------------------
   await enter('panthers-stadium',724/1448*1000,1000/1086*1000);
   await page.waitForTimeout(700);
   s=await state();
   assert(s.script.phase==='chase'&&s.scriptActors.length===2,'Kelce and Taylor are running their loops');
-  assert(s.enemies.filter(e=>e.scripted&&e.alive).every(e=>e.prey==='kelce'||e.prey==='taylor')&&s.enemies.filter(e=>e.scripted).length===4,'Four compies chase them');
+  assert(s.enemies.filter(e=>e.scripted&&e.alive).every(e=>e.kind==='raptor'&&(e.prey==='kelce'||e.prey==='taylor'))&&s.enemies.filter(e=>e.scripted).length===4,'Four raptors chase them');
+  // The raptors trail behind instead of running on top of Kelce and Taylor.
+  let closest=Infinity;
+  for(let i=0;i<8;i++){await page.waitForTimeout(250);const now=await state();for(const e of now.enemies.filter(e=>e.scripted&&e.alive)){const prey=now.scriptActors.find(a=>a.id===e.prey);closest=Math.min(closest,Math.hypot(e.x-prey.x,e.y-prey.y));}}
+  assert(closest>=45,'Raptors keep their distance from who they chase (closest '+closest.toFixed(0)+' px)');
   await music('stadium','Stadium plays Anti-Hero place');
   const before=s.scriptActors.map(a=>[a.x,a.y]);await page.waitForTimeout(600);s=await state();
   assert(s.scriptActors.some((a,i)=>Math.hypot(a.x-before[i][0],a.y-before[i][1])>20),'They keep moving along their paths');
   await screenshot('stadium-chase');
   await defeatAll();
+  await page.waitForFunction(()=>GAME.state.script.phase==='celebrate',null,{timeout:8000});
+  s=await state();
+  assert(s.scriptActors.length===2&&s.scriptActors.every(a=>a.pose==='win'),'Kelce and Taylor do their win animations after the dinosaurs fall');
+  assert(await page.evaluate(()=>!V4_RPG.members.kelce.joined),'They celebrate before they join');
   await page.waitForFunction(()=>['thanks','done'].includes(GAME.state.script.phase),null,{timeout:8000});
   await closeDialog();
   assert(await page.evaluate(()=>V4_RPG.members.kelce.joined&&V4_RPG.members.taylor.joined),'Kelce and Taylor become playable');
@@ -108,7 +120,7 @@ return async function checkRescues(page,{width,height,touch,artifactDir}={}){
   assert(team('panthersplayer',true)===3&&team('chiefsplayer',true)===5,'Hurt Panthers and Chiefs are sprinkled around the field');
   assert(s.scriptActors.some(a=>a.id==='bryce-young'),'Bryce Young is on the field');
   assert(s.enemies.some(e=>e.kind==='spinosaurus'&&e.hidden&&e.boss)&&s.script.boss&&s.script.boss.hidden,'The Spinosaurus waits, hidden, until the field is clear');
-  assert(await page.evaluate(()=>{const sp=V6_COMBAT.species;return sp.spinosaurus.hp===sp.trex.hp*2.5&&sp.spinosaurus.size>128&&sp.spinosaurus.height>sp.trex.height&&sp.brontosaurus.size>128;}),'The Spinosaurus has 2.5 T. rexes of health and is drawn bigger than a T. rex');
+  assert(await page.evaluate(()=>{const sp=V6_COMBAT.species;return sp.spinosaurus.hp===sp.trex.hp*2.5&&sp.spinosaurus.size>128&&sp.spinosaurus.height>sp.trex.height&&sp.brontosaurus.size>128&&sp.brontosaurus.hp===320&&sp.stegosaurus.size>128&&sp.stegosaurus.hp>=sp.trex.hp*3;}),'The Spinosaurus has 2.5 T. rexes of health and is drawn bigger than a T. rex; the Brontosaurus has doubled health; the Stegosaurus is a 3 T. rex boss');
   await music('field','Field plays the NFL theme place');
   await page.waitForFunction(()=>GAME.state.powers.casts.some(c=>c.kind==='football'&&c.owner==='bryce-young')||GAME.state.combat.lastHit,null,{timeout:12000});
   await page.evaluate(()=>GAME.test.position(724,760));
@@ -122,9 +134,14 @@ return async function checkRescues(page,{width,height,touch,artifactDir}={}){
   assert(!s.script.boss.hidden&&s.script.boss.alive&&s.script.boss.hp===275,'The Spinosaurus spawns in right after the other dinosaurs are dead');
   assert(await page.evaluate(()=>!V4_RPG.members['bryce-young'].joined),'Bryce is not recruited until the boss falls');
   await screenshot('field-boss');
+  const downBefore=s.script.fighters.filter(f=>f==='down').length;
   await page.waitForFunction(()=>{const b=GAME.state.script.boss;return b&&b.hp<b.maxHP;},null,{timeout:30000});
+  await page.waitForFunction(n=>GAME.state.script.fighters.filter(f=>f==='down').length>n,downBefore,{timeout:40000});
+  assert(await page.evaluate(()=>GAME.state.script.fighters.filter(f=>f!=='down').length>=2&&GAME.state.scriptActors.some(a=>a.id==='bryce-young')),'The Spinosaurus flattens football players into their hurt pose, but Bryce stands and two players keep fighting');
   assert(await page.evaluate(()=>GAME.state.script.fighters.some(f=>f!=='down')),'Bryce and the remaining football players help fight it');
   await defeatAll();
+  await page.waitForFunction(()=>GAME.state.script.phase==='celebrate',null,{timeout:8000});
+  assert(await page.evaluate(()=>GAME.state.scriptActors.some(a=>a.id==='bryce-young'&&a.pose==='win')&&!V4_RPG.members['bryce-young'].joined),'Bryce does his win pose when the boss falls, before joining');
   await page.waitForFunction(()=>['thanks','done'].includes(GAME.state.script.phase),null,{timeout:8000});
   await closeDialog();
   assert(await page.evaluate(()=>V4_RPG.members['bryce-young'].joined&&!V4_RPG.members.panthersplayer&&!V4_RPG.members.chiefsplayer),'Bryce Young becomes playable; the generic player does not');

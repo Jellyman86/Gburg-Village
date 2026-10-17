@@ -180,8 +180,7 @@
    "runSpeed": 205,
    "walkFPS": 8,
    "runFPS": 12,
-   "walkRowOffset": 4,
-   "mirrorLeft": true
+   "walkRowOffset": 4
   },
   "kelce": {
    "name": "Kelce",
@@ -574,6 +573,11 @@
     "art": "character.bryce-young.surprised",
     "frames": 3,
     "fps": 6
+   },
+   "win": {
+    "art": "character.bryce-young.win",
+    "frames": 4,
+    "fps": 6
    }
   },
   "drew": {
@@ -621,6 +625,13 @@
   "taylor": {
    "win": {
     "art": "character.taylor.win",
+    "frames": 3,
+    "fps": 6
+   }
+  },
+  "kelce": {
+   "win": {
+    "art": "character.kelce.win",
     "frames": 3,
     "fps": 6
    }

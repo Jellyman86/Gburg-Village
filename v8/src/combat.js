@@ -10,9 +10,12 @@
   dilophosaurus:Object.freeze({hp:58,armor:0,outcome:'puff',height:82,sound:'hurt-dilophosaurus'}),
   ankylosaurus:Object.freeze({hp:130,armor:6,outcome:'retreat',height:82,sound:'hurt-ankylosaurus'}),
   // Big sheets: `size` is the sheet cell, `hitRadius` widens the target for projectiles and melee, `barWidth` the health bar.
-  brontosaurus:Object.freeze({hp:160,armor:4,outcome:'retreat',height:128,size:192,hitRadius:36,markHeight:140,barWidth:56,speed:.6,sound:'hurt-ankylosaurus'}),
-  // The Panthers Field boss: 2.5 T. rexes of health, drawn well above T. rex size.
-  spinosaurus:Object.freeze({hp:275,armor:2,outcome:'retreat',height:170,size:224,hitRadius:44,markHeight:190,barWidth:84,speed:.95,sound:'hurt-trex'})
+  // Boss-class tuning: `sight` (px) is how far away they notice you, `chaseTime`/`restTime` (s) how long they hunt and rest,
+  // `aggressive` skips the idle delay a fresh dinosaur normally has, `speed` scales walking and chase speed.
+  brontosaurus:Object.freeze({hp:320,armor:4,outcome:'retreat',height:128,size:192,hitRadius:36,markHeight:140,barWidth:56,speed:.85,sight:340,chaseTime:11,restTime:5,aggressive:true,sound:'hurt-ankylosaurus'}),
+  stegosaurus:Object.freeze({hp:330,armor:5,outcome:'retreat',height:120,size:224,hitRadius:40,markHeight:135,barWidth:70,speed:.9,sight:380,chaseTime:11,restTime:4,aggressive:true,sound:'hurt-ankylosaurus'}),
+  // The Panthers Field boss: 2.5 T. rexes of health, drawn well above T. rex size, and relentless.
+  spinosaurus:Object.freeze({hp:275,armor:2,outcome:'retreat',height:170,size:224,hitRadius:44,markHeight:190,barWidth:84,speed:1.05,sight:700,chaseTime:99,restTime:1,aggressive:true,sound:'hurt-trex'})
  });
  function init(enemy){
   const profile=species[enemy.kind];if(!profile)throw new Error('Unknown combat dinosaur: '+enemy.kind);
