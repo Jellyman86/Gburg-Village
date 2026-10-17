@@ -1032,6 +1032,14 @@
    "width": 1254,
    "height": 1254
   },
+  "scene.niagara": {
+   "file": "scenes/niagara.webp",
+   "hash": "57b44401b1b9e289b12548c698255d5fe7dbed4a1ebd46da475356317605db98",
+   "width": 1448,
+   "height": 1086,
+   "source": "1017/Scene - Niagra.png",
+   "sourceHash": "dc63aed2ddb52902233e408cd8fef83d243a4b7f1e5d1bc65e65d14f13427591"
+  },
   "scene.north-market": {
    "file": "scenes/north-market.png",
    "hash": "249523a9e173177d2e3046608be1e80e6e9cd8a9c7df69ec79de3f85e1733003",
@@ -1239,6 +1247,14 @@
    "height": 128,
    "source": "1017/Worldmap Sprite - Manila.png",
    "sourceHash": "538b861b77c6ef5a15059f950fe9ed48c3231a7f54f45d30d8be5b6170ffcb31"
+  },
+  "world.niagara-icon": {
+   "file": "world/niagara-icon.png",
+   "hash": "e3697a8b3144cb3d919bb62cb5019f84ce2c974c9e64db76c17f6e7bc80c9504",
+   "width": 192,
+   "height": 114,
+   "source": "1017/Worldmap - Niagra.png",
+   "sourceHash": "2caab0ed95c82475359554200ed99a940fb5873750450c69f9f38aa477606b81"
   },
   "world.nyc-buildings": {
    "file": "world/nyc-buildings.png",

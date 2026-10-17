@@ -19,6 +19,8 @@
   gary:{name:'Patriot blaster',label:'Blast',kind:'blaster',cooldown:.65,duration:.8,range:260,width:11,extendSpeed:800},
   kelce:{name:'Throw football',label:'Throw',kind:'football',cooldown:.45,duration:1.4,speed:265},
   'bryce-young':{name:'Throw football',label:'Throw',kind:'football',cooldown:.45,duration:1.4,speed:265},
+  // Josh (Niagara) is a non-playable extra: only his scene script casts this.
+  josh:{name:'Throw football',label:'Throw',kind:'football',cooldown:.5,duration:1.4,speed:265},
   taylor:{name:'Singing shockwaves',label:'Sing',kind:'song',cooldown:.85,duration:1.25,range:125},
   drew:{name:'Singing shockwaves',label:'Sing',kind:'song',cooldown:.85,duration:1.25,range:125},
   alex:{name:'Singing shockwaves',label:'Sing',kind:'song',cooldown:.85,duration:1.25,range:125},

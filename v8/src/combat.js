@@ -4,7 +4,7 @@
  const species=Object.freeze({
   compy:Object.freeze({hp:20,armor:0,outcome:'puff',height:38,sound:'hurt-compy'}),
   raptor:Object.freeze({hp:48,armor:0,outcome:'puff',height:82,sound:'hurt-raptor'}),
-  pterodactyl:Object.freeze({hp:38,armor:0,outcome:'puff',height:82,sound:'hurt-pterodactyl'}),
+  pterodactyl:Object.freeze({hp:38,armor:0,outcome:'puff',height:82,hover:14,sound:'hurt-pterodactyl'}),
   trex:Object.freeze({hp:110,armor:2,outcome:'retreat',height:84,sound:'hurt-trex'}),
   triceratops:Object.freeze({hp:100,armor:3,outcome:'retreat',height:82,sound:'hurt-triceratops'}),
   dilophosaurus:Object.freeze({hp:58,armor:0,outcome:'puff',height:82,sound:'hurt-dilophosaurus'}),
@@ -17,7 +17,7 @@
   // The Philippines boss: a headbutting brawler for Manny to punch. Quick on its feet, drawn between a raptor and a T. rex.
   pachycephalosaurus:Object.freeze({hp:240,armor:3,outcome:'retreat',height:104,size:128,hitRadius:30,markHeight:112,barWidth:54,speed:1.1,sight:500,chaseTime:99,restTime:1,aggressive:true,sound:'hurt-trex'}),
   // The Panthers Field boss: 2.5 T. rexes of health, drawn well above T. rex size, and relentless.
-  spinosaurus:Object.freeze({hp:275,armor:2,outcome:'retreat',height:170,size:224,hitRadius:44,markHeight:190,barWidth:84,speed:1.05,sight:700,chaseTime:99,restTime:1,aggressive:true,sound:'hurt-trex'})
+  spinosaurus:Object.freeze({hp:330,armor:2,outcome:'retreat',height:170,size:224,hitRadius:44,markHeight:190,barWidth:84,speed:1.05,sight:700,chaseTime:99,restTime:1,aggressive:true,sound:'hurt-trex'})
  });
  function init(enemy){
   const profile=species[enemy.kind];if(!profile)throw new Error('Unknown combat dinosaur: '+enemy.kind);

@@ -64,12 +64,21 @@
   const {ctx,W,H}=source,d=ctx.getImageData(0,0,W,H).data;
   let opaque=true;for(let i=3;i<d.length;i+=4)if(d[i]<255){opaque=false;break;}
   const corners=[0,(W-1)*4,(H-1)*W*4,((H-1)*W+W-1)*4].every(i=>d[i]>=235&&d[i+1]>=235&&d[i+2]>=235);
-  const useKey=key==='white'||(key!=='none'&&opaque&&corners);
+  const useKey=key==='white'||key==='checker'||(key!=='none'&&opaque&&corners);
   const solid=new Uint8Array(W*H);
   for(let i=0,p=0;i<d.length;i+=4,p++){
    const a=d[i+3];if(a<128)continue;
    if(useKey&&d[i]>=235&&d[i+1]>=235&&d[i+2]>=235)continue;
    solid[p]=1;
+  }
+  // `checker`: a fake-transparency checkerboard baked into the picture. Light neutral grey/white pixels connected to the
+  // border are background; the same shades inside the drawing are kept.
+  if(key==='checker'){
+   const neutral=p=>{const i=p*4,mx=Math.max(d[i],d[i+1],d[i+2]),mn=Math.min(d[i],d[i+1],d[i+2]);return mn>=170&&mx-mn<=18;};
+   const seen=new Uint8Array(W*H),stack=[];
+   const push=p=>{if(!seen[p]&&neutral(p)){seen[p]=1;stack.push(p);}};
+   for(let x=0;x<W;x++){push(x);push((H-1)*W+x);}for(let y=0;y<H;y++){push(y*W);push(y*W+W-1);}
+   while(stack.length){const p=stack.pop(),x=p%W,y=(p-x)/W;solid[p]=0;if(x>0)push(p-1);if(x<W-1)push(p+1);if(y>0)push(p-W);if(y<H-1)push(p+W);}
   }
   const rowCount=new Uint32Array(H);for(let y=0;y<H;y++){let n=0;for(let x=0;x<W;x++)n+=solid[y*W+x];rowCount[y]=n;}
   const bands=[];let start=-1,blank=0;

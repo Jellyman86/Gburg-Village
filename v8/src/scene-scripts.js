@@ -272,7 +272,86 @@
   };
  }
 
- const scripts={'vegas-north':vegasNorth,'panthers-stadium':panthersStadium,'panthers-field':panthersField,philippines};
+ // ---- Niagara Falls · Josh vs. the pterodactyls ----------------------------------------------------------------------
+ // Josh (a non-playable extra) holds the overlook against a flock, strafing into line and throwing footballs. Once the flock
+ // is dead a giant pterodactyl (a hidden `duel` enemy: untouchable, scripted) swoops in, grabs him, circles the plaza and
+ // carries him off into the distance, shrinking away with Josh hanging from its talons. Josh never becomes playable.
+ function niagara(host){
+  const josh=actor('josh',724,790,{direction:'up',flipLeft:true});
+  const S=2.6; // the giant's size relative to an ordinary pterodactyl
+  let phase='fight',clock=0,throwTimer=1.2,set=false,start={x:0,y:0},base={x:0,y:0};
+  const cam={x:0,y:0,w:0};
+  const giant=()=>host.enemies().find(e=>e.duel);
+  const flock=()=>host.enemies().filter(e=>!e.duel&&e.alive&&!e.hidden);
+  const nearest=(list,from)=>list.reduce((best,e)=>!best||dist(e,from)<dist(best,from)?e:best,null);
+  const ease=t=>{t=Math.max(0,Math.min(1,t));return t*t*(3-2*t);};
+  const mix=(a,b,t)=>a+(b-a)*t;
+  // Josh hangs from the giant's talons, whatever the two of them are currently scaled to.
+  function carry(g){
+   // Slightly ahead of the giant in draw order, gripped in its talons (the art leaves empty margin below them) (which sit left of centre when it faces right).
+   josh.scale=g.scale/S;
+   josh.x=g.x+(g.direction==='left'?1:-1)*22*g.scale;josh.y=g.y+1;
+   josh.lift=14+g.lift+10*g.scale-48*josh.scale;
+  }
+  function fly(g,dt,x,y){
+   const dx=x-g.x;g.x=x;g.y=y;g.moving=true;g.clock+=dt*13;g.stars+=dt;
+   if(Math.abs(dx)>.05){g.direction=dx>0?'right':'left';g.facing=dx>0?1:-1;}
+  }
+  return {
+   actors(){return phase==='done'?[]:[josh];},
+   update(dt){
+    clock+=dt;throwTimer-=dt;josh.poseTime+=dt;
+    const g=giant(),birds=flock();
+    if(!set){
+     set=true;
+     // Most of the flock keeps its distance around Josh; the rest roam toward the player.
+     birds.forEach((e,i)=>{if(i%3!==2){e.prey=josh;e.trail=120;}});
+    }
+    if(phase==='fight'){
+     for(const e of birds)if(e.prey){e.mode='chase';e.timer=99;}
+     if(josh.pose==='attack'&&josh.poseTime>.5)josh.pose=null;
+     const target=nearest(birds,josh);
+     if(target&&josh.pose!=='attack'){
+      const dx=target.x-josh.x,dy=target.y-josh.y,reach=(target.hitRadius||21)+13;
+      if(Math.abs(dx)<reach||Math.abs(dy)<reach){
+       josh.direction=facing(dx,dy);josh.moving=false;
+       if(throwTimer<=0&&host.throwPower(josh)){setPose(josh,'attack');throwTimer=.85;}
+      }else if(Math.abs(dx)>=Math.abs(dy))walkTo(josh,josh.x,target.y,115,dt,host.blocked);
+      else walkTo(josh,target.x,josh.y,115,dt,host.blocked);
+     }else if(!target)josh.moving=false;
+     if(!birds.length&&clock>4&&g){
+      phase='swoop';clock=0;josh.pose=null;josh.moving=false;josh.direction='up';start={x:josh.x+640,y:josh.y-520};base={x:josh.x,y:josh.y};
+      Object.assign(g,{hidden:false,scale:S,lift:240,x:start.x,y:start.y,flash:.3});host.sound('roar');host.toast('A giant pterodactyl dives onto the overlook!');
+     }
+    }else if(phase==='swoop'&&g){
+     const t=clock/2.4,e=ease(t);
+     fly(g,dt,mix(start.x,base.x,e),mix(start.y,base.y,e));g.lift=mix(240,30,e);
+     if(clock>.7&&josh.pose!=='special')setPose(josh,'special');
+     if(t>=1){phase='carry';clock=0;}
+    }else if(phase==='carry'&&g){
+     // One lap around the plaza with Josh dangling underneath.
+     const u=clock/3.4,R=280,theta=Math.PI+Math.PI*2*u;
+     fly(g,dt,base.x+R+R*Math.cos(theta),base.y+R*.4*Math.sin(theta));g.lift=mix(30,150,ease(u*2));
+     carry(g);
+     if(u>=1){phase='away';clock=0;}
+    }else if(phase==='away'&&g){
+     // Up and away: both shrink as the giant climbs toward the horizon.
+     const t=clock/4.2,e=ease(t);
+     fly(g,dt,mix(base.x,base.x-240,e),mix(base.y,base.y-420,e));g.lift=mix(150,230,e);g.scale=S*(1-.92*e);
+     carry(g);
+     if(t>=1){phase='done';g.hidden=true;host.toast('Josh has been carried off by a giant pterodactyl!');}
+    }
+    // Pull the camera onto the action for the flyby, then ease it back to the player.
+    const staged=phase==='swoop'||phase==='carry'||phase==='away';
+    if(staged&&g){cam.x=phase==='swoop'?base.x:phase==='away'?base.x-100:g.x;cam.y=phase==='swoop'?base.y-220:phase==='away'?base.y-330:g.y-g.lift-90;}
+    cam.w+=Math.max(-dt*1.2,Math.min(dt*1.2,(staged?1:0)-cam.w));
+   },
+   focus(){return cam.w>.001?{x:cam.x,y:cam.y,w:cam.w}:null;},
+   get state(){const g=giant();return {phase,flock:flock().length,giant:g?{hidden:g.hidden,scale:g.scale||1,lift:g.lift||0,x:g.x,y:g.y}:null};}
+  };
+ }
+
+ const scripts={'vegas-north':vegasNorth,'panthers-stadium':panthersStadium,'panthers-field':panthersField,philippines,niagara};
  function create(host){
   const running={};
   return {
@@ -280,6 +359,7 @@
    update(sceneId,dt){running[sceneId]?.update(dt);},
    actors(sceneId){return running[sceneId]?.actors()||[];},
    props(sceneId){return running[sceneId]?.props?.()||[];},
+   focus(sceneId){return running[sceneId]?.focus?.()||null;},
    state(sceneId){return running[sceneId]?.state||null;},
    has:sceneId=>!!scripts[sceneId]
   };

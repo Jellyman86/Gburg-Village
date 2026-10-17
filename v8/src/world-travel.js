@@ -12,7 +12,8 @@
   {id:'italy',name:'Italy',col:67,row:31,to:'italy',arrival:[717/1536*1000,985/1024*1000],arrivalDirection:'up',icon:'italy-icon',iconWidth:100},
   {id:'philippines',name:'The Philippines',col:115,row:43,to:'philippines',arrival:[775/1448*1000,1010/1086*1000],arrivalDirection:'up',icon:'manila-icon',iconWidth:80},
   {id:'vegas',name:'Las Vegas',col:14,row:32,to:'vegas-central',arrival:[760/1536*1000,960/1024*1000],arrivalDirection:'up',icon:'vegas-icon'},
-  {id:'charlotte',name:'Charlotte',col:33,row:35,to:'panthers-stadium',arrival:[724/1448*1000,1000/1086*1000],arrivalDirection:'up',icon:'charlotte-icon'}
+  {id:'charlotte',name:'Charlotte',col:33,row:35,to:'panthers-stadium',arrival:[724/1448*1000,1000/1086*1000],arrivalDirection:'up',icon:'charlotte-icon'},
+  {id:'niagara',name:'Niagara Falls',col:31,row:25,to:'niagara',arrival:[724/1448*1000,1000/1086*1000],arrivalDirection:'up',icon:'niagara-icon',iconWidth:104}
  ].map(site=>Object.freeze({...site,x:(site.col+.5)*tileSize,y:(site.row+.5)*tileSize,radius:38}));
  const start=Object.freeze({x:33.5*tileSize,y:33.5*tileSize});
  const field=Object.freeze({x:31.5*tileSize,y:33.5*tileSize});
@@ -174,7 +175,7 @@
   api.preload=async()=>{
    const [data]=await Promise.all([
     fetch('data/world-grid.json?v=vegas-1').then(async response=>{if(!response.ok)throw new Error('World terrain request failed: '+response.status);return response.json();}),
-    ...Object.entries({terrain:'terrain',transitions:'transitions',coasts:'coasts',features:'features',overview:'overview',plane:'plane',icon:'nyc-icon',ground:'nyc-ground',buildings:'nyc-buildings',park:'nyc-park',skybox:'skybox','vegas-icon':'vegas-icon','charlotte-icon':'charlotte-icon','paris-icon':'paris-icon','japan-icon':'japan-icon','hawaii-icon':'hawaii-icon','italy-icon':'italy-icon','manila-icon':'manila-icon'}).map(async([key,art])=>{images[key]=await image(art);})
+    ...Object.entries({terrain:'terrain',transitions:'transitions',coasts:'coasts',features:'features',overview:'overview',plane:'plane',icon:'nyc-icon',ground:'nyc-ground',buildings:'nyc-buildings',park:'nyc-park',skybox:'skybox','vegas-icon':'vegas-icon','charlotte-icon':'charlotte-icon','paris-icon':'paris-icon','japan-icon':'japan-icon','hawaii-icon':'hawaii-icon','italy-icon':'italy-icon','manila-icon':'manila-icon','niagara-icon':'niagara-icon'}).map(async([key,art])=>{images[key]=await image(art);})
    ]);
    model=create(data);buildWorld();buildNYC();
   };

@@ -121,7 +121,7 @@ return async function checkRescues(page,{width,height,touch,artifactDir}={}){
   assert(team('panthersplayer',true)===3&&team('chiefsplayer',true)===5,'Hurt Panthers and Chiefs are sprinkled around the field');
   assert(s.scriptActors.some(a=>a.id==='bryce-young'),'Bryce Young is on the field');
   assert(s.enemies.some(e=>e.kind==='spinosaurus'&&e.hidden&&e.boss)&&s.script.boss&&s.script.boss.hidden,'The Spinosaurus waits, hidden, until the field is clear');
-  assert(await page.evaluate(()=>{const sp=V6_COMBAT.species;return sp.spinosaurus.hp===sp.trex.hp*2.5&&sp.spinosaurus.size>128&&sp.spinosaurus.height>sp.trex.height&&sp.brontosaurus.size>128&&sp.brontosaurus.hp===256&&sp.stegosaurus.size>128&&sp.stegosaurus.hp===264&&sp.stegosaurus.hp>=sp.trex.hp*2.4;}),'The Spinosaurus has 2.5 T. rexes of health and is drawn bigger than a T. rex; the Brontosaurus and Stegosaurus are tough bosses');
+  assert(await page.evaluate(()=>{const sp=V6_COMBAT.species;return sp.spinosaurus.hp===sp.trex.hp*3&&sp.spinosaurus.size>128&&sp.spinosaurus.height>sp.trex.height&&sp.brontosaurus.size>128&&sp.brontosaurus.hp===256&&sp.stegosaurus.size>128&&sp.stegosaurus.hp===264&&sp.stegosaurus.hp>=sp.trex.hp*2.4;}),'The Spinosaurus has 3 T. rexes of health and is drawn bigger than a T. rex; the Brontosaurus and Stegosaurus are tough bosses');
   await music('field','Field plays the NFL theme place');
   await page.waitForFunction(()=>GAME.state.powers.casts.some(c=>c.kind==='football'&&c.owner==='bryce-young')||GAME.state.combat.lastHit,null,{timeout:12000});
   await page.evaluate(()=>GAME.test.position(724,760));
@@ -132,7 +132,7 @@ return async function checkRescues(page,{width,height,touch,artifactDir}={}){
   await defeatAll();
   await page.waitForFunction(()=>GAME.state.script.phase==='boss',null,{timeout:8000});
   s=await state();
-  assert(!s.script.boss.hidden&&s.script.boss.alive&&s.script.boss.hp===275,'The Spinosaurus spawns in right after the other dinosaurs are dead');
+  assert(!s.script.boss.hidden&&s.script.boss.alive&&s.script.boss.hp===330,'The Spinosaurus spawns in right after the other dinosaurs are dead');
   assert(await page.evaluate(()=>!V4_RPG.members['bryce-young'].joined),'Bryce is not recruited until the boss falls');
   await screenshot('field-boss');
   const downBefore=s.script.fighters.filter(f=>f==='down').length;
@@ -175,6 +175,33 @@ return async function checkRescues(page,{width,height,touch,artifactDir}={}){
   await page.waitForFunction(()=>!GAME.state.joining&&!GAME.busy&&GAME.test.activate(),null,{timeout:8000}).catch(()=>{throw new Error('Manny can punch');});
   await screenshot('manny-punch');
   await page.evaluate(()=>GAME.select('coco'));
+  // ---- Niagara Falls · Josh vs. the pterodactyls, then the giant grabs him -------------------------------------------
+  assert(await page.evaluate(()=>V8_TRAVEL.sites.some(s=>s.id==='niagara'&&s.to==='niagara'&&s.icon)),'Niagara Falls is a world site with an icon');
+  assert(await page.evaluate(()=>!CHARACTERS.josh&&!!EXTRAS.josh&&!V4_RPG.members.josh),'Josh is a non-playable extra, not a party member');
+  await enter('niagara',724/1448*1000,1000/1086*1000);
+  s=await state();
+  assert(s.script.phase==='fight'&&s.script.flock===6&&s.script.giant&&s.script.giant.hidden,'Josh faces six pterodactyls; the giant waits out of sight');
+  assert(s.scriptActors.some(a=>a.id==='josh'),'Josh is on the overlook');
+  await page.waitForFunction(()=>GAME.state.powers.casts.some(c=>c.owner==='josh'&&c.kind==='football'),null,{timeout:20000}).catch(()=>{throw new Error('Josh throws footballs at the flock');});
+  await screenshot('niagara-fight');
+  await defeatAll();
+  await page.waitForFunction(()=>GAME.state.script.phase==='swoop',null,{timeout:10000});
+  assert(await page.evaluate(()=>{const g=GAME.state.script.giant;return !g.hidden&&g.scale>2;}),'A scaled-up pterodactyl swoops in');
+  await page.waitForFunction(()=>GAME.state.script.phase==='carry',null,{timeout:10000});
+  await page.waitForTimeout(800);
+  s=await state();
+  const josh=s.scriptActors.find(a=>a.id==='josh'),giant=s.script.giant;
+  assert(Math.abs(josh.x-giant.x)<90&&Math.abs(josh.y-giant.y)<4&&josh.pose==='special','The giant carries Josh, who hangs from its talons');
+  await screenshot('niagara-carry');
+  await page.waitForFunction(()=>GAME.state.script.phase==='away',null,{timeout:10000});
+  await page.waitForTimeout(2200);
+  await screenshot('niagara-away');
+  s=await state();
+  assert(s.script.giant.scale<2.6&&s.scriptActors.find(a=>a.id==='josh').scale<.9,'Josh and the pterodactyl shrink as they fly away');
+  await page.waitForFunction(()=>GAME.state.script.phase==='done',null,{timeout:10000});
+  s=await state();
+  assert(s.scriptActors.length===0&&s.script.giant.hidden,'Josh and the giant are gone');
+  assert(await page.evaluate(()=>!V4_RPG.members.josh),'Josh never becomes playable');
   // Return trips
   await enter('panthers-stadium',724/1448*1000,200/1086*1000);
   await page.waitForFunction(()=>GAME.state.script.phase==='done'&&GAME.state.scriptActors.length===0,null,{timeout:6000});

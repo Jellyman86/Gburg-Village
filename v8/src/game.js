@@ -37,6 +37,8 @@
  paintPreferences();
  let loaded=false,previous=0,toastTimer=0,nearest=null,joyId=null,runId=null,joy={x:0,y:0},touchRun=false,background;
  const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+ // A scene script can pull the camera toward a point of interest ({x,y,w} with w 0..1) for a staged moment.
+ let cameraFocus=()=>null;
  function updateCamera(){
   const bounds=town.viewBounds||{left:0,top:0,right:town.width,bottom:town.height};
   const worldWidth=bounds.right-bounds.left,worldHeight=bounds.bottom-bounds.top;
@@ -44,8 +46,9 @@
   viewScale=1+(fit-1)*overview;
   const width=canvas.width/viewScale,height=canvas.height/viewScale;
   const touchSpace=document.body.classList.contains('touch')?Math.min(140,canvas.height*.28)/viewScale:0;
-  camera.x=Math.round(width>=worldWidth?bounds.left+(worldWidth-width)/2:clamp(player.x-width/2,bounds.left,bounds.right-width));
-  camera.y=Math.round(height>=worldHeight+touchSpace?bounds.top+(worldHeight+touchSpace-height)/2:clamp(player.y-height*.57,bounds.top,bounds.bottom+touchSpace-height));
+  const focus=cameraFocus(town.id),lookX=focus?player.x+(focus.x-player.x)*focus.w:player.x,lookY=focus?player.y+(focus.y-player.y)*focus.w:player.y;
+  camera.x=Math.round(width>=worldWidth?bounds.left+(worldWidth-width)/2:clamp(lookX-width/2,bounds.left,bounds.right-width));
+  camera.y=Math.round(height>=worldHeight+touchSpace?bounds.top+(worldHeight+touchSpace-height)/2:clamp(lookY-height*.57,bounds.top,bounds.bottom+touchSpace-height));
   if(storyReturn){
    const p=clamp((performance.now()-storyReturn.at)/700,0,1),e=p*p*(3-2*p),from=storyReturn.camera;
    camera.x=from.x+(camera.x-from.x)*e;camera.y=from.y+(camera.y-from.y)*e;viewScale=from.scale+(viewScale-from.scale)*e;
@@ -149,8 +152,8 @@
  function encounterEnemies(){return (dino?[dino]:[]).concat(extraEnemies[town.id]||[]);}
  function activeEnemies(){return encounterEnemies().filter(enemy=>!enemy.hidden);}
  let dinoHome=null,dino=null;
- let powers; function makePowers(){return window.FAMILY_POWERS.create({blocked,getTargets:()=>activeEnemies().filter(enemy=>enemy.alive&&!enemy.duel),getActor:()=>player,getAbility:actor=>window.V4_RPG.members[actor.id].ability,getSwordImage:()=>extraSheets.sword,getTowelImage:()=>extraSheets.towel,getGrenadeImage:()=>extraSheets.grenade, onSound:kind=>V4_SFX.play(kind),onHit:(id,hit)=>{
-   combat.hit(hit.target,{...hit,strength:V4_RPG.stats(hit.owner).strength});
+ let powers; function makePowers(){return window.FAMILY_POWERS.create({blocked,getTargets:()=>activeEnemies().filter(enemy=>enemy.alive&&!enemy.duel),getActor:()=>player,getAbility:actor=>window.V4_RPG.members[actor.id]?.ability||actor.id,getSwordImage:()=>extraSheets.sword,getTowelImage:()=>extraSheets.towel,getGrenadeImage:()=>extraSheets.grenade, onSound:kind=>V4_SFX.play(kind),onHit:(id,hit)=>{
+   combat.hit(hit.target,{...hit,strength:window.V4_RPG.members[hit.owner]?V4_RPG.stats(hit.owner).strength:0});
  }});} powers=makePowers();
  // Scene scripts (Vegas pool party, Panthers Stadium and Field) drive their actors through this host.
  const scripts=window.V8_SCENE_SCRIPTS.create({
@@ -162,6 +165,7 @@
   joined:id=>!!V4_RPG.members[id]?.joined
  });
  const powerButton=$('power'),powerLabel=$('power-label'),powerHint=$('power-hint');
+ cameraFocus=id=>scripts.focus(id);
  function paintPower(){
   const power=window.FAMILY_POWERS.definitions[window.V4_RPG.members[player.id].ability];powerButton.hidden=!power||town.id==='world';
   if(!power)return;
@@ -244,7 +248,10 @@
   const row=small?(!dino.alive?5:dino.flash>0?4:dino.moving?1:0):dilo?(!dino.alive?6:dino.flash>0?5:dino.windup>0?3:dino.attackPose>0?4:dino.moving?(dino.mode==='chase'?2:1):0):{down:0,left:1,right:2,up:3}[dino.direction]+(dino.moving?4:0);
   ctx.save();ctx.translate(Math.round(dino.x),Math.round(dino.y));
   if(dino.mode==='retreat'){ctx.globalAlpha=Math.min(1,Math.max(0,(2.8-dino.defeatAge)/.4));if(dino.defeatAge<.4&&!reduced.matches)ctx.translate(Math.sin(dino.defeatAge*60)*2,0);}
-  ctx.fillStyle='#182b3655';ctx.beginPath();ctx.ellipse(0,0,profile.size?size*.2:17,profile.size?size*.06:5,0,0,Math.PI*2);ctx.fill();
+  // Flyers hover (species `hover`) with a gentle bob; scripts can lift (`lift`) and enlarge (`scale`) one for a flyby.
+  const scale=dino.scale||1,float=(profile.hover?profile.hover+Math.sin(dino.stars*3)*3:0)+(dino.lift||0);
+  ctx.fillStyle='#182b3655';ctx.beginPath();ctx.ellipse(0,0,(profile.size?size*.2:17)*scale,(profile.size?size*.06:5)*scale,0,0,Math.PI*2);ctx.fill();
+  ctx.translate(0,-float);if(scale!==1)ctx.scale(scale,scale);
   if(dino.mode==='chase'){
    ctx.fillStyle='#ffde87';ctx.font='bold 14px system-ui';ctx.textAlign='center';ctx.fillText('!',0,top);
   }
@@ -581,12 +588,14 @@
  // Scripted actors: a pose clip (surprised, hurt, …) drawn through the cinematic director's pose renderer when set,
  // otherwise the normal walk sprite, lifted for the Panthers' flying tackles.
  function drawScripted(a){
-  const x=Math.round(a.x),y=Math.round(a.y)-(a.lift||0);
-  ctx.fillStyle='#182b3645';ctx.beginPath();ctx.ellipse(Math.round(a.x),Math.round(a.y),13,4,0,0,Math.PI*2);ctx.fill();
-  if(a.pose&&V5_CINEMA.drawPose(ctx,a.id,a.pose,x,y,a.poseTime,{flip:a.direction==='left'&&!!cast[a.id]?.mirrorLeft}))return;
+  const x=Math.round(a.x),y=Math.round(a.y)-(a.lift||0),scaled=a.scale&&a.scale!==1;
+  ctx.fillStyle='#182b3645';ctx.beginPath();ctx.ellipse(Math.round(a.x),Math.round(a.y),13*(a.scale||1),4*(a.scale||1),0,0,Math.PI*2);ctx.fill();
+  if(scaled){ctx.save();ctx.translate(x,y);ctx.scale(a.scale,a.scale);ctx.translate(-x,-y);}
+  if(a.pose&&V5_CINEMA.drawPose(ctx,a.id,a.pose,x,y,a.poseTime,{flip:a.direction==='left'&&(!!cast[a.id]?.mirrorLeft||!!a.flipLeft)})){if(scaled)ctx.restore();return;}
   const c=cast[a.id],walking=characterWalkPose(c,a.direction,a.moving);
   ctx.save();ctx.translate(x,y-30);if(walking.flip)ctx.scale(-1,1);
   ctx.drawImage(sheets[a.id],(a.moving?a.frame:1)*64,walking.row*64,64,64,-c.foot.x,30-c.foot.y,64,64);ctx.restore();
+  if(scaled)ctx.restore();
  }
  function drawSmallActor(a){
   if(a.pose&&extraSheets[a.id+'Poses']){
@@ -663,5 +672,5 @@
  });
  V5_EVENTS.attach({scene:()=>town.id,atMeeting:()=>Math.hypot(player.x-768,player.y-865)<150,atBanquet:()=>Math.hypot(player.x-768,player.y-760)<56,
   resumeGary(){if(!select('gary'))throw new Error('Gary could not resume after the banquet.');},reset:resetInput,notify:toast,refresh:()=>{refreshParty();updateNearby();paintPower();}});
- window.GAME={get ready(){return loaded&&!changing;},get busy(){return mapOpen()||playerCombat.locked||storyBusy()||!!joining||!!pendingRecruit||flight.state.active;},get state(){return{scene:town.id,player:{...player},travel:travel.model()?.state||null,map:mapOpen(),playerCombat:playerCombat.state,incoming:attacks.state,actors:V4_STORY.actors(town.id,town.id==='recreation'?recreation.actors(player):[],player.id),joining:joining&&{...joining},story:V5_EVENTS.state,cinema:V5_CINEMA.state,companions:companions.state,flight:flight.state,recreation:recreation.state,powers:powers.state,unicorn:unicorn.state,dinosaur:dino&&{...dino},enemies:encounterEnemies().map(enemy=>({...enemy,prey:enemy.prey?enemy.prey.id:null})),script:scripts.state(town.id),scriptActors:scripts.actors(town.id).map(a=>({id:a.id,x:a.x,y:a.y,pose:a.pose,state:a.state||null})),combat:combat.state,gimmicks:gimmicks.state,squirrel:{...squirrel},camera:V5_CINEMA.active&&V5_CINEMA.state.camera||{...camera,scale:viewScale},nearest:nearest?.id||null,viewport:{width:canvas.width,height:canvas.height},dialog:$('dialog').open,menu:window.V4_MENU.active,input:{joy:{...joy},touchRun,keys:[...keys]}};},select,blocked};
+ window.GAME={get ready(){return loaded&&!changing;},get busy(){return mapOpen()||playerCombat.locked||storyBusy()||!!joining||!!pendingRecruit||flight.state.active;},get state(){return{scene:town.id,player:{...player},travel:travel.model()?.state||null,map:mapOpen(),playerCombat:playerCombat.state,incoming:attacks.state,actors:V4_STORY.actors(town.id,town.id==='recreation'?recreation.actors(player):[],player.id),joining:joining&&{...joining},story:V5_EVENTS.state,cinema:V5_CINEMA.state,companions:companions.state,flight:flight.state,recreation:recreation.state,powers:powers.state,unicorn:unicorn.state,dinosaur:dino&&{...dino},enemies:encounterEnemies().map(enemy=>({...enemy,prey:enemy.prey?enemy.prey.id:null})),script:scripts.state(town.id),scriptActors:scripts.actors(town.id).map(a=>({id:a.id,x:a.x,y:a.y,pose:a.pose,state:a.state||null,scale:a.scale||1,lift:a.lift||0})),combat:combat.state,gimmicks:gimmicks.state,squirrel:{...squirrel},camera:V5_CINEMA.active&&V5_CINEMA.state.camera||{...camera,scale:viewScale},nearest:nearest?.id||null,viewport:{width:canvas.width,height:canvas.height},dialog:$('dialog').open,menu:window.V4_MENU.active,input:{joy:{...joy},touchRun,keys:[...keys]}};},select,blocked};
 })();

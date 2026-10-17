@@ -190,6 +190,17 @@
    swarms:[{kind:'compy',count:16}],
    hint:'Wander the casino floor. Machines, tables and fountains are solid; the lobby doors south return to the Strip.'},
 
+  // ---- Niagara Falls (1448x1086) ------------------------------------------------------------------------------------
+  // The observation plaza: Josh holds off a flock of pterodactyls until a giant one carries him away (scene-scripts.js).
+  zone({id:'niagara',name:'Niagara Falls · Observation Plaza',art:'scene.niagara',region:'Niagara Falls',music:'nyc',worldSite:'niagara',spawn:{x:724,y:1000},
+   paths:[],
+   polygons:[[[90,640],[1340,640],[1410,720],[1420,850],[1100,880],[1100,1070],[390,1070],[390,880],[30,850],[20,720]]],
+   obstacles:[],blockedPolygons:[],
+   exits:[portal('niagara-earth','↓ Earth · Return to your jet',724,1045,'world',...earth(31,25),'down',rect(400,1032,700,22,'down'))],
+   points:[{id:'niagara-falls',name:'Overlook · Horseshoe Falls',x:724,y:760,radius:55,text:'Mist rolls off Horseshoe Falls below the stone balustrade. The south steps return to your jet.'}],
+   enemies:[{kind:'pterodactyl',x:300,y:760},{kind:'pterodactyl',x:1150,y:760},{kind:'pterodactyl',x:520,y:900},{kind:'pterodactyl',x:950,y:900},{kind:'pterodactyl',x:420,y:690},{kind:'pterodactyl',x:1030,y:690},{kind:'pterodactyl',x:724,y:700,scripted:true,duel:true}],
+   hint:'Josh is fighting a flock of pterodactyls on the overlook. The south steps return to Earth.'}),
+
   // ---- Charlotte (1448x1086) --------------------------------------------------------------------------------------
   // Panthers Stadium concourse (Kelce and Taylor's rescue) and the field (Bryce and the Panthers vs. the dinosaurs).
   zone({id:'panthers-stadium',name:'Charlotte · Panthers Stadium',art:'scene.panthers-stadium',region:'Charlotte',music:'stadium',worldSite:'charlotte',spawn:{x:724,y:1000},
