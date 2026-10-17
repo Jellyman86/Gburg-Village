@@ -88,7 +88,7 @@
  }
 
  // "Bryce Young Shocked Sprite.png" → "surprised": drop the character's name and the word Sprite, map common synonyms.
- const POSE_SYNONYMS={shocked:'surprised',startled:'surprised',startle:'surprised',talking:'talk',speaking:'talk',fainting:'faint',fainted:'faint',laughing:'laugh',celebrating:'win',celebrate:'win',victory:'win',hurting:'hurt',injured:'hurt',interacting:'interact'};
+ const POSE_SYNONYMS={shocked:'surprised',suprised:'surprised',supprised:'surprised',suprise:'surprised',surprise:'surprised',startled:'surprised',startle:'surprised',talking:'talk',speaking:'talk',fainting:'faint',fainted:'faint',laughing:'laugh',celebrating:'win',celebrate:'win',victory:'win',hurting:'hurt',injured:'hurt',interacting:'interact'};
  function guessPose(fileName){
   const id=targetId(),c=existingCharacter();
   let words=fileName.replace(/\.[a-z0-9]+$/i,'').toLowerCase().split(/[^a-z0-9]+/).filter(Boolean);
@@ -131,6 +131,8 @@
     if(kind==='walk')$('c-offset').value=String(canvas.height/CELL>=8?4:0);
    }
    setDirty(true);
+   // A fixed layout error must not linger in the status bar.
+   if($('status').classList.contains('error'))status('Layout OK — '+(source?.name||'')+' · '+(det?.cells.length||0)+' drawings.','ok');
   }catch(error){status(error.message,'error');}
   renderAll();
  }
