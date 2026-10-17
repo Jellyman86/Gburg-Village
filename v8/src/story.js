@@ -23,7 +23,8 @@
   alex:'Las Vegas · the Encore pool party north of the Strip. Save Drew and Alex from the dinosaurs.',
   kelce:'Charlotte · Panthers Stadium concourse. Clear out the compies chasing Kelce and Taylor.',
   taylor:'Charlotte · Panthers Stadium concourse. Clear out the compies chasing Kelce and Taylor.',
-  'bryce-young':'Charlotte · Panthers Field, through the stadium tunnel. Help Bryce and the Panthers clear the field.'
+  'bryce-young':'Charlotte · Panthers Field, through the stadium tunnel. Help Bryce and the Panthers clear the field.',
+  manny:'The Philippines · the plaza by the fountain. Watch Manny fight the Pachycephalosaurus.'
  };
  function objective(){
   if(window.V5_EVENTS)return V5_EVENTS.objective();

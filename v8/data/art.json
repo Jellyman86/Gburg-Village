@@ -380,6 +380,24 @@
    "width": 192,
    "height": 64
   },
+  "character.josh.attack": {
+   "file": "characters/josh-attack.png",
+   "hash": "5c64a21df94b37c2ad2ff8ce2a67b0e75967473bef17f1baf60896aeff8a206a",
+   "width": 256,
+   "height": 64
+  },
+  "character.josh.special": {
+   "file": "characters/josh-special.png",
+   "hash": "563ca71d8eca946616c83d20573f980a8afe13c4a997e51f26b92082e844c64d",
+   "width": 256,
+   "height": 64
+  },
+  "character.josh.walk": {
+   "file": "characters/josh.png",
+   "hash": "4bcba484c50c09655271cb4446a23b1cd646844dfd138ed292f0bb59f11bb1b7",
+   "width": 256,
+   "height": 512
+  },
   "character.kate.walk": {
    "file": "characters/kate.png",
    "hash": "b0024cb6af6e27aa5dda899b7f93fdf46f1e0d224f965cbaacd2eaa3b25a9164",
@@ -403,6 +421,22 @@
    "hash": "bb0bdaf91822c8d99a69c9a73a2837237e21ee0f3bb6868587b1f90624fdfef9",
    "width": 256,
    "height": 64
+  },
+  "character.manny.punch-left": {
+   "file": "characters/manny-punch-left.png",
+   "hash": "abd61eebc099118036cd1b6b8e2e105df351ad79bdf54a2052616c2a38f680a0",
+   "width": 256,
+   "height": 64,
+   "source": "1017/Manny.png",
+   "sourceHash": "1abbab13ee099834a7d9d1935b943305dc6001a80cc3d7ab94a03cad6b20f550"
+  },
+  "character.manny.punch-right": {
+   "file": "characters/manny-punch-right.png",
+   "hash": "d41d0721f387f1906e0e656dbfc7aae6426afd4654e1f977942146fc676ef96b",
+   "width": 256,
+   "height": 64,
+   "source": "1017/Manny.png",
+   "sourceHash": "1abbab13ee099834a7d9d1935b943305dc6001a80cc3d7ab94a03cad6b20f550"
   },
   "character.manny.walk": {
    "file": "characters/manny.png",
@@ -597,6 +631,14 @@
    "hash": "a3352188860286db1a7a7045383c6f5e4def15cba1fdf8c4b69d9672dc8893d8",
    "width": 512,
    "height": 896
+  },
+  "dinosaur.pachycephalosaurus": {
+   "file": "dinosaurs/pachycephalosaurus.png",
+   "hash": "dd6b987f73ed3c0801c2badf99182d1bbe357b019aeb7a365f750442bc829b8f",
+   "width": 512,
+   "height": 1024,
+   "source": "1017/Pachycephalosaurus.png",
+   "sourceHash": "2e0a5837809486a0277175fefb2c84bf85fc4d1a8bbb519fd62afcb8e4be6193"
   },
   "dinosaur.pterodactyl": {
    "file": "dinosaurs/pterodactyl.png",
@@ -829,6 +871,12 @@
   "portrait.jeff": {
    "file": "portraits/jeff.png",
    "hash": "c1ea97068fe6e273a737ab739d33dccf2b344a6b949081f4786f6f3e3f7cadf0",
+   "width": 128,
+   "height": 128
+  },
+  "portrait.josh": {
+   "file": "portraits/josh.png",
+   "hash": "d781ef281bbdda487b206610fc92496de13a745243a680a1f216125d2b5f1a27",
    "width": 128,
    "height": 128
   },
@@ -1160,6 +1208,38 @@
    "width": 256,
    "height": 32
   },
+  "world.hawaii-icon": {
+   "file": "world/hawaii-icon.png",
+   "hash": "a9b1cb6065f08624e553e1b6cdb86022481e4b83fe52bf029b078ac7961c1f24",
+   "width": 172,
+   "height": 160,
+   "source": "1017/Worldmap Sprite - Hawaii.png",
+   "sourceHash": "e6507cfd3cfdc7bf2c64ae19e81edf9c0948f63a729ac643c1d8296f7f5ee966"
+  },
+  "world.italy-icon": {
+   "file": "world/italy-icon.png",
+   "hash": "4e9956e5649a29e6b48432ebc0dfa0826dd4ac59e4c74b70810871e02e70a4f8",
+   "width": 192,
+   "height": 127,
+   "source": "1017/Worldmap - Italy.png",
+   "sourceHash": "df72d29507c031f326d54fb39d427b4aad1c1c103df6faf3255f988978be3c11"
+  },
+  "world.japan-icon": {
+   "file": "world/japan-icon.png",
+   "hash": "8d4c2efaf964a7699f6b1a7c4ffca358622962f6bc9dadcf1e97d7a546a5ca26",
+   "width": 191,
+   "height": 128,
+   "source": "1017/Worldmap - Japan.png",
+   "sourceHash": "74ec490e936df0e91eca49c893ade355df63325a8a7a500a55d97af1e543bfa1"
+  },
+  "world.manila-icon": {
+   "file": "world/manila-icon.png",
+   "hash": "6eeaf73000e3dfad9898b8c6862f6a8dde2fc807f17289b6c71893d750ece260",
+   "width": 150,
+   "height": 128,
+   "source": "1017/Worldmap Sprite - Manila.png",
+   "sourceHash": "538b861b77c6ef5a15059f950fe9ed48c3231a7f54f45d30d8be5b6170ffcb31"
+  },
   "world.nyc-buildings": {
    "file": "world/nyc-buildings.png",
    "hash": "a734cf155f04f7cb1c2f0fed2a14d318f938e1de26e65184688b12cdb3f66588",
@@ -1189,6 +1269,14 @@
    "hash": "ad3632ea7e54ef9285791adfbb98e1329fbce467ae07fe50a7f0363cd7f576ce",
    "width": 1024,
    "height": 768
+  },
+  "world.paris-icon": {
+   "file": "world/paris-icon.png",
+   "hash": "2bab1fb2d89c3548c9340048b40ef0f8f8387801690c1caf5c6fc86cf06e50ed",
+   "width": 192,
+   "height": 126,
+   "source": "1017/Worldmap Sprite - Paris.png",
+   "sourceHash": "171f2aafd9a7c48770280ee18deb39c69bf8cd872b0bb2ebf317bede94a016ff"
   },
   "world.plane": {
    "file": "world/plane.png",

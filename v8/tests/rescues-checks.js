@@ -17,7 +17,7 @@ return async function checkRescues(page,{width,height,touch,artifactDir}={}){
  const screenshot=async name=>{if(artifactDir)await page.screenshot({path:artifactDir+'\\v8-'+name+'-'+width+'x'+height+'.png'});};
  const state=()=>page.evaluate(()=>GAME.state);
  const closeDialog=async()=>{await page.evaluate(()=>{const d=document.getElementById('dialog');if(d.open)d.close();});await page.evaluate(()=>new Promise(r=>setTimeout(r,0)));};
- const enter=async(id,x,y)=>{await page.evaluate(([id,x,y])=>GAME.test.enterScene(id,[x,y]),[id,x,y]);await page.waitForFunction(id=>GAME.state.scene===id&&GAME.ready,id);await page.waitForTimeout(150);};
+ const enter=async(id,x,y)=>{await page.evaluate(([id,x,y])=>{GAME.test.enterScene(id,[x,y]);},[id,x,y]);await page.waitForFunction(id=>GAME.state.scene===id&&GAME.ready,id);await page.waitForTimeout(150);};
  // Hosted MP3s take a moment to start, so wait for the place rather than asserting instantly.
  const music=async(place,message)=>{await page.waitForFunction(p=>V8_MUSIC.state.mode===p,place,{timeout:15000}).catch(()=>{throw new Error(message);});};
  const defeatAll=async()=>{await page.evaluate(()=>{for(const e of GAME.test.enemies())if(e.alive&&!e.hidden)GAME.test.defeat(e);});};
@@ -46,8 +46,8 @@ return async function checkRescues(page,{width,height,touch,artifactDir}={}){
   assert(s.enemies.filter(e=>e.kind==='compy'&&!e.scripted&&!e.hidden).length>=14,'Vegas is overrun with compies (pool party deck)');
   await page.evaluate(()=>{for(const e of GAME.test.enemies())if(!e.scripted&&e.alive)GAME.test.defeat(e);});
   assert(s.scriptActors.length===2&&s.scriptActors.every(a=>!a.pose),'Drew and Alex wait by the stage');
-  assert(s.enemies.filter(e=>e.scripted).length===5&&s.enemies.filter(e=>e.scripted).every(e=>e.hidden),'Scripted dinosaurs are hidden until triggered');
-  assert(s.enemies.filter(e=>e.kind==='trex'&&e.scripted).length===2,'Two T. rexes crash the pool party');
+  assert(s.enemies.filter(e=>e.scripted).length===4&&s.enemies.filter(e=>e.scripted).every(e=>e.hidden),'Scripted dinosaurs are hidden until triggered');
+  assert(s.enemies.filter(e=>e.kind==='trex'&&e.scripted).length===1,'One T. rex crashes the pool party');
   await music('vegas-north','Pool party plays its own music place');
   await page.evaluate(()=>GAME.test.position(790,330));
   await page.waitForFunction(()=>GAME.state.script.phase==='shock',null,{timeout:5000});
@@ -83,7 +83,8 @@ return async function checkRescues(page,{width,height,touch,artifactDir}={}){
    const crowd=await state();
    assert(crowd.enemies.filter(e=>e.kind==='compy'&&!e.hidden).length>=16,id+' is overrun with compies');
    if(id==='vegas-central')assert(crowd.enemies.some(e=>e.kind==='brontosaurus'&&e.alive),'A Brontosaurus lumbers through Vegas Central');
-   if(id==='vegas-east')assert(crowd.enemies.some(e=>e.kind==='triceratops'&&e.alive)&&crowd.enemies.some(e=>e.kind==='stegosaurus'&&e.boss&&e.alive&&!e.hidden),'A Triceratops and the Stegosaurus boss guard the Sphere plaza');
+   if(id==='vegas-east')assert(!crowd.enemies.some(e=>e.kind==='triceratops')&&crowd.enemies.some(e=>e.kind==='stegosaurus'&&e.boss&&e.alive&&!e.hidden),'The Stegosaurus boss guards the Sphere plaza (the Triceratops moved west)');
+   if(id==='vegas-west')assert(crowd.enemies.some(e=>e.kind==='triceratops'&&e.alive),'A Triceratops roams the casino floor');
   }
   // ---- Charlotte · Panthers Stadium ---------------------------------------------------------------------------------
   await enter('panthers-stadium',724/1448*1000,1000/1086*1000);
@@ -120,7 +121,7 @@ return async function checkRescues(page,{width,height,touch,artifactDir}={}){
   assert(team('panthersplayer',true)===3&&team('chiefsplayer',true)===5,'Hurt Panthers and Chiefs are sprinkled around the field');
   assert(s.scriptActors.some(a=>a.id==='bryce-young'),'Bryce Young is on the field');
   assert(s.enemies.some(e=>e.kind==='spinosaurus'&&e.hidden&&e.boss)&&s.script.boss&&s.script.boss.hidden,'The Spinosaurus waits, hidden, until the field is clear');
-  assert(await page.evaluate(()=>{const sp=V6_COMBAT.species;return sp.spinosaurus.hp===sp.trex.hp*2.5&&sp.spinosaurus.size>128&&sp.spinosaurus.height>sp.trex.height&&sp.brontosaurus.size>128&&sp.brontosaurus.hp===320&&sp.stegosaurus.size>128&&sp.stegosaurus.hp>=sp.trex.hp*3;}),'The Spinosaurus has 2.5 T. rexes of health and is drawn bigger than a T. rex; the Brontosaurus has doubled health; the Stegosaurus is a 3 T. rex boss');
+  assert(await page.evaluate(()=>{const sp=V6_COMBAT.species;return sp.spinosaurus.hp===sp.trex.hp*2.5&&sp.spinosaurus.size>128&&sp.spinosaurus.height>sp.trex.height&&sp.brontosaurus.size>128&&sp.brontosaurus.hp===256&&sp.stegosaurus.size>128&&sp.stegosaurus.hp===264&&sp.stegosaurus.hp>=sp.trex.hp*2.4;}),'The Spinosaurus has 2.5 T. rexes of health and is drawn bigger than a T. rex; the Brontosaurus and Stegosaurus are tough bosses');
   await music('field','Field plays the NFL theme place');
   await page.waitForFunction(()=>GAME.state.powers.casts.some(c=>c.kind==='football'&&c.owner==='bryce-young')||GAME.state.combat.lastHit,null,{timeout:12000});
   await page.evaluate(()=>GAME.test.position(724,760));
@@ -145,6 +146,35 @@ return async function checkRescues(page,{width,height,touch,artifactDir}={}){
   await page.waitForFunction(()=>['thanks','done'].includes(GAME.state.script.phase),null,{timeout:8000});
   await closeDialog();
   assert(await page.evaluate(()=>V4_RPG.members['bryce-young'].joined&&!V4_RPG.members.panthersplayer&&!V4_RPG.members.chiefsplayer),'Bryce Young becomes playable; the generic player does not');
+  // ---- The Philippines · Manny vs. the Pachycephalosaurus ----------------------------------------------------------
+  assert(await page.evaluate(()=>V8_TRAVEL.sites.filter(s=>['paris','italy','japan','hawaii','philippines'].includes(s.id)).every(s=>s.icon)),'Paris, Italy, Japan, Hawaii and the Philippines have world-map icons');
+  assert(await page.evaluate(()=>!V4_RPG.members.manny.joined&&FAMILY_POWERS.definitions.manny.kind==='punch'),'Manny starts unrecruited with a punch power');
+  await enter('philippines',775/1448*1000,1010/1086*1000);
+  await page.waitForTimeout(1000);
+  assert((await state()).script.phase==='idle','The duel waits until you walk up to the arena');
+  await page.evaluate(()=>GAME.test.position(700,790));
+  await page.waitForFunction(()=>GAME.state.script&&GAME.state.script.phase==='fight',null,{timeout:8000});
+  s=await state();
+  assert(s.script.boss&&s.script.boss.alive&&s.script.boss.maxHP===240,'The Pachycephalosaurus boss is in the arena');
+  assert(s.scriptActors.some(a=>a.id==='manny'),'Manny is in the arena');
+  for(let round=0;round<3;round++){
+   await page.waitForFunction(r=>GAME.state.script.step==='down'&&GAME.state.script.round===r,round,{timeout:30000});
+   s=await state();
+   assert(s.scriptActors.find(a=>a.id==='manny').pose==='hurt'&&s.script.boss.alive,'Manny is knocked down (round '+(round+1)+') but the dinosaur still stands');
+   if(round===0)await screenshot('manny-knockdown');
+  }
+  s=await state();
+  assert(s.script.boss.hp===60,'Three exchanges leave the dinosaur on its last legs (hp '+s.script.boss.hp+')');
+  await page.waitForFunction(()=>GAME.state.script.phase==='celebrate',null,{timeout:30000});
+  s=await state();
+  assert(!s.script.boss.alive&&s.scriptActors.find(a=>a.id==='manny').pose==='win','Manny wins the duel and strikes his win pose');
+  await page.waitForFunction(()=>['thanks','done'].includes(GAME.state.script.phase),null,{timeout:8000});
+  await closeDialog();
+  assert(await page.evaluate(()=>V4_RPG.members.manny.joined),'Manny becomes playable after the duel');
+  await page.evaluate(()=>GAME.select('manny'));await page.waitForTimeout(100);
+  await page.waitForFunction(()=>!GAME.state.joining&&!GAME.busy&&GAME.test.activate(),null,{timeout:8000}).catch(()=>{throw new Error('Manny can punch');});
+  await screenshot('manny-punch');
+  await page.evaluate(()=>GAME.select('coco'));
   // Return trips
   await enter('panthers-stadium',724/1448*1000,200/1086*1000);
   await page.waitForFunction(()=>GAME.state.script.phase==='done'&&GAME.state.scriptActors.length===0,null,{timeout:6000});

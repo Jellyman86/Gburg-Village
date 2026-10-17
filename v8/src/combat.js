@@ -12,8 +12,10 @@
   // Big sheets: `size` is the sheet cell, `hitRadius` widens the target for projectiles and melee, `barWidth` the health bar.
   // Boss-class tuning: `sight` (px) is how far away they notice you, `chaseTime`/`restTime` (s) how long they hunt and rest,
   // `aggressive` skips the idle delay a fresh dinosaur normally has, `speed` scales walking and chase speed.
-  brontosaurus:Object.freeze({hp:320,armor:4,outcome:'retreat',height:128,size:192,hitRadius:36,markHeight:140,barWidth:56,speed:.85,sight:340,chaseTime:11,restTime:5,aggressive:true,sound:'hurt-ankylosaurus'}),
-  stegosaurus:Object.freeze({hp:330,armor:5,outcome:'retreat',height:120,size:224,hitRadius:40,markHeight:135,barWidth:70,speed:.9,sight:380,chaseTime:11,restTime:4,aggressive:true,sound:'hurt-ankylosaurus'}),
+  brontosaurus:Object.freeze({hp:256,armor:4,outcome:'retreat',height:128,size:192,hitRadius:36,markHeight:140,barWidth:56,speed:.85,sight:340,chaseTime:11,restTime:5,aggressive:true,sound:'hurt-ankylosaurus'}),
+  stegosaurus:Object.freeze({hp:264,armor:5,outcome:'retreat',height:120,size:224,hitRadius:40,markHeight:135,barWidth:70,speed:.9,sight:380,chaseTime:11,restTime:4,aggressive:true,sound:'hurt-ankylosaurus'}),
+  // The Philippines boss: a headbutting brawler for Manny to punch. Quick on its feet, drawn between a raptor and a T. rex.
+  pachycephalosaurus:Object.freeze({hp:240,armor:3,outcome:'retreat',height:104,size:128,hitRadius:30,markHeight:112,barWidth:54,speed:1.1,sight:500,chaseTime:99,restTime:1,aggressive:true,sound:'hurt-trex'}),
   // The Panthers Field boss: 2.5 T. rexes of health, drawn well above T. rex size, and relentless.
   spinosaurus:Object.freeze({hp:275,armor:2,outcome:'retreat',height:170,size:224,hitRadius:44,markHeight:190,barWidth:84,speed:1.05,sight:700,chaseTime:99,restTime:1,aggressive:true,sound:'hurt-trex'})
  });
@@ -35,7 +37,9 @@
   function hit(enemy,{power,strength=0,x,y,dx,dy,serial,owner}){
    if(!enemy.alive||enemy.hidden)return false;
    if(!Number.isFinite(power.damage)||power.damage<=0||!Number.isFinite(strength))throw new Error('Invalid attack damage.');
-   const profile=species[enemy.kind],amount=Math.min(enemy.hp,Math.max(1,Math.round(power.damage+strength*.25-profile.armor)));
+   // Scripted duels pin a fighter at `hpFloor` so the choreography, not stray hits, decides when it falls.
+   const profile=species[enemy.kind],amount=Math.min(enemy.hp-(enemy.hpFloor||0),Math.max(1,Math.round(power.damage+strength*.25-profile.armor)));
+   if(amount<=0)return false;
    const distance=Math.hypot(enemy.x-x,enemy.y-y);
    const direction=power.kind==='wave'||power.kind==='song'||power.kind==='tornado'?{x:distance?(enemy.x-x)/distance:dx,y:distance?(enemy.y-y)/distance:dy}:{x:dx,y:dy};
    enemy.hp-=amount;enemy.flash=.16;enemy.bar=2;enemy.stunned=.24;enemy.windup=0;enemy.attackPose=0;enemy.aim=null;enemy.attackCooldown=Math.max(enemy.attackCooldown,1.2);

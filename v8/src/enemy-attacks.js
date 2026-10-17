@@ -11,6 +11,7 @@
   // Boss-class dinosaurs hit hard and from farther away (their sprites are huge, so a 70 px reach felt like a miss).
   brontosaurus:{damage:24,range:105,windup:.55,cooldown:2.6},
   stegosaurus:{damage:28,range:105,windup:.6,cooldown:2.6},
+  pachycephalosaurus:{damage:26,range:80,windup:.5,cooldown:2.4},
   spinosaurus:{damage:34,range:105,windup:.5,cooldown:2.2}
  });
  function create({getActor,blocked,onHit,onSound,isActive=()=>true}){

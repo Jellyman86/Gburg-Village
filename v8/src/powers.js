@@ -22,9 +22,10 @@
   taylor:{name:'Singing shockwaves',label:'Sing',kind:'song',cooldown:.85,duration:1.25,range:125},
   drew:{name:'Singing shockwaves',label:'Sing',kind:'song',cooldown:.85,duration:1.25,range:125},
   alex:{name:'Singing shockwaves',label:'Sing',kind:'song',cooldown:.85,duration:1.25,range:125},
+  manny:{name:'Boxing combo',label:'Punch',kind:'punch',cooldown:.24,duration:.32,range:54,damage:24},
   sword:{name:'Sword slash',label:'Slash',kind:'sword',cooldown:.6,duration:.45,range:55},
   grenade:{name:'Grenade toss',label:'Grenade',kind:'grenade',cooldown:.6,duration:1.45,range:80,speed:175}
- }).map(([id,power])=>[id,Object.freeze({...power,damage:({punch:16,football:18,wave:12,song:12,kick:18,plane:16,martini:18,racket:18,turtle:20,salad:16,flip:20,tornado:16,towel:20,baseball:18,soccer:18,blaster:26,sword:24,grenade:34})[power.kind],
+ }).map(([id,power])=>[id,Object.freeze({...power,damage:power.damage??({punch:16,football:18,wave:12,song:12,kick:18,plane:16,martini:18,racket:18,turtle:20,salad:16,flip:20,tornado:16,towel:20,baseball:18,soccer:18,blaster:26,sword:24,grenade:34})[power.kind],
   sound:({punch:'strike',kick:'strike',flip:'strike',racket:'slash',sword:'slash',towel:'whip',wave:'wave',song:'wave',tornado:'swirl',blaster:'blast'})[power.kind]||'throw'})])));
  const directions={down:{x:0,y:1},left:{x:-1,y:0},right:{x:1,y:0},up:{x:0,y:-1}};
  const projectile=power=>!!power.speed;

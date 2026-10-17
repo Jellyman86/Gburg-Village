@@ -196,7 +196,83 @@
   };
  }
 
- const scripts={'vegas-north':vegasNorth,'panthers-stadium':panthersStadium,'panthers-field':panthersField};
+ // ---- The Philippines · Manny vs. the Pachycephalosaurus ----------------------------------------------------------------
+ // A staged duel beside the plaza fountain; the player can roam but cannot interfere (the dinosaur is `duel`: ignored by
+ // the player's powers and by enemy attacks). Manny trades punches, is headbutted to the ground three times, then lands
+ // a finishing flurry, strikes his win pose and joins the party. `hpFloor` pins the dinosaur until the finale.
+ function philippines(host){
+  const manny=actor('manny',500,710,{direction:'right'}),baseX=500,rounds=3;
+  let phase='idle',step='charge',clock=0,round=0,punches=0,backed=false,lunged=false,fallX=0,set=false;
+  const pachy=()=>host.enemies().find(e=>e.duel);
+  const gap=()=>manny.x+78;
+  // Slide a dinosaur sideways toward tx, animating its legs; true once it has arrived.
+  function approach(e,tx,speed,dt){
+   const d=tx-e.x;
+   if(Math.abs(d)<3){e.moving=false;return true;}
+   e.x+=Math.sign(d)*Math.min(Math.abs(d),speed*dt);e.direction=d<0?'left':'right';e.facing=d<0?-1:1;e.moving=true;e.clock+=dt*13;
+   return false;
+  }
+  function jab(p,damage){
+   manny.pose='punch-right';manny.poseTime=0;manny.direction='right';manny.moving=false;
+   host.hitEnemy(p,{x:manny.x,y:manny.y,dx:1,dy:0},damage);host.sound('strike');
+  }
+  const go=(next)=>{step=next;clock=0;punches=0;backed=false;lunged=false;};
+  return {
+   actors(){return phase==='done'?[]:[manny];},
+   update(dt){
+    const p=pachy();if(!p)return;
+    if(!set){
+     set=true;p.hpFloor=60;p.direction='left';p.facing=-1;
+     if(host.joined('manny')){p.alive=false;p.hidden=true;phase='done';}
+    }
+    clock+=dt;manny.poseTime+=dt;
+    if(manny.pose&&manny.pose.startsWith('punch')&&manny.poseTime>.35)manny.pose=null;
+    if(phase==='idle'){
+     if(clock>.5&&dist(host.player,manny)<340){phase='fight';go('charge');host.sound('roar');host.toast('Manny squares off with a Pachycephalosaurus!');}
+    }else if(phase==='fight'){
+     if(step==='charge'){
+      if(approach(p,gap(),240,dt)&&clock>.4)go(round<rounds?'trade':'flurry');
+     }else if(step==='trade'){
+      if(!p.alive)return;
+      approach(p,gap(),200,dt);
+      if(punches===0&&clock>.25){jab(p,33);punches=1;}
+      else if(punches===1&&clock>.8){jab(p,33);punches=2;}
+      else if(punches===2&&clock>1.3)go('butt');
+     }else if(step==='butt'){
+      // The dinosaur rears back, then lunges and knocks Manny flat.
+      if(!lunged){
+       if(approach(p,gap()+90,220,dt)){backed=true;}
+       if(backed&&clock>1)lunged=true;
+      }else if(approach(p,manny.x+34,560,dt)){
+       go('down');fallX=manny.x;setPose(manny,'hurt');host.sound('impact');
+      }
+     }else if(step==='down'){
+      const to=fallX-70;if(!host.blocked(to,manny.y))manny.x+=(to-manny.x)*Math.min(1,dt*9);
+      approach(p,manny.x+170,150,dt);
+      if(clock>2.2){round++;manny.pose=null;go('rise');}
+     }else if(step==='rise'){
+      approach(p,baseX+170,150,dt);
+      if(walkTo(manny,baseX,710,120,dt,host.blocked)){manny.direction='right';manny.moving=false;go('charge');}
+     }else if(step==='flurry'){
+      // The final combination: three jabs and a haymaker that drops it.
+      p.hpFloor=0;approach(p,gap(),200,dt);
+      const times=[.3,.65,1,1.6],damage=[18,18,18,200];
+      if(punches<4&&clock>times[punches]){jab(p,damage[punches]);punches++;}
+      if(!p.alive){phase='celebrate';clock=0;manny.direction='down';setPose(manny,'win');}
+     }
+    }else if(phase==='celebrate'){
+     if(clock>3.6){
+      phase='thanks';clock=0;manny.pose=null;manny.direction='down';
+      host.say('Manny',"Whoa — that thing hit like a truck! Thanks for hanging around. Got a few more rounds in me if you need a sparring partner.",'THE PHILIPPINES');
+      host.recruit('manny');
+     }
+    }else if(phase==='thanks'&&clock>2.5)phase='done';
+   },
+   get state(){const p=pachy();return {phase,step,round,boss:p?{alive:p.alive,hp:p.hp,maxHP:p.maxHP}:null};}
+  };
+ }
+
+ const scripts={'vegas-north':vegasNorth,'panthers-stadium':panthersStadium,'panthers-field':panthersField,philippines};
  function create(host){
   const running={};
   return {

@@ -118,7 +118,7 @@
    obstacles:[],blockedPolygons:[[[640,570],[820,570],[820,690],[640,690]]],
    exits:[portal('philippines-earth','↓ Earth · Return to your jet',785,1040,'world',...earth(115,43),'down',rect(700,1032,170,22,'down'))],
    points:[{id:'philippines-plaza',name:'Plaza · Island fiesta',x:735,y:760,radius:55,text:'Fiesta flags, market stalls and a jeepney by the church. The lagoon is not walkable; the south steps return to your jet.'}],
-   enemies:[{kind:'compy',x:480,y:640},{kind:'dilophosaurus',x:1020,y:640}],
+   enemies:[{kind:'compy',x:480,y:640},{kind:'dilophosaurus',x:1020,y:640},{kind:'pachycephalosaurus',x:960,y:710,boss:true,duel:true}],
    hint:'Explore the plaza, market and pier. Water, stalls and the fountain are solid. The south steps return to Earth.'}),
 
   // ---- Japan -----------------------------------------------------------------------------------------------------
@@ -164,7 +164,7 @@
    exits:[portal('sphere-central','← The Strip',40,900,'vegas-central',1440,565,'left',rect(14,840,22,160,'left'),VEGAS)],
    points:[{id:'vegas-sphere',name:'The Sphere · Light show',x:770,y:480,radius:60,text:'A galaxy swirls across the Sphere above the plaza. The twin fountains and planters are solid; the street west returns to the Strip.'}],
    // Boss: the Stegosaurus holds the Sphere plaza (visible from the start, permanent health bar).
-   enemies:[{kind:'compy',x:500,y:760},{kind:'dilophosaurus',x:1040,y:760},{kind:'triceratops',x:1100,y:600},{kind:'stegosaurus',x:1000,y:680,boss:true}],
+   enemies:[{kind:'compy',x:500,y:760},{kind:'dilophosaurus',x:1040,y:760},{kind:'stegosaurus',x:1000,y:680,boss:true}],
    swarms:[{kind:'compy',count:16}],
    hint:'Enjoy the light show on the plaza. The west street returns to the Strip; fountains and planters are solid.'},
   {id:'vegas-north',name:'Las Vegas · Encore pool party',art:'scene.vegas-north',width:1536,height:1024,ambientFlight:false,region:'Las Vegas',music:'vegas-north',worldSite:'vegas',spawn:{x:780,y:960},
@@ -177,7 +177,7 @@
     [[700,520],[860,520],[860,680],[700,680]]],
    exits:[portal('pool-central','↓ The Strip',780,1000,'vegas-central',760,95,'down',rect(660,992,240,22,'down'),VEGAS)],
    points:[{id:'vegas-stage',name:'Encore stage',x:790,y:290,radius:50,text:'The DJ booth glows over the pool. Cabanas and loungers line the deck; the pool itself is not walkable. The south gate returns to the Strip.'}],
-   enemies:[{kind:'raptor',x:420,y:290,scripted:true},{kind:'compy',x:1150,y:290,scripted:true},{kind:'compy',x:1150,y:800,scripted:true},{kind:'trex',x:300,y:800,scripted:true},{kind:'trex',x:1250,y:800,scripted:true}],
+   enemies:[{kind:'raptor',x:420,y:290,scripted:true},{kind:'compy',x:1150,y:290,scripted:true},{kind:'compy',x:1150,y:800,scripted:true},{kind:'trex',x:300,y:800,scripted:true}],
    swarms:[{kind:'compy',count:14}],
    hint:'Walk the deck around the pool; the water, cabanas and stage are solid. The south gate returns to the Strip.'},
   {id:'vegas-west',name:'Las Vegas · Casino floor',art:'scene.vegas-west',width:1536,height:1024,ambientFlight:false,region:'Las Vegas',music:'vegas',worldSite:'vegas',spawn:{x:800,y:970},
@@ -186,7 +186,7 @@
    obstacles:[],blockedPolygons:[[[700,560],[900,560],[900,720],[700,720]],[[640,190],[960,190],[960,330],[640,330]]],
    exits:[portal('casino-central','↓ The Strip',800,1000,'vegas-central',110,565,'down',rect(640,992,320,22,'down'),VEGAS)],
    points:[{id:'vegas-floor',name:'Casino floor · Fountain lounge',x:800,y:740,radius:55,text:'Slot banks, card tables and a fountain under the chandeliers. Machines, tables and the fountain are solid; the lobby doors south return to the Strip.'}],
-   enemies:[{kind:'compy',x:520,y:650},{kind:'compy',x:1080,y:650}],
+   enemies:[{kind:'compy',x:520,y:650},{kind:'compy',x:1080,y:650},{kind:'triceratops',x:600,y:800}],
    swarms:[{kind:'compy',count:16}],
    hint:'Wander the casino floor. Machines, tables and fountains are solid; the lobby doors south return to the Strip.'},
 

@@ -242,6 +242,16 @@
    "runSpeed": 205,
    "walkFPS": 8,
    "runFPS": 12,
+   "walkRowOffset": 4
+  },
+  "josh": {
+   "name": "Josh",
+   "walk": "character.josh.walk",
+   "portrait": "portrait.josh",
+   "speed": 120,
+   "runSpeed": 205,
+   "walkFPS": 8,
+   "runFPS": 12,
    "walkRowOffset": 4,
    "joined": true
   }
@@ -659,6 +669,31 @@
     "frames": 1,
     "fps": 6,
     "loop": false
+   },
+   "punch-right": {
+    "art": "character.manny.punch-right",
+    "frames": 4,
+    "fps": 14,
+    "loop": false
+   },
+   "punch-left": {
+    "art": "character.manny.punch-left",
+    "frames": 4,
+    "fps": 14,
+    "loop": false
+   }
+  },
+  "josh": {
+   "special": {
+    "art": "character.josh.special",
+    "frames": 1,
+    "fps": 6,
+    "loop": false
+   },
+   "attack": {
+    "art": "character.josh.attack",
+    "frames": 3,
+    "fps": 6
    }
   }
  },
