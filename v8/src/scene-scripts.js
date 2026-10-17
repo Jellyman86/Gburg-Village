@@ -90,52 +90,78 @@
   };
  }
 
- // ---- Charlotte · Panthers Field: Bryce and the Panthers vs. the dinosaurs ----------------------------------------
+ // ---- Charlotte · Panthers Field: the ultimate battle -----------------------------------------------------------------
+ // Wave 1: Bryce, seven Panthers and three Chiefs fight 20 compies, two T. rexes, raptors and a Dilophosaurus while the
+ // player roams free. Players lie hurt around the turf as set dressing and two fighters eventually fall.
+ // Wave 2: the Spinosaurus boss (a hidden, scripted enemy of the scene) crashes in as soon as the field is clear; whoever
+ // is still standing helps. Bryce joins the party when it falls.
  function panthersField(host){
-  const bryce=actor('bryce-young',724,720,{direction:'up'});
-  const fighters=[[540,620],[910,620],[540,780],[910,780]].map(([x,y],i)=>actor('panthersplayer',x,y,{home:{x,y},state:'wait',timer:i*.7,tackles:0,limit:i<2?Infinity:3+i}));
-  const down=[actor('panthersplayer',320,760,{pose:'hurt'}),actor('panthersplayer',1160,640,{pose:'hurt'})];
-  const props=[{x:380,y:640},{x:1110,y:760}]; // hurt-panther props on the turf
+  const bryce=actor('bryce-young',724,730,{direction:'up'});
+  const squad=[
+   ['panthersplayer',420,520],['panthersplayer',1030,520],['panthersplayer',480,690],['panthersplayer',980,690],
+   ['panthersplayer',340,610],['panthersplayer',1110,610],['panthersplayer',724,500],
+   ['chiefsplayer',590,560],['chiefsplayer',860,560],['chiefsplayer',724,640]
+  ];
+  const fall=new Set([4,8]); // one Panther and one Chief eventually go down; everyone else keeps charging
+  const fighters=squad.map(([id,x,y],i)=>actor(id,x,y,{home:{x,y},state:'wait',timer:i*.45,tackles:0,limit:fall.has(i)?4:Infinity}));
+  const down=[['panthersplayer',300,690],['panthersplayer',1170,520],['panthersplayer',640,760],
+   ['chiefsplayer',390,470],['chiefsplayer',560,740],['chiefsplayer',900,470],['chiefsplayer',1090,740],['chiefsplayer',790,660]]
+   .map(([id,x,y])=>actor(id,x,y,{pose:'hurt'}));
+  const props=[{x:380,y:620},{x:1100,y:660}]; // hurt-panther props on the turf
   let phase='battle',clock=0,throwTimer=0;
   const living=()=>host.enemies().filter(e=>e.alive&&!e.hidden);
+  const boss=()=>host.enemies().find(e=>e.boss);
+  const nearest=(list,from)=>list.reduce((best,e)=>!best||dist(e,from)<dist(best,from)?e:best,null);
   return {
-   actors(){return phase==='done'?down.concat(fighters.filter(f=>f.state==='down')):[bryce].concat(fighters,down);},
+   actors(){return phase==='done'?down.concat(fighters):[bryce].concat(fighters,down);},
    props(){return props;},
    update(dt){
     clock+=dt;throwTimer-=dt;
     for(const a of [bryce,...fighters,...down])a.poseTime+=dt;
-    const enemies=living();
+    const enemies=living(),fighting=phase==='battle'||phase==='boss';
     // Bryce throws at the nearest dinosaur that is roughly on one of his four throwing lines.
-    if(phase==='battle'&&enemies.length&&throwTimer<=0){
-     const target=enemies.map(e=>({e,d:dist(e,bryce)})).sort((a,b)=>a.d-b.d)[0].e,dx=target.x-bryce.x,dy=target.y-bryce.y;
+    if(fighting&&enemies.length&&throwTimer<=0){
+     const target=nearest(enemies,bryce),dx=target.x-bryce.x,dy=target.y-bryce.y,reach=(target.hitRadius||21)+13;
      bryce.direction=facing(dx,dy);
-     if((Math.abs(dx)<34||Math.abs(dy)<34)&&host.throwPower(bryce)){throwTimer=.9;}else throwTimer=.25;
+     if((Math.abs(dx)<reach||Math.abs(dy)<reach)&&host.throwPower(bryce)){throwTimer=.9;}else throwTimer=.25;
     }
-    // Panthers float at a dinosaur, bounce off on contact (FF6-style charge), then return to their spot.
+    // Panthers and Chiefs float at the nearest dinosaur, bounce off on contact (FF6-style charge), then return to their spot.
     for(const f of fighters){
      if(f.state==='down')continue;
      f.timer-=dt;
-     if(f.state==='wait'){f.moving=false;if(f.timer<=0&&enemies.length){f.target=enemies[Math.floor(Math.random()*enemies.length)];f.state='charge';}}
+     if(f.state==='wait'){f.moving=false;if(f.timer<=0&&enemies.length){f.target=nearest(enemies,f);f.state='charge';}}
      else if(f.state==='charge'){
       if(!f.target||!f.target.alive){f.state='return';continue;}
-      const dx=f.target.x-f.x,dy=f.target.y-f.y,d=Math.hypot(dx,dy),step=320*dt;
+      const dx=f.target.x-f.x,dy=f.target.y-f.y,d=Math.hypot(dx,dy),step=320*dt,reach=18+(f.target.hitRadius||21)*.6;
       f.direction=facing(dx,dy);f.moving=true;f.clock+=dt*14;f.frame=Math.floor(f.clock)%4;f.lift=Math.sin(Math.min(1,d/140)*Math.PI)*10;
-      if(d<=22){host.hitEnemy(f.target,{x:f.x,y:f.y,dx:dx/d,dy:dy/d});f.vx=-dx/d*260;f.vy=-dy/d*260;f.state='bounce';f.timer=.35;f.tackles++;}
+      if(d<=reach){host.hitEnemy(f.target,{x:f.x,y:f.y,dx:dx/d,dy:dy/d},f.target.boss?5:9);f.vx=-dx/d*260;f.vy=-dy/d*260;f.state='bounce';f.timer=.35;f.tackles++;}
       else{f.x+=dx/d*step;f.y+=dy/d*step;}
      }else if(f.state==='bounce'){
       f.x+=f.vx*dt;f.y+=f.vy*dt;f.vx*=Math.exp(-6*dt);f.vy*=Math.exp(-6*dt);f.lift=Math.max(0,(f.lift||0)-dt*40);
       if(f.timer<=0){if(f.tackles>=f.limit){f.state='down';setPose(f,'hurt');f.lift=0;}else f.state='return';}
      }else if(f.state==='return'){
-      f.lift=0;if(walkTo(f,f.home.x,f.home.y,180,dt,()=>false)){f.state='wait';f.timer=.6+Math.random()*1.2;}
+      f.lift=0;if(walkTo(f,f.home.x,f.home.y,180,dt,()=>false)){f.state='wait';f.timer=(phase==='boss'?.3:.6)+Math.random()*(phase==='boss'?.7:1.2);}
      }
     }
-    if(phase==='battle'&&!enemies.length&&host.enemies().every(e=>!e.alive||e.hidden)){
+    const spino=boss();
+    if(phase==='battle'&&!enemies.length){
+     if(spino&&spino.alive){
+      phase='boss';clock=0;spino.hidden=false;spino.flash=.5;spino.mode='chase';spino.timer=99;
+      host.sound('roar');host.toast('A Spinosaurus crashes onto the field!');
+     }else phase='victory';
+    }
+    if(phase==='boss'&&spino){
+     // The boss never loses interest: whenever it finishes an attack it turns back to chase.
+     if(spino.alive&&spino.mode!=='chase'&&spino.windup<=0&&spino.stunned<=0){spino.mode='chase';spino.timer=6;}
+     if(!spino.alive)phase='victory';
+    }
+    if(phase==='victory'){
      phase='thanks';clock=0;bryce.direction='down';
      host.say('Bryce Young',"Field's clear — that was a goal-line stand for the ages. You've got an arm; let's team up. I'll bring the footballs.",'PANTHERS FIELD');
      host.recruit('bryce-young');
     }else if(phase==='thanks'&&clock>2.5)phase='done';
    },
-   get state(){return {phase,fighters:fighters.map(f=>f.state)};}
+   get state(){const b=boss();return {phase,fighters:fighters.map(f=>f.state),boss:b?{alive:b.alive,hidden:b.hidden,hp:b.hp,maxHP:b.maxHP}:null};}
   };
  }
 

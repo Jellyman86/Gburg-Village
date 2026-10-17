@@ -104,6 +104,18 @@
    "width": 256,
    "height": 512
   },
+  "character.chiefsplayer.hurt": {
+   "file": "characters/chiefsplayer-hurt.png",
+   "hash": "1f16292eb5ea0024bb178ecf304c6a996beb36e17cab0764c9faa92d5b7f2616",
+   "width": 256,
+   "height": 64
+  },
+  "character.chiefsplayer.walk": {
+   "file": "characters/chiefsplayer.png",
+   "hash": "8341930c4fcfe774c5fa437fd674ef37a3544316cc4f4c2a51853d76081df7b5",
+   "width": 256,
+   "height": 512
+  },
   "character.chris.hurt": {
    "file": "characters/chris-hurt.png",
    "hash": "3e43b2c267746a974ab25f5b0466350993d490ca8ec0cbcf62abb820847803bf",
@@ -446,6 +458,12 @@
    "width": 256,
    "height": 512
   },
+  "character.taylor.win": {
+   "file": "characters/taylor-win.png",
+   "hash": "6b9da24bebda2e6ee0a51df51f3c57e788e7e8feebd41a13513f7fcccacd7fcd",
+   "width": 256,
+   "height": 64
+  },
   "character.vito.clean-recover": {
    "file": "characters/vito-clean-recover.png",
    "hash": "66099185deb2f496c21b40820583485011fb1c4fd127824be76ded50860d7286",
@@ -530,6 +548,14 @@
    "width": 512,
    "height": 1024
   },
+  "dinosaur.brontosaurus": {
+   "file": "dinosaurs/brontosaurus.png",
+   "hash": "6736ff1368fe558060ac5585ea2e83904a9da25ea1cee4938d8cea84e060fd74",
+   "width": 768,
+   "height": 1536,
+   "source": "1017/Bronto.png",
+   "sourceHash": "181bf884f39e78edf79f89335f5e26917a414804e687f8ce1c6faef8171de664"
+  },
   "dinosaur.compy": {
    "file": "dinosaurs/compy.png",
    "hash": "9a6ede7e60e81aca1db62a114fd51b22c5e5f47d7d9facd1ab9bd9cb38213103",
@@ -553,6 +579,14 @@
    "hash": "4979444df89f7df768d18df301beb6c54e891d4a503356886b30dabdfb73eb1e",
    "width": 512,
    "height": 1024
+  },
+  "dinosaur.spinosaurus": {
+   "file": "dinosaurs/spinosaurus.png",
+   "hash": "68d5b21c408988fb8541b3bb3d9528c76e72dcaa4beea1d62831e84549069e85",
+   "width": 896,
+   "height": 1792,
+   "source": "1017/Spino.png",
+   "sourceHash": "3dd47e0de7be73bb7ead2bde8a41194a64740046bbd9a98b4cbe5819acfe075e"
   },
   "dinosaur.trex": {
    "file": "dinosaurs/trex.png",
@@ -703,6 +737,12 @@
   "portrait.bryce-young": {
    "file": "portraits/bryce-young.png",
    "hash": "070af3025569cbbf5d9e4cdeb5af81c052041305f675bd6cbd2e856d49211ce7",
+   "width": 128,
+   "height": 128
+  },
+  "portrait.chiefsplayer": {
+   "file": "portraits/chiefsplayer.png",
+   "hash": "e1adf2dd26a88827e4c33dc5656ec9fdee278e4130c8c9bb0b04d37fb2715915",
    "width": 128,
    "height": 128
   },

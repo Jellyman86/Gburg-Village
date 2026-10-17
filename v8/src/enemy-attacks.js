@@ -7,7 +7,9 @@
   trex:{damage:18,range:38,windup:.6,cooldown:3.5},
   triceratops:{damage:14,range:38,windup:.6,cooldown:3.5},
   dilophosaurus:{damage:8,range:145,windup:.65,cooldown:3.8,spit:true},
-  ankylosaurus:{damage:15,range:62,windup:.75,cooldown:3.8}
+  ankylosaurus:{damage:15,range:62,windup:.75,cooldown:3.8},
+  brontosaurus:{damage:14,range:74,windup:.85,cooldown:4},
+  spinosaurus:{damage:20,range:82,windup:.7,cooldown:3}
  });
  function create({getActor,blocked,onHit,onSound,isActive=()=>true}){
   const projectiles=[];

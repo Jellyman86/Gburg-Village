@@ -123,10 +123,10 @@
   neighborhood:[['compy',330,800],['compy',500,800],['compy',900,800],['compy',1090,1100],['dilophosaurus',950,800],['ankylosaurus',150,1050]],
   recreation:[['compy',1000,180],['compy',100,550],['compy',1125,800],['compy',750,685],['dilophosaurus',100,900],['ankylosaurus',1125,450]]
  },extraEnemies={};
- for(const scene of Object.values(scenes))if(scene.enemies)extraHomes[scene.id]=scene.enemies.map(e=>[e.kind,e.x,e.y,!!e.scripted]);
+ for(const scene of Object.values(scenes))if(scene.enemies)extraHomes[scene.id]=scene.enemies.map(e=>[e.kind,e.x,e.y,!!e.scripted,!!e.swarm,!!e.boss]);
  function prepareEnemies(id){
   if(extraEnemies[id]||!extraHomes[id])return;
-  extraEnemies[id]=extraHomes[id].map(([kind,x,y],index)=>{
+  extraEnemies[id]=extraHomes[id].map(([kind,x,y,scripted,swarm,boss])=>{
    let home=null;
    for(const radius of [0,24,48,96,160]){
     for(let i=0;i<16;i++){
@@ -134,13 +134,15 @@
      if(!blocked(px,py)){home={x:px,y:py};break;}
     }if(home)break;
    }
+   // Swarm members are placed by area definitions; one that a studio edit has since walled in is skipped, not fatal.
+   if(!home&&swarm)return null;
    if(!home)throw new Error('No safe '+kind+' spawn in '+id);
    // `scripted:true` dinosaurs stay hidden (invisible, untargetable) until the scene script reveals them.
-   const scripted=!!extraHomes[id][index]?.[3];
    const enemy=V6_COMBAT.init({...home,home,kind,scripted,direction:'right',facing:1,clock:0,stars:0,mode:'wander',timer:8,target:null,turnTimer:0,moving:false});
    if(scripted)enemy.hidden=true;
+   if(boss)enemy.boss=true;
    return enemy;
-  });
+  }).filter(Boolean);
  }
  function encounterEnemies(){return (dino?[dino]:[]).concat(extraEnemies[town.id]||[]);}
  function activeEnemies(){return encounterEnemies().filter(enemy=>!enemy.hidden);}
@@ -154,7 +156,7 @@
   recruit(id){if(V4_RPG.members[id]?.joined)return;const result=V4_RPG.recruit(id);refreshParty();updateNearby();V4_SFX.play('join');toast(result.message);},
   say:(title,text,tag)=>showDialog(title,text,tag),toast,sound:kind=>{try{V4_SFX.play(kind);}catch(_){}},
   throwPower:actor=>{const used=powers.activate(actor);if(used)V4_SFX.play('throw');return used;},
-  hitEnemy:(enemy,source)=>combat.hit(enemy,{power:{kind:'tackle',damage:9},strength:0,owner:'panthersplayer',...source}),
+  hitEnemy:(enemy,source,damage=9)=>combat.hit(enemy,{power:{kind:'tackle',damage},strength:0,owner:'panthersplayer',...source}),
   joined:id=>!!V4_RPG.members[id]?.joined
  });
  const powerButton=$('power'),powerLabel=$('power-label'),powerHint=$('power-hint');
@@ -210,7 +212,7 @@
   dino.moving=false;
   if(!target)return;
   const angle=Math.atan2(target.y-dino.y,target.x-dino.x);
-  const speed=(dino.mode==='chase'?158:68)*(dino.kind==='ankylosaurus'?.65:1),step=speed*dt;
+  const speed=(dino.mode==='chase'?158:68)*({ankylosaurus:.65}[dino.kind]||V6_COMBAT.species[dino.kind].speed||1),step=speed*dt;
   // Try nearby headings, checking small steps to respect all scenery.
   for(const turn of [0,.45,-.45,.9,-.9,1.4,-1.4,2,-2]){
    const dx=Math.cos(angle+turn)*step,dy=Math.sin(angle+turn)*step;
@@ -227,16 +229,16 @@
   if(dino.moving)dino.clock+=dt*(dino.mode==='chase'?13:7);
  }
  function drawDino(dino){
-  const small=dino.kind==='compy',size=small?64:128,stride=Math.floor(dino.clock)%4;
+  const profile=V6_COMBAT.species[dino.kind],small=dino.kind==='compy',size=profile.size||(small?64:128),stride=Math.floor(dino.clock)%4,top=-(profile.markHeight||90);
   const dilo=dino.kind==='dilophosaurus';
   const row=small?(!dino.alive?5:dino.flash>0?4:dino.moving?1:0):dilo?(!dino.alive?6:dino.flash>0?5:dino.windup>0?3:dino.attackPose>0?4:dino.moving?(dino.mode==='chase'?2:1):0):{down:0,left:1,right:2,up:3}[dino.direction]+(dino.moving?4:0);
   ctx.save();ctx.translate(Math.round(dino.x),Math.round(dino.y));
   if(dino.mode==='retreat'){ctx.globalAlpha=Math.min(1,Math.max(0,(2.8-dino.defeatAge)/.4));if(dino.defeatAge<.4&&!reduced.matches)ctx.translate(Math.sin(dino.defeatAge*60)*2,0);}
-  ctx.fillStyle='#182b3655';ctx.beginPath();ctx.ellipse(0,0,17,5,0,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='#182b3655';ctx.beginPath();ctx.ellipse(0,0,profile.size?size*.2:17,profile.size?size*.06:5,0,0,Math.PI*2);ctx.fill();
   if(dino.mode==='chase'){
-   ctx.fillStyle='#ffde87';ctx.font='bold 14px system-ui';ctx.textAlign='center';ctx.fillText('!',0,-90);
+   ctx.fillStyle='#ffde87';ctx.font='bold 14px system-ui';ctx.textAlign='center';ctx.fillText('!',0,top);
   }
-  if(dino.stunned>0){ctx.fillStyle='#ffdf79';ctx.font='bold 11px system-ui';ctx.textAlign='center';for(let i=0;i<3;i++){const a=dino.stars*5+i*Math.PI*2/3;ctx.fillText('✦',Math.cos(a)*20,-90+Math.sin(a)*6);}}
+  if(dino.stunned>0){ctx.fillStyle='#ffdf79';ctx.font='bold 11px system-ui';ctx.textAlign='center';for(let i=0;i<3;i++){const a=dino.stars*5+i*Math.PI*2/3;ctx.fillText('✦',Math.cos(a)*20,top+Math.sin(a)*6);}}
   if(small||dilo)ctx.scale(dino.facing<0?-1:1,1);
   ctx.drawImage(extraSheets[dino.kind],stride*size,row*size,size,size,-size/2,4-size,size,size);
   if(dino.flash>0){ctx.save();ctx.globalAlpha=reduced.matches?.2:dino.flash/.16*.75;ctx.drawImage(flashSheets[dino.kind],stride*size,row*size,size,size,-size/2,4-size,size,size);ctx.restore();}
@@ -622,7 +624,7 @@
  $('return-plaza').addEventListener('click',()=>{if($('dialog').open)$('dialog').close();enterScene('plaza',[50,84.47265625].map(v=>v*10));});
  function loadImage(path){return new Promise((resolve,reject)=>{const img=new Image();img.onload=()=>resolve(img);img.onerror=()=>reject(new Error('Could not load '+path));img.src=window.EMBEDDED_ASSETS?.[path]||path;});}
  const extraArt={...Object.fromEntries(Object.entries(recreation.dogData).map(([id,data])=>[id,data.sheet])),
-  ...Object.fromEntries(['trex','raptor','triceratops','pterodactyl','dilophosaurus','ankylosaurus','compy'].map(id=>[id,V8_ART.url('dinosaur.'+id)])),
+  ...Object.fromEntries(['trex','raptor','triceratops','pterodactyl','dilophosaurus','ankylosaurus','compy','brontosaurus','spinosaurus'].map(id=>[id,V8_ART.url('dinosaur.'+id)])),
   barneyPoses:V8_ART.url('companion.barney.poses'),rosiePoses:V8_ART.url('companion.rosie.poses'),grenade:V8_ART.url('item.grenade'),grenadeIcon:V4_RPG.items.grenade.image,
   towel:V8_ART.url('item.towel-whip'),bus:V8_ART.url('gimmick.bus'),swim:V8_ART.url('character.chris.swim'),sword:V8_ART.url('item.sword-slash'),swordIcon:V4_RPG.items.sword.image,hurtPanther:V8_ART.url('gimmick.hurt-panther')};
  const extraIds=Object.keys(window.EXTRAS||{});

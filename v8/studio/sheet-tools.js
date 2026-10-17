@@ -31,7 +31,36 @@
   return {canvas:c,ctx,W,H};
  }
 
- function detect(source,{gap=0,key}={}){
+ // Labels the connected shapes inside one band (8-connected, with the drawing dilated by `r` px so thin gaps in a figure
+ // do not split it) and writes their ids into `labels`. Returns [{id,area,cx,minx,maxx,miny,maxy}] for solid pixels.
+ function shapesInBand(solid,labels,W,band,r,firstId){
+  const top=band.top,h=band.bottom-band.top,fg=new Uint8Array(W*h);
+  for(let y=0;y<h;y++)for(let x=0;x<W;x++)if(solid[(top+y)*W+x])
+   for(let dy=-r;dy<=r;dy++){const yy=y+dy;if(yy<0||yy>=h)continue;for(let dx=-r;dx<=r;dx++){const xx=x+dx;if(xx>=0&&xx<W)fg[yy*W+xx]=1;}}
+  const lab=new Int32Array(W*h),stack=[];let id=firstId;
+  for(let i=0;i<fg.length;i++){
+   if(!fg[i]||lab[i])continue;
+   id++;lab[i]=id;stack.push(i);
+   while(stack.length){
+    const p=stack.pop(),x=p%W,y=(p/W)|0;
+    for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++){const nx=x+dx,ny=y+dy;if(nx<0||ny<0||nx>=W||ny>=h)continue;const q=ny*W+nx;if(fg[q]&&!lab[q]){lab[q]=id;stack.push(q);}}
+   }
+  }
+  const stats=new Map();
+  for(let y=0;y<h;y++)for(let x=0;x<W;x++){
+   const p=y*W+x,g=(top+y)*W+x;
+   if(!solid[g]||!lab[p])continue;
+   labels[g]=lab[p];
+   let s=stats.get(lab[p]);if(!s){s={id:lab[p],area:0,sx:0,minx:x,maxx:x,miny:top+y,maxy:top+y};stats.set(lab[p],s);}
+   s.area++;s.sx+=x;if(x<s.minx)s.minx=x;if(x>s.maxx)s.maxx=x;if(top+y<s.miny)s.miny=top+y;if(top+y>s.maxy)s.maxy=top+y;
+  }
+  return [...stats.values()].map(s=>({...s,cx:s.sx/s.area}));
+ }
+
+ // `columns`: expected drawings per row. Figures are separated by connected shape instead of by empty columns, so
+ // neighbours whose tails/heads overlap in x (side views of long dinosaurs) still split; each cell then only keeps
+ // its own pixels. Falls back to column gaps for a band that has fewer shapes than `columns`.
+ function detect(source,{gap=0,key,columns=0}={}){
   const {ctx,W,H}=source,d=ctx.getImageData(0,0,W,H).data;
   let opaque=true;for(let i=3;i<d.length;i+=4)if(d[i]<255){opaque=false;break;}
   const corners=[0,(W-1)*4,(H-1)*W*4,((H-1)*W+W-1)*4].every(i=>d[i]>=235&&d[i+1]>=235&&d[i+2]>=235);
@@ -49,8 +78,22 @@
    if(filled){if(start<0)start=y;blank=0;}
    else if(start>=0){blank++;if(blank>=4||y===H){const end=y-blank+(y===H&&filled?1:0);if(end-start>=8)bands.push({top:start,bottom:end});start=-1;blank=0;}}
   }
-  const cells=[];
+  const cells=[],labels=columns?new Int32Array(W*H):null;let nextId=0;
   bands.forEach((band,b)=>{
+   if(columns){
+    const shapes=shapesInBand(solid,labels,W,band,2,nextId);
+    nextId=Math.max(nextId,...shapes.map(s=>s.id),nextId);
+    const biggest=Math.max(0,...shapes.map(s=>s.area)),kept=shapes.filter(s=>s.area>=biggest*.005).sort((a,c)=>c.area-a.area);
+    if(kept.length>=columns){
+     const seeds=kept.slice(0,columns).map(s=>({cx:s.cx,shapes:[s]}));
+     for(const s of kept.slice(columns)){let best=seeds[0];for(const seed of seeds)if(Math.abs(seed.cx-s.cx)<Math.abs(best.cx-s.cx))best=seed;best.shapes.push(s);}
+     seeds.sort((a,c)=>a.cx-c.cx).forEach((seed,i)=>{
+      const x0=Math.min(...seed.shapes.map(s=>s.minx)),x1=Math.max(...seed.shapes.map(s=>s.maxx))+1,y0=Math.min(...seed.shapes.map(s=>s.miny)),y1=Math.max(...seed.shapes.map(s=>s.maxy))+1;
+      cells.push({band:b,index:i,x:x0,y:y0,w:x1-x0,h:y1-y0,ids:seed.shapes.map(s=>s.id)});
+     });
+     return;
+    }
+   }
    const h=band.bottom-band.top,minGap=gap||Math.max(4,Math.round(h*.08));
    const col=new Uint32Array(W);for(let x=0;x<W;x++){let n=0;for(let y=band.top;y<band.bottom;y++)n+=solid[y*W+x];col[x]=n;}
    const segments=[];let s=-1,g=0;
@@ -68,7 +111,7 @@
    }
    row.forEach((c,i)=>cells.push({band:b,index:i,...c}));
   });
-  return {bands,cells,useKey,solid,W,H};
+  return {bands,cells,useKey,solid,labels,W,H};
  }
 
  function cellsPreview(source,det,{maxWidth=900}={}){
@@ -82,11 +125,16 @@
   return c;
  }
 
- // Draw only this cell's solid pixels so neighbouring artwork in the same crop box never leaks in.
+ // Draw only this cell's solid pixels so neighbouring artwork in the same crop box never leaks in. Cells found by shape
+ // (`ids`) keep only their own shapes' pixels, which also separates figures whose boxes overlap.
  function drawCell(ctx,source,det,cell,dx,dy,dw,dh,flip){
   const piece=canvasOf(cell.w,cell.h),pctx=piece.getContext('2d');
   pctx.drawImage(source.canvas,cell.x,cell.y,cell.w,cell.h,0,0,cell.w,cell.h);
-  if(det.useKey){const id=pctx.getImageData(0,0,cell.w,cell.h),p=id.data;for(let i=0;i<p.length;i+=4)if(!det.solid[(cell.y+(i/4/cell.w|0))*det.W+cell.x+(i/4%cell.w)])p[i+3]=0;pctx.putImageData(id,0,0);}
+  if(cell.ids&&det.labels){
+   const own=new Set(cell.ids),id=pctx.getImageData(0,0,cell.w,cell.h),p=id.data;
+   for(let i=0;i<p.length;i+=4){const g=(cell.y+(i/4/cell.w|0))*det.W+cell.x+(i/4%cell.w);if(!det.solid[g]||!own.has(det.labels[g]))p[i+3]=0;}
+   pctx.putImageData(id,0,0);
+  }else if(det.useKey){const id=pctx.getImageData(0,0,cell.w,cell.h),p=id.data;for(let i=0;i<p.length;i+=4)if(!det.solid[(cell.y+(i/4/cell.w|0))*det.W+cell.x+(i/4%cell.w)])p[i+3]=0;pctx.putImageData(id,0,0);}
   ctx.save();if(flip){ctx.translate(dx+dw,dy);ctx.scale(-1,1);ctx.drawImage(piece,0,0,dw,dh);}else ctx.drawImage(piece,dx,dy,dw,dh);ctx.restore();
  }
 
@@ -136,7 +184,7 @@
  // Importer entry point. `job` is serialisable; the result carries base64 outputs.
  async function process(job){
   const img=await load('data:'+job.mime+';base64,'+job.base64),source=sourceOf(img);
-  const plain=det=>det.cells.map(({solid,...c})=>c);
+  const plain=det=>det.cells.map(({solid,ids,...c})=>c);
   if(job.mode==='cells'){const det=detect(source,job);return {width:source.W,height:source.H,bands:det.bands.length,cells:plain(det),useKey:det.useKey,preview:png(cellsPreview(source,det))};}
   if(job.mode==='sprite'){
    const det=detect(source,job),rows=parseRows(job.rows,det),cell=job.cell;

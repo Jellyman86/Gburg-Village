@@ -70,14 +70,14 @@
       const x=cast.x+cast.dx*distance,y=cast.y+cast.dy*distance;
       if(blocked(x,y,2,2))break;
       cast.length=distance;
-      for(const target of targets)if(target.alive!==false&&(target.x-cast.x)*cast.dx+(target.y-cast.y)*cast.dy>=0&&Math.hypot(x-target.x,y-target.y)<=power.width+16)hit(cast,target);
+      for(const target of targets)if(target.alive!==false&&(target.x-cast.x)*cast.dx+(target.y-cast.y)*cast.dy>=0&&Math.hypot(x-target.x,y-target.y)<=power.width+16+((target.hitRadius||21)-21))hit(cast,target);
      }
     }else if(projectile(power)&&!cast.landed){
      const travel=Math.max(0,cast.age-.1)-Math.max(0,previous-.1),distance=travel*power.speed,steps=Math.max(1,Math.ceil(distance/3));
      for(let i=0;i<steps&&distance>0;i++){
       const x=cast.x+cast.dx*distance/steps,y=cast.y+cast.dy*distance/steps;
       if(blocked(x,y)){cast.landed=true;break;}cast.x=x;cast.y=y;
-      const target=targets.find(target=>target.alive!==false&&Math.hypot(cast.x-target.x,cast.y-target.y)<21);
+      const target=targets.find(target=>target.alive!==false&&Math.hypot(cast.x-target.x,cast.y-target.y)<(target.hitRadius||21));
       if(target){hit(cast,target);cast.landed=true;break;}
      }
      if(cast.age>=power.duration-.22)cast.landed=true;
@@ -87,7 +87,7 @@
       const dx=target.x-cast.x,dy=(target.y-cast.y)/.58,distance=Math.hypot(dx,dy);
       const range=isWave(cast.kind)?Math.min(power.range,Math.max(0,cast.age-.08)*150):power.range;
       const facing=!['punch','racket','sword','towel'].includes(cast.kind)||dx*cast.dx+dy*cast.dy>=distance*.2;
-      if(distance<=range+16&&facing&&clearLine(cast,target))hit(cast,target);
+      if(distance<=range+16+((target.hitRadius||21)-21)&&facing&&clearLine(cast,target))hit(cast,target);
      }
     }
    }

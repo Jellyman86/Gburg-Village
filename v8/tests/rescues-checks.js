@@ -26,6 +26,8 @@ return async function checkRescues(page,{width,height,touch,artifactDir}={}){
   await page.waitForFunction(()=>window.GAME&&GAME.ready,null,{timeout:60000});
   await page.locator('#intro-skip').click().catch(()=>{});
   await page.waitForTimeout(400);
+  // The new scenes are crowded; keep the test player standing so the scripts, not stray compies, decide the outcome.
+  await page.evaluate(()=>{setInterval(()=>{const m=V4_RPG.members[GAME.state.player.id];if(m)m.hp=m.maxHP;},200);});
   // Roster and extras
   const roster=await page.evaluate(()=>({heroes:Object.keys(CHARACTERS),extras:Object.keys(EXTRAS),joined:Object.entries(V4_RPG.members).filter(([,m])=>m.joined).map(([id])=>id),abilities:Object.fromEntries(['drew','alex','kelce','taylor','bryce-young'].map(id=>[id,V4_RPG.members[id].ability]))}));
   assert(roster.extras.includes('panthersplayer')&&!roster.heroes.includes('panthersplayer'),'Panthers Player is an extra, not a hero');
@@ -38,6 +40,8 @@ return async function checkRescues(page,{width,height,touch,artifactDir}={}){
   await enter('vegas-north',780/1536*1000,960/1024*1000);
   let s=await state();
   assert(s.script&&s.script.phase==='idle','Pool party script starts idle');
+  assert(s.enemies.filter(e=>e.kind==='compy'&&!e.scripted&&!e.hidden).length>=14,'Vegas is overrun with compies (pool party deck)');
+  await page.evaluate(()=>{for(const e of GAME.test.enemies())if(!e.scripted&&e.alive)GAME.test.defeat(e);});
   assert(s.scriptActors.length===2&&s.scriptActors.every(a=>!a.pose),'Drew and Alex wait by the stage');
   assert(s.enemies.filter(e=>e.scripted).length===3&&s.enemies.filter(e=>e.scripted).every(e=>e.hidden),'Scripted dinosaurs are hidden until triggered');
   await music('vegas-north','Pool party plays its own music place');
@@ -72,6 +76,10 @@ return async function checkRescues(page,{width,height,touch,artifactDir}={}){
   for(const [id,place] of [['vegas-central','vegas'],['vegas-east','vegas-east'],['vegas-west','vegas']]){
    await enter(id,760/1536*1000,900/1024*1000).catch(async()=>{await enter(id,90/1536*1000,920/1024*1000);});
    await music(place,id+' plays the '+place+' playlist');
+   const crowd=await state();
+   assert(crowd.enemies.filter(e=>e.kind==='compy'&&!e.hidden).length>=16,id+' is overrun with compies');
+   if(id==='vegas-central')assert(crowd.enemies.some(e=>e.kind==='brontosaurus'&&e.alive),'A Brontosaurus lumbers through Vegas Central');
+   if(id==='vegas-east')assert(crowd.enemies.some(e=>e.kind==='triceratops'&&e.alive),'A Triceratops guards the Sphere plaza');
   }
   // ---- Charlotte · Panthers Stadium ---------------------------------------------------------------------------------
   await enter('panthers-stadium',724/1448*1000,1000/1086*1000);
@@ -89,11 +97,18 @@ return async function checkRescues(page,{width,height,touch,artifactDir}={}){
   assert(await page.evaluate(()=>V4_RPG.members.kelce.joined&&V4_RPG.members.taylor.joined),'Kelce and Taylor become playable');
   // ---- Charlotte · Panthers Field ----------------------------------------------------------------------------------
   await enter('panthers-field',724/1448*1000,800/1086*1000);
+  s=await state();
+  const kinds=s.enemies.filter(e=>!e.hidden&&e.alive).reduce((n,e)=>(n[e.kind]=(n[e.kind]||0)+1,n),{});
+  assert(kinds.compy===20&&kinds.trex===2&&kinds.triceratops===1&&kinds.ankylosaurus===1&&kinds.raptor===2&&kinds.dilophosaurus===1,'The ultimate battle: 20 compies, two T. rexes, a Triceratops, an Ankylosaurus, two raptors and a Dilophosaurus');
   await page.waitForTimeout(1500);
   s=await state();
   assert(s.script.phase==='battle','The field battle is under way');
-  assert(s.scriptActors.filter(a=>a.id==='panthersplayer').length===6&&s.scriptActors.filter(a=>a.id==='panthersplayer'&&a.pose==='hurt').length>=2,'Panthers players fight and two lie hurt');
+  const team=(id,hurt)=>s.scriptActors.filter(a=>a.id===id&&(a.pose==='hurt')===hurt).length;
+  assert(team('panthersplayer',false)===7&&team('chiefsplayer',false)===3,'Seven Panthers and three Chiefs are fighting');
+  assert(team('panthersplayer',true)===3&&team('chiefsplayer',true)===5,'Hurt Panthers and Chiefs are sprinkled around the field');
   assert(s.scriptActors.some(a=>a.id==='bryce-young'),'Bryce Young is on the field');
+  assert(s.enemies.some(e=>e.kind==='spinosaurus'&&e.hidden&&e.boss)&&s.script.boss&&s.script.boss.hidden,'The Spinosaurus waits, hidden, until the field is clear');
+  assert(await page.evaluate(()=>{const sp=V6_COMBAT.species;return sp.spinosaurus.hp===sp.trex.hp*2.5&&sp.spinosaurus.size>128&&sp.spinosaurus.height>sp.trex.height&&sp.brontosaurus.size>128;}),'The Spinosaurus has 2.5 T. rexes of health and is drawn bigger than a T. rex');
   await music('field','Field plays the NFL theme place');
   await page.waitForFunction(()=>GAME.state.powers.casts.some(c=>c.kind==='football'&&c.owner==='bryce-young')||GAME.state.combat.lastHit,null,{timeout:12000});
   await page.evaluate(()=>GAME.test.position(724,760));
@@ -102,14 +117,22 @@ return async function checkRescues(page,{width,height,touch,artifactDir}={}){
   assert(s.script.fighters.some(f=>['charge','bounce','return'].includes(f))||s.combat.lastHit,'Panthers charge the dinosaurs FF6-style');
   await screenshot('field-battle');
   await defeatAll();
+  await page.waitForFunction(()=>GAME.state.script.phase==='boss',null,{timeout:8000});
+  s=await state();
+  assert(!s.script.boss.hidden&&s.script.boss.alive&&s.script.boss.hp===275,'The Spinosaurus spawns in right after the other dinosaurs are dead');
+  assert(await page.evaluate(()=>!V4_RPG.members['bryce-young'].joined),'Bryce is not recruited until the boss falls');
+  await screenshot('field-boss');
+  await page.waitForFunction(()=>{const b=GAME.state.script.boss;return b&&b.hp<b.maxHP;},null,{timeout:30000});
+  assert(await page.evaluate(()=>GAME.state.script.fighters.some(f=>f!=='down')),'Bryce and the remaining football players help fight it');
+  await defeatAll();
   await page.waitForFunction(()=>['thanks','done'].includes(GAME.state.script.phase),null,{timeout:8000});
   await closeDialog();
-  assert(await page.evaluate(()=>V4_RPG.members['bryce-young'].joined&&!V4_RPG.members.panthersplayer),'Bryce Young becomes playable; the generic player does not');
+  assert(await page.evaluate(()=>V4_RPG.members['bryce-young'].joined&&!V4_RPG.members.panthersplayer&&!V4_RPG.members.chiefsplayer),'Bryce Young becomes playable; the generic player does not');
   // Return trips
   await enter('panthers-stadium',724/1448*1000,200/1086*1000);
   await page.waitForFunction(()=>GAME.state.script.phase==='done'&&GAME.state.scriptActors.length===0,null,{timeout:6000});
   assert(errors.length===0,'Unexpected page errors: '+errors.join('; '));assert(failed.length===0,'Failed assets: '+failed.join('; '));
-  return {layout:width+'x'+height,touch,pass:'Vegas pool-party rescue (shock → flee → hurt → thanks → Drew & Alex join, singing power), Stadium compy chase (Kelce & Taylor join), Field battle (Bryce throws, Panthers charge, Bryce joins), new music places, extras excluded from roster'};
+  return {layout:width+'x'+height,touch,pass:'Vegas pool-party rescue (shock → flee → hurt → thanks → Drew & Alex join, singing power), Stadium compy chase (Kelce & Taylor join), Field battle (20 compies + 2 T. rexes, Bryce throws, Panthers and Chiefs charge, hurt players around the turf, Spinosaurus boss, Bryce joins), Vegas compy swarms with Brontosaurus and Triceratops, new music places, extras excluded from roster'};
  }finally{
   await page.unroute(pattern).catch(()=>{});
   page.off('pageerror',onError);page.off('console',onConsole);page.off('response',onResponse);

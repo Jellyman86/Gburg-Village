@@ -153,7 +153,9 @@
     portal('vegas-west','← West · Casino floor',46,565,'vegas-west',800,970,'left',rect(14,440,22,250,'left'),VEGAS)
    ],
    points:[{id:'vegas-fountain',name:'Bellagio fountains',x:765,y:600,radius:55,text:'The fountains dance to the music on the Strip. North is the Encore pool party, east the glowing Sphere, west the casino floor. The south boulevard returns to your jet.'}],
-   enemies:[{kind:'compy',x:520,y:580},{kind:'compy',x:1010,y:580}],
+   // Vegas is overrun: a swarm of compies on every street, a Brontosaurus lumbering by the fountain.
+   enemies:[{kind:'compy',x:520,y:580},{kind:'compy',x:1010,y:580},{kind:'brontosaurus',x:980,y:600}],
+   swarms:[{kind:'compy',count:16}],
    hint:'North: pool party. East: the Sphere. West: casino. The fountain basin and hotel fronts are solid; the south boulevard returns to Earth.'},
   {id:'vegas-east',name:'Las Vegas · The Sphere',art:'scene.vegas-east',width:1536,height:1024,ambientFlight:true,region:'Las Vegas',music:'vegas-east',worldSite:'vegas',spawn:{x:90,y:920},
    paths:[],
@@ -161,7 +163,8 @@
    obstacles:[],blockedPolygons:[[[600,520],[730,520],[730,700],[600,700]],[[810,520],[940,520],[940,700],[810,700]]],
    exits:[portal('sphere-central','← The Strip',40,900,'vegas-central',1440,565,'left',rect(14,840,22,160,'left'),VEGAS)],
    points:[{id:'vegas-sphere',name:'The Sphere · Light show',x:770,y:480,radius:60,text:'A galaxy swirls across the Sphere above the plaza. The twin fountains and planters are solid; the street west returns to the Strip.'}],
-   enemies:[{kind:'compy',x:500,y:760},{kind:'dilophosaurus',x:1040,y:760}],
+   enemies:[{kind:'compy',x:500,y:760},{kind:'dilophosaurus',x:1040,y:760},{kind:'triceratops',x:1100,y:600}],
+   swarms:[{kind:'compy',count:16}],
    hint:'Enjoy the light show on the plaza. The west street returns to the Strip; fountains and planters are solid.'},
   {id:'vegas-north',name:'Las Vegas · Encore pool party',art:'scene.vegas-north',width:1536,height:1024,ambientFlight:false,region:'Las Vegas',music:'vegas-north',worldSite:'vegas',spawn:{x:780,y:960},
    paths:[],
@@ -174,6 +177,7 @@
    exits:[portal('pool-central','↓ The Strip',780,1000,'vegas-central',760,95,'down',rect(660,992,240,22,'down'),VEGAS)],
    points:[{id:'vegas-stage',name:'Encore stage',x:790,y:290,radius:50,text:'The DJ booth glows over the pool. Cabanas and loungers line the deck; the pool itself is not walkable. The south gate returns to the Strip.'}],
    enemies:[{kind:'raptor',x:420,y:290,scripted:true},{kind:'compy',x:1150,y:290,scripted:true},{kind:'compy',x:1150,y:800,scripted:true}],
+   swarms:[{kind:'compy',count:14}],
    hint:'Walk the deck around the pool; the water, cabanas and stage are solid. The south gate returns to the Strip.'},
   {id:'vegas-west',name:'Las Vegas · Casino floor',art:'scene.vegas-west',width:1536,height:1024,ambientFlight:false,region:'Las Vegas',music:'vegas',worldSite:'vegas',spawn:{x:800,y:970},
    paths:[],
@@ -182,6 +186,7 @@
    exits:[portal('casino-central','↓ The Strip',800,1000,'vegas-central',110,565,'down',rect(640,992,320,22,'down'),VEGAS)],
    points:[{id:'vegas-floor',name:'Casino floor · Fountain lounge',x:800,y:740,radius:55,text:'Slot banks, card tables and a fountain under the chandeliers. Machines, tables and the fountain are solid; the lobby doors south return to the Strip.'}],
    enemies:[{kind:'compy',x:520,y:650},{kind:'compy',x:1080,y:650}],
+   swarms:[{kind:'compy',count:16}],
    hint:'Wander the casino floor. Machines, tables and fountains are solid; the lobby doors south return to the Strip.'},
 
   // ---- Charlotte (1448x1086) --------------------------------------------------------------------------------------
@@ -204,7 +209,10 @@
    obstacles:[],blockedPolygons:[],
    exits:[portal('field-stadium','↓ Tunnel · Stadium concourse',724,1010,'panthers-stadium',724,200,'down',rect(660,1000,130,22,'down'))],
    points:[{id:'field-midfield',name:'Midfield · Panthers logo',x:724,y:560,radius:60,text:'Bryce Young and the Panthers are holding the line against the dinosaurs. Help them clear the field! The stands are not walkable; the tunnel south returns to the concourse.'}],
-   enemies:[{kind:'raptor',x:420,y:560},{kind:'raptor',x:1040,y:800},{kind:'compy',x:460,y:820},{kind:'compy',x:1000,y:560},{kind:'dilophosaurus',x:1200,y:700}],
+   // The ultimate battle: 20 compies, two T. rexes, raptors and a Dilophosaurus; the Spinosaurus boss arrives (hidden,
+   // scripted) once the field is clear. See scene-scripts.js.
+   enemies:[{kind:'raptor',x:420,y:560},{kind:'raptor',x:1040,y:800},{kind:'dilophosaurus',x:1200,y:700},{kind:'trex',x:480,y:690},{kind:'trex',x:1000,y:580},{kind:'triceratops',x:620,y:400},{kind:'ankylosaurus',x:900,y:780},{kind:'spinosaurus',x:724,y:450,scripted:true,boss:true}],
+   swarms:[{kind:'compy',count:20,area:[170,430,1120,370],spacing:46}],
    hint:'Help Bryce and the Panthers clear the field. Stands and benches are not walkable; the tunnel south returns to the concourse.'})
  ];
  const hawaii=root.V8_HAWAII;

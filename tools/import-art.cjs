@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // Import ChatGPT art from the inbox into the living version's manifest-managed assets.
 //
-//   node tools/import-art.cjs sprite <id> [--pose walk] [--from "Jeff Sprites.png"] [--layout walk6|walk4|<rows>] [--cell 64] [--gap N] [--key white] [--smooth] [--allow-resize]
+//   node tools/import-art.cjs sprite <id> [--pose walk] [--from "Jeff Sprites.png"] [--layout walk6|walk4|<rows>] [--cell 64] [--gap N] [--columns N] [--key white] [--smooth] [--allow-resize]
 //   node tools/import-art.cjs portrait <id> [--from "Kate Portrait.png"] [--smooth]
 //   node tools/import-art.cjs scene <id> [--from "Scene - Paris.png"] [--width N] [--height N] [--png] [--allow-resize]
 //   node tools/import-art.cjs image <art.id> --from <file> [--to <relative asset path>] [--allow-resize]
@@ -25,7 +25,7 @@ const LAYOUTS=(()=>{const scope={};require('node:vm').runInNewContext(fs.readFil
 const folderFor=art.folderFor;
 
 const args=process.argv.slice(2),command=args[0];
-const positional=args.slice(1).filter((a,i,list)=>!a.startsWith('--')&&!(i>0&&/^--(from|pose|layout|cell|gap|key|width|height|to|max|category)$/.test(list[i-1])));
+const positional=args.slice(1).filter((a,i,list)=>!a.startsWith('--')&&!(i>0&&/^--(from|pose|layout|cell|gap|columns|key|width|height|to|max|category)$/.test(list[i-1])));
 const option=name=>{const i=args.indexOf('--'+name);if(i<0)return undefined;const eq=args.find(a=>a.startsWith('--'+name+'='));return eq?eq.slice(name.length+3):args[i+1];};
 const has=name=>args.some(a=>a==='--'+name||a.startsWith('--'+name+'='));
 const normalize=s=>s.toLowerCase().replace(/[^a-z0-9]/g,'');
@@ -108,7 +108,7 @@ async function sprite(){
  const source=readSource(findSource('sprite',id));
  const layout=option('layout')||'walk6',rows=(LAYOUTS[layout]||layout).trim().split(/\s+/);
  const cell=Number(option('cell')||64),current=existing(artId);
- const result=await withPage(page=>processInBrowser(page,{mode:'sprite',base64:source.base64,mime:source.mime,rows,cell,gap:Number(option('gap'))||0,key:option('key'),smooth:has('smooth')}));
+ const result=await withPage(page=>processInBrowser(page,{mode:'sprite',base64:source.base64,mime:source.mime,rows,cell,gap:Number(option('gap'))||0,columns:Number(option('columns'))||0,key:option('key'),smooth:has('smooth')}));
  guardResize(artId,current,result.width,result.height);
  const cellsFile=savePreview(id+'-'+pose+'-cells.png',result.cellsPreview),sheetFile=savePreview(id+'-'+pose+'-sheet.png',result.sheetPreview);
  console.log(`Detected ${result.bands} bands / ${result.cells.length} cells${result.useKey?' (white background keyed out)':''}; uniform scale ${result.scale.toFixed(3)}.`);
@@ -137,7 +137,7 @@ function registerCharacter(id,fields){
 async function cells(){
  const name=findSource('image',option('from')||'');
  const source=readSource(name);
- const result=await withPage(page=>processInBrowser(page,{mode:'cells',base64:source.base64,mime:source.mime,gap:Number(option('gap'))||0,key:option('key')}));
+ const result=await withPage(page=>processInBrowser(page,{mode:'cells',base64:source.base64,mime:source.mime,gap:Number(option('gap'))||0,columns:Number(option('columns'))||0,key:option('key')}));
  const file=savePreview(path.parse(name).name.replace(/[^a-z0-9]+/gi,'-').toLowerCase()+'-cells.png',result.preview);
  console.log(`${name}: ${result.width}x${result.height}, ${result.bands} bands, ${result.cells.length} cells${result.useKey?' (white background keyed out)':''}`);
  const perBand={};for(const c of result.cells)(perBand[c.band]=perBand[c.band]||[]).push(c);

@@ -8,11 +8,15 @@
   trex:Object.freeze({hp:110,armor:2,outcome:'retreat',height:84,sound:'hurt-trex'}),
   triceratops:Object.freeze({hp:100,armor:3,outcome:'retreat',height:82,sound:'hurt-triceratops'}),
   dilophosaurus:Object.freeze({hp:58,armor:0,outcome:'puff',height:82,sound:'hurt-dilophosaurus'}),
-  ankylosaurus:Object.freeze({hp:130,armor:6,outcome:'retreat',height:82,sound:'hurt-ankylosaurus'})
+  ankylosaurus:Object.freeze({hp:130,armor:6,outcome:'retreat',height:82,sound:'hurt-ankylosaurus'}),
+  // Big sheets: `size` is the sheet cell, `hitRadius` widens the target for projectiles and melee, `barWidth` the health bar.
+  brontosaurus:Object.freeze({hp:160,armor:4,outcome:'retreat',height:128,size:192,hitRadius:36,markHeight:140,barWidth:56,speed:.6,sound:'hurt-ankylosaurus'}),
+  // The Panthers Field boss: 2.5 T. rexes of health, drawn well above T. rex size.
+  spinosaurus:Object.freeze({hp:275,armor:2,outcome:'retreat',height:170,size:224,hitRadius:44,markHeight:190,barWidth:84,speed:.95,sound:'hurt-trex'})
  });
  function init(enemy){
   const profile=species[enemy.kind];if(!profile)throw new Error('Unknown combat dinosaur: '+enemy.kind);
-  Object.assign(enemy,{hp:profile.hp,maxHP:profile.hp,alive:true,hidden:false,flash:0,bar:0,knockX:0,knockY:0,defeatAge:0,stunned:0,windup:0,attackPose:0,attackCooldown:1.2,aim:null});
+  Object.assign(enemy,{hp:profile.hp,maxHP:profile.hp,alive:true,hidden:false,flash:0,bar:0,knockX:0,knockY:0,defeatAge:0,stunned:0,windup:0,attackPose:0,attackCooldown:1.2,aim:null,hitRadius:profile.hitRadius||21});
   return enemy;
  }
  function create({blocked,onSound,showNumbers=true,reduced=()=>false}){
@@ -69,14 +73,14 @@
    for(let i=effects.length-1;i>=0;i--){effects[i].age+=dt;if(effects[i].age>=effects[i].lifetime)effects.splice(i,1);}
   }
   function drawFeedback(ctx,enemy){
-   const p=species[enemy.kind];
-   if(enemy.bar>0&&enemy.alive){
-    ctx.fillStyle='#112831';ctx.fillRect(-17,-p.height-9,34,5);
-    ctx.fillStyle='#f0d78b';ctx.fillRect(-16,-p.height-8,32*enemy.hp/enemy.maxHP,3);
+   const p=species[enemy.kind],half=(p.barWidth||34)/2;
+   if((enemy.bar>0||enemy.boss)&&enemy.alive){
+    ctx.fillStyle='#112831';ctx.fillRect(-half,-p.height-9,half*2,5);
+    ctx.fillStyle=enemy.boss?'#e8744f':'#f0d78b';ctx.fillRect(-half+1,-p.height-8,(half*2-2)*enemy.hp/enemy.maxHP,3);
    }
    if(enemy.flash>0){
     ctx.strokeStyle='#fff5dc';ctx.lineWidth=2;
-    ctx.strokeRect(-16,-p.height+10,32,p.height-18);
+    ctx.strokeRect(-half+1,-p.height+10,half*2-2,p.height-18);
    }
   }
   function drawEffects(ctx){

@@ -21,8 +21,44 @@
    (scene.obstacles||[]).some(o=>x+rx>o.x&&x-rx<o.x+o.w&&y+ry>o.y&&y-ry<o.y+o.h)||
    (scene.blockedPolygons||[]).some(p=>points.some(([px,py])=>contains(p,px,py)));
  }
+ // Deterministic scatter for `swarms: [{kind, count, area?:[x,y,w,h], spacing?, clearSpawn?}]` in an area definition: samples
+ // ground the player can actually walk to from the spawn (so nothing lands in a pocket), keeps clear of the arrival point
+ // and of exits, and relaxes the spacing if the area is crowded. Seeded by scene id, so a scene always gets the same layout.
+ function placeSwarms(scene,swarms){
+  const step=16,seen=new Set(['0,0']),queue=[[0,0]],cells=[];
+  for(let i=0;i<queue.length;i++){
+   const [gx,gy]=queue[i],x=scene.spawn.x+gx*step,y=scene.spawn.y+gy*step;
+   cells.push({x,y});
+   for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]]){
+    const key=(gx+dx)+','+(gy+dy);
+    if(!seen.has(key)&&!blocked(scene,scene.spawn.x+(gx+dx)*step,scene.spawn.y+(gy+dy)*step)){seen.add(key);queue.push([gx+dx,gy+dy]);}
+   }
+  }
+  let state=0;for(const ch of scene.id)state=(state*31+ch.charCodeAt(0))>>>0;
+  const random=()=>{state=(state+0x6D2B79F5)>>>0;let t=state;t=Math.imul(t^t>>>15,t|1);t^=t+Math.imul(t^t>>>7,t|61);return((t^t>>>14)>>>0)/4294967296;};
+  const exits=scene.landmarks.filter(p=>p.to),taken=scene.enemies.map(e=>({x:e.x,y:e.y})),placed=[];
+  for(const swarm of swarms){
+   if(!swarm.kind||!Number.isInteger(swarm.count)||swarm.count<1)throw new Error('Invalid swarm in '+scene.id);
+   const [ax,ay,aw,ah]=swarm.area||[0,0,scene.width,scene.height],clear=swarm.clearSpawn??160;
+   const pool=cells.filter(c=>c.x>=ax&&c.x<=ax+aw&&c.y>=ay&&c.y<=ay+ah&&Math.hypot(c.x-scene.spawn.x,c.y-scene.spawn.y)>=clear&&exits.every(e=>Math.hypot(c.x-e.x,c.y-e.y)>=90));
+   for(let i=pool.length-1;i>0;i--){const j=Math.floor(random()*(i+1));[pool[i],pool[j]]=[pool[j],pool[i]];}
+   let spacing=swarm.spacing||44,count=0;
+   while(count<swarm.count&&spacing>=10){
+    for(const c of pool){
+     if(count>=swarm.count)break;
+     if(taken.some(t=>Math.hypot(t.x-c.x,t.y-c.y)<spacing))continue;
+     const x=c.x+Math.round((random()-.5)*8),y=c.y+Math.round((random()-.5)*8);
+     if(blocked(scene,x,y))continue;
+     taken.push({x,y});placed.push({kind:swarm.kind,x,y,swarm:true,...(swarm.scripted?{scripted:true}:{})});count++;
+    }
+    spacing*=.75;
+   }
+   if(count<swarm.count)throw new Error(`Swarm in ${scene.id} placed ${count} of ${swarm.count} ${swarm.kind}; widen its area.`);
+  }
+  return placed;
+ }
  function create(def){
-  const {id,name,width,height,spawn,paths=[],polygons=[],obstacles=[],blockedPolygons=[],exits=[],points=[],enemies=[]}=def;
+  const {id,name,width,height,spawn,paths=[],polygons=[],obstacles=[],blockedPolygons=[],exits=[],points=[],enemies=[],swarms=[]}=def;
   // Areas name their background by art id; the manifest supplies the URL and guarantees the authored size matches the file.
   let image=def.image;
   if(def.art){
@@ -44,6 +80,7 @@
   if(blocked(scene,spawn.x,spawn.y))throw new Error('Blocked spawn in '+id);
   for(const e of enemies)if(!e.kind||blocked(scene,e.x,e.y))throw new Error('Blocked dinosaur spawn in '+id);
   for(const p of scene.landmarks)if(blocked(scene,p.x,p.y))throw new Error('Blocked interaction: '+id+'/'+p.id);
+  if(swarms.length)scene.enemies=scene.enemies.concat(placeSwarms(scene,swarms));
   return scene;
  }
  function install(defs,scenes){
