@@ -172,6 +172,50 @@
    "runFPS": 12,
    "walkRowOffset": 4,
    "joined": true
+  },
+  "drew": {
+   "name": "Drew",
+   "walk": "character.drew.walk",
+   "portrait": "portrait.drew",
+   "speed": 120,
+   "runSpeed": 205,
+   "walkFPS": 8,
+   "runFPS": 12,
+   "walkRowOffset": 4,
+   "joined": true
+  },
+  "kelce": {
+   "name": "Kelce",
+   "walk": "character.kelce.walk",
+   "portrait": "portrait.kelce",
+   "speed": 120,
+   "runSpeed": 205,
+   "walkFPS": 8,
+   "runFPS": 12,
+   "walkRowOffset": 4,
+   "joined": true
+  },
+  "taylor": {
+   "name": "Taylor",
+   "walk": "character.taylor.walk",
+   "portrait": "portrait.taylor",
+   "speed": 120,
+   "runSpeed": 205,
+   "walkFPS": 8,
+   "runFPS": 12,
+   "walkRowOffset": 4,
+   "joined": true
+  },
+  "alex": {
+   "name": "Alex",
+   "walk": "character.alex.walk",
+   "portrait": "portrait.alex",
+   "speed": 120,
+   "runSpeed": 205,
+   "walkFPS": 8,
+   "runFPS": 12,
+   "walkRowOffset": 4,
+   "joined": true
   }
  },
  "poses": {
@@ -511,6 +555,30 @@
    "surprised": {
     "art": "character.bryce-young.surprised",
     "frames": 3,
+    "fps": 6
+   }
+  },
+  "drew": {
+   "surprised": {
+    "art": "character.drew.surprised",
+    "frames": 3,
+    "fps": 6
+   },
+   "hurt": {
+    "art": "character.drew.hurt",
+    "frames": 3,
+    "fps": 6
+   }
+  },
+  "alex": {
+   "surprised": {
+    "art": "character.alex.surprised",
+    "frames": 3,
+    "fps": 6
+   },
+   "hurt": {
+    "art": "character.alex.hurt",
+    "frames": 1,
     "fps": 6
    }
   }

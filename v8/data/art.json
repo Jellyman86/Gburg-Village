@@ -8,6 +8,24 @@
    "width": 256,
    "height": 256
   },
+  "character.alex.hurt": {
+   "file": "characters/alex-hurt.png",
+   "hash": "779efcb29fcf8c196f95275b0e9ea18a3446ad9070c588c5b687a3dfc678b7f6",
+   "width": 256,
+   "height": 64
+  },
+  "character.alex.surprised": {
+   "file": "characters/alex-surprised.png",
+   "hash": "03d4cce72f047aa0901f384e10136cd855ddc91c5ae224144216b38a5c4217ce",
+   "width": 256,
+   "height": 64
+  },
+  "character.alex.walk": {
+   "file": "characters/alex.png",
+   "hash": "3577fe623acc3ef7e09b28532acb9e5862681dc364aee39076a8c88ea6b8fdf3",
+   "width": 256,
+   "height": 512
+  },
   "character.ari.hurt": {
    "file": "characters/ari-hurt.png",
    "hash": "2b58c2ce019964e734d86d9a5ea2ae0546c3ac8da94c38158132ce25140b977c",
@@ -157,6 +175,24 @@
    "hash": "cbab64919af505d4db1671563ca1b72654e353b7a04261cc7be592f5edc0b28e",
    "width": 256,
    "height": 256
+  },
+  "character.drew.hurt": {
+   "file": "characters/drew-hurt.png",
+   "hash": "91fe9799b9011cebf5e25f6a2a3585a7d5fecbcfc350f3671ad9f77aed370911",
+   "width": 256,
+   "height": 64
+  },
+  "character.drew.surprised": {
+   "file": "characters/drew-surprised.png",
+   "hash": "dd2feb3566ccf8a063e9ed4a8900ee063a1f9d883231877fa8c8d45c93dfa22c",
+   "width": 256,
+   "height": 64
+  },
+  "character.drew.walk": {
+   "file": "characters/drew.png",
+   "hash": "83e08bdfce399e2f222856d1bc8aecc18168341612f19a3d3c581e87b59414d1",
+   "width": 256,
+   "height": 512
   },
   "character.gary.attack": {
    "file": "characters/gary-attack.png",
@@ -332,6 +368,12 @@
    "width": 256,
    "height": 256
   },
+  "character.kelce.walk": {
+   "file": "characters/kelce.png",
+   "hash": "a5236880670c6038c5df248f0a34e4ddf9ef66d503eb239860ba4625dddf4f5b",
+   "width": 256,
+   "height": 512
+  },
   "character.mark.surprised": {
    "file": "characters/mark-surprised.png",
    "hash": "072c722c35910022db5802194d462ee88b6410da1ba2e57ca9f21636bc7c64ce",
@@ -349,6 +391,12 @@
    "hash": "7c7571524cab9fedecbf6a5d63821264aed1ed720017defb2044f66a5568192b",
    "width": 256,
    "height": 256
+  },
+  "character.panthersplayer.walk": {
+   "file": "characters/panthersplayer.png",
+   "hash": "8adf9bc381c923289dc10a4c30a898fa261d3a482efe22ea52046a316a6e314e",
+   "width": 256,
+   "height": 512
   },
   "character.peachy.surprised": {
    "file": "characters/peachy-surprised.png",
@@ -385,6 +433,12 @@
    "hash": "533b6ffb236b98c60ed58817fedca0d698b49c854b12f71fade8ab1422f8a555",
    "width": 256,
    "height": 256
+  },
+  "character.taylor.walk": {
+   "file": "characters/taylor.png",
+   "hash": "4d97ad470dd10b4939ccf2ea672870917f2f4f6e0652633e80910f3fab7c5acc",
+   "width": 256,
+   "height": 512
   },
   "character.vito.clean-recover": {
    "file": "characters/vito-clean-recover.png",
@@ -614,6 +668,12 @@
    "width": 128,
    "height": 128
   },
+  "portrait.alex": {
+   "file": "portraits/alex.png",
+   "hash": "b08f88700dd20d4b4dd0114db8ae57ae4ed0e43b6196c6544431d4825bf8b7d3",
+   "width": 128,
+   "height": 128
+  },
   "portrait.ari": {
    "file": "portraits/ari.png",
    "hash": "b2d3b3542db0d2f1d37938edbbeecfd7cc325a7cdea46107c610101d7d2876cc",
@@ -650,6 +710,12 @@
    "width": 128,
    "height": 128
   },
+  "portrait.drew": {
+   "file": "portraits/drew.png",
+   "hash": "3cb1ba8ce95aed8294a93522a0026cf325d587e52f52da6aadecba4887601f0e",
+   "width": 128,
+   "height": 128
+  },
   "portrait.gary": {
    "file": "portraits/gary.png",
    "hash": "a1a05a56b45b12f46532b16dde79b23e234435cb4fb63f09ceeed8b7b04c4056",
@@ -680,6 +746,12 @@
    "width": 128,
    "height": 128
   },
+  "portrait.kelce": {
+   "file": "portraits/kelce.png",
+   "hash": "e1adf2dd26a88827e4c33dc5656ec9fdee278e4130c8c9bb0b04d37fb2715915",
+   "width": 128,
+   "height": 128
+  },
   "portrait.mark": {
    "file": "portraits/mark.png",
    "hash": "70b6d18efb79a2aa85fa4743c62b3df6efd6f2913d7efde72a12cd6541e9eee4",
@@ -695,6 +767,12 @@
   "portrait.stephanie": {
    "file": "portraits/stephanie.png",
    "hash": "df4bd219466a690d8199c04983b0d57849983d8d2913334366aac578677955d4",
+   "width": 128,
+   "height": 128
+  },
+  "portrait.taylor": {
+   "file": "portraits/taylor.png",
+   "hash": "d3d551bce264a5695438a7a2937eee002e8a81b7e139177ef55ad5ee5fe75790",
    "width": 128,
    "height": 128
   },
