@@ -18,6 +18,8 @@ return async function checkRescues(page,{width,height,touch,artifactDir}={}){
  const state=()=>page.evaluate(()=>GAME.state);
  const closeDialog=async()=>{await page.evaluate(()=>{const d=document.getElementById('dialog');if(d.open)d.close();});await page.evaluate(()=>new Promise(r=>setTimeout(r,0)));};
  const enter=async(id,x,y)=>{await page.evaluate(([id,x,y])=>GAME.test.enterScene(id,[x,y]),[id,x,y]);await page.waitForFunction(id=>GAME.state.scene===id&&GAME.ready,id);await page.waitForTimeout(150);};
+ // Hosted MP3s take a moment to start, so wait for the place rather than asserting instantly.
+ const music=async(place,message)=>{await page.waitForFunction(p=>V8_MUSIC.state.mode===p,place,{timeout:15000}).catch(()=>{throw new Error(message);});};
  const defeatAll=async()=>{await page.evaluate(()=>{for(const e of GAME.test.enemies())if(e.alive&&!e.hidden)GAME.test.defeat(e);});};
  try{
   await page.goto(page.url().split('/v8/')[0]+'/v8/');
@@ -38,7 +40,7 @@ return async function checkRescues(page,{width,height,touch,artifactDir}={}){
   assert(s.script&&s.script.phase==='idle','Pool party script starts idle');
   assert(s.scriptActors.length===2&&s.scriptActors.every(a=>!a.pose),'Drew and Alex wait by the stage');
   assert(s.enemies.filter(e=>e.scripted).length===3&&s.enemies.filter(e=>e.scripted).every(e=>e.hidden),'Scripted dinosaurs are hidden until triggered');
-  assert(await page.evaluate(()=>V8_MUSIC.state.mode==='vegas-north'),'Pool party plays its own music place');
+  await music('vegas-north','Pool party plays its own music place');
   await page.evaluate(()=>GAME.test.position(790,330));
   await page.waitForFunction(()=>GAME.state.script.phase==='shock',null,{timeout:5000});
   s=await state();
@@ -69,7 +71,7 @@ return async function checkRescues(page,{width,height,touch,artifactDir}={}){
   // Other Vegas zones load with their music.
   for(const [id,place] of [['vegas-central','vegas'],['vegas-east','vegas-east'],['vegas-west','vegas']]){
    await enter(id,760/1536*1000,900/1024*1000).catch(async()=>{await enter(id,90/1536*1000,920/1024*1000);});
-   assert(await page.evaluate(p=>V8_MUSIC.state.mode===p,place),id+' plays the '+place+' playlist');
+   await music(place,id+' plays the '+place+' playlist');
   }
   // ---- Charlotte · Panthers Stadium ---------------------------------------------------------------------------------
   await enter('panthers-stadium',724/1448*1000,1000/1086*1000);
@@ -77,7 +79,7 @@ return async function checkRescues(page,{width,height,touch,artifactDir}={}){
   s=await state();
   assert(s.script.phase==='chase'&&s.scriptActors.length===2,'Kelce and Taylor are running their loops');
   assert(s.enemies.filter(e=>e.scripted&&e.alive).every(e=>e.prey==='kelce'||e.prey==='taylor')&&s.enemies.filter(e=>e.scripted).length===4,'Four compies chase them');
-  assert(await page.evaluate(()=>V8_MUSIC.state.mode==='stadium'),'Stadium plays Anti-Hero place');
+  await music('stadium','Stadium plays Anti-Hero place');
   const before=s.scriptActors.map(a=>[a.x,a.y]);await page.waitForTimeout(600);s=await state();
   assert(s.scriptActors.some((a,i)=>Math.hypot(a.x-before[i][0],a.y-before[i][1])>20),'They keep moving along their paths');
   await screenshot('stadium-chase');
@@ -92,7 +94,7 @@ return async function checkRescues(page,{width,height,touch,artifactDir}={}){
   assert(s.script.phase==='battle','The field battle is under way');
   assert(s.scriptActors.filter(a=>a.id==='panthersplayer').length===6&&s.scriptActors.filter(a=>a.id==='panthersplayer'&&a.pose==='hurt').length>=2,'Panthers players fight and two lie hurt');
   assert(s.scriptActors.some(a=>a.id==='bryce-young'),'Bryce Young is on the field');
-  assert(await page.evaluate(()=>V8_MUSIC.state.mode==='field'),'Field plays the NFL theme place');
+  await music('field','Field plays the NFL theme place');
   await page.waitForFunction(()=>GAME.state.powers.casts.some(c=>c.kind==='football'&&c.owner==='bryce-young')||GAME.state.combat.lastHit,null,{timeout:12000});
   await page.evaluate(()=>GAME.test.position(724,760));
   await page.waitForTimeout(2500);
