@@ -2,6 +2,8 @@
  'use strict';
  const $=id=>document.getElementById(id),canvas=$('game'),ctx=canvas.getContext('2d',{alpha:false});
  let town=window.SCENES.cocoRoom; const characters=window.CHARACTERS,ids=Object.keys(characters);
+ // Scene extras ("role": "npc" in sprites.json) share the sheet contract but never join the party.
+ const cast={...(window.EXTRAS||{}),...characters};
  const sceneImages={},sceneOverlays={},scenes=window.SCENES; let changing=false;
  const travel=window.V8_TRAVEL;
  const worldFlyers=V8_WORLD_FLYERS.create(travel.width,travel.height);
@@ -121,10 +123,10 @@
   neighborhood:[['compy',330,800],['compy',500,800],['compy',900,800],['compy',1090,1100],['dilophosaurus',950,800],['ankylosaurus',150,1050]],
   recreation:[['compy',1000,180],['compy',100,550],['compy',1125,800],['compy',750,685],['dilophosaurus',100,900],['ankylosaurus',1125,450]]
  },extraEnemies={};
- for(const scene of Object.values(scenes))if(scene.enemies)extraHomes[scene.id]=scene.enemies.map(e=>[e.kind,e.x,e.y]);
+ for(const scene of Object.values(scenes))if(scene.enemies)extraHomes[scene.id]=scene.enemies.map(e=>[e.kind,e.x,e.y,!!e.scripted]);
  function prepareEnemies(id){
   if(extraEnemies[id]||!extraHomes[id])return;
-  extraEnemies[id]=extraHomes[id].map(([kind,x,y])=>{
+  extraEnemies[id]=extraHomes[id].map(([kind,x,y],index)=>{
    let home=null;
    for(const radius of [0,24,48,96,160]){
     for(let i=0;i<16;i++){
@@ -133,7 +135,11 @@
     }if(home)break;
    }
    if(!home)throw new Error('No safe '+kind+' spawn in '+id);
-   return V6_COMBAT.init({...home,home,kind,direction:'right',facing:1,clock:0,stars:0,mode:'wander',timer:8,target:null,turnTimer:0,moving:false});
+   // `scripted:true` dinosaurs stay hidden (invisible, untargetable) until the scene script reveals them.
+   const scripted=!!extraHomes[id][index]?.[3];
+   const enemy=V6_COMBAT.init({...home,home,kind,scripted,direction:'right',facing:1,clock:0,stars:0,mode:'wander',timer:8,target:null,turnTimer:0,moving:false});
+   if(scripted)enemy.hidden=true;
+   return enemy;
   });
  }
  function encounterEnemies(){return (dino?[dino]:[]).concat(extraEnemies[town.id]||[]);}
@@ -142,6 +148,15 @@
  let powers; function makePowers(){return window.FAMILY_POWERS.create({blocked,getTargets:()=>activeEnemies().filter(enemy=>enemy.alive),getActor:()=>player,getAbility:actor=>window.V4_RPG.members[actor.id].ability,getSwordImage:()=>extraSheets.sword,getTowelImage:()=>extraSheets.towel,getGrenadeImage:()=>extraSheets.grenade, onSound:kind=>V4_SFX.play(kind),onHit:(id,hit)=>{
    combat.hit(hit.target,{...hit,strength:V4_RPG.stats(hit.owner).strength});
  }});} powers=makePowers();
+ // Scene scripts (Vegas pool party, Panthers Stadium and Field) drive their actors through this host.
+ const scripts=window.V8_SCENE_SCRIPTS.create({
+  player,enemies:()=>encounterEnemies(),blocked:(x,y)=>blocked(x,y),
+  recruit(id){if(V4_RPG.members[id]?.joined)return;const result=V4_RPG.recruit(id);refreshParty();updateNearby();V4_SFX.play('join');toast(result.message);},
+  say:(title,text,tag)=>showDialog(title,text,tag),toast,sound:kind=>{try{V4_SFX.play(kind);}catch(_){}},
+  throwPower:actor=>{const used=powers.activate(actor);if(used)V4_SFX.play('throw');return used;},
+  hitEnemy:(enemy,source)=>combat.hit(enemy,{power:{kind:'tackle',damage:9},strength:0,owner:'panthersplayer',...source}),
+  joined:id=>!!V4_RPG.members[id]?.joined
+ });
  const powerButton=$('power'),powerLabel=$('power-label'),powerHint=$('power-hint');
  function paintPower(){
   const power=window.FAMILY_POWERS.definitions[window.V4_RPG.members[player.id].ability];powerButton.hidden=!power||town.id==='world';
@@ -173,7 +188,9 @@
   if(dino.stunned>0){dino.stunned=Math.max(0,dino.stunned-dt);dino.moving=false;return;}
   if(dino.windup>0){dino.moving=false;return;}
   dino.timer-=dt;dino.turnTimer-=dt;
-  const distance=Math.hypot(player.x-dino.x,player.y-dino.y);
+  // Scene scripts can point a dinosaur at one of their actors instead of the player.
+  const quarry=dino.prey||player;
+  const distance=Math.hypot(quarry.x-dino.x,quarry.y-dino.y);
   if(dino.mode==='chase'){
    if(dino.timer<=0)dinoRest(null,dino);
   }else if(dino.timer<=0&&distance<185){
@@ -189,7 +206,7 @@
     if(!blocked(x,y)){dino.target={x,y};break;}
    }
   }
-  const target=dino.mode==='chase'?player:dino.target;
+  const target=dino.mode==='chase'?quarry:dino.target;
   dino.moving=false;
   if(!target)return;
   const angle=Math.atan2(target.y-dino.y,target.x-dino.x);
@@ -469,13 +486,14 @@
   gimmicks.update(dt,town,player,camera,canvas.width/viewScale);
   if(town.id==='plaza')updateSquirrel(dt);paintPower();
   if(town.id==='recreation')recreation.update(dt,player);
+  scripts.update(town.id,dt);
   if(town.id!=='world')companions.update(dt,player);
   for(const cast of powers.state.casts)flight.scare(cast);
   flight.update(dt,player,town,!unicorn.riding);refreshParty();
   updateCamera();updateNearby();$('status').textContent=c.name+' · '+(unicorn.riding?(player.moving&&player.running?'Galloping':'Riding a unicorn'):player.moving?(player.running?'Running':'Walking'):'Taking it all in');$('area-label').textContent=town.id!=='plaza'?town.name:player.y<401?'CENTER POINT WAY':player.y<785?'THE GREEN':'THE PLAZA';
  }
  function sprite(actor,active){
-  const c=characters[actor.id],x=Math.round(actor.x),y=Math.round(actor.y);
+  const c=cast[actor.id],x=Math.round(actor.x),y=Math.round(actor.y);
   if(town.id==='world'){ctx.save();ctx.translate(x,y);ctx.scale(.8,.8);ctx.translate(-x,-y);}
   ctx.fillStyle=active?'#182b365c':'#182b3645';ctx.beginPath();ctx.ellipse(x,y,actor.id==='coco'?10:13,4,0,0,Math.PI*2);ctx.fill();
   if(active){ctx.strokeStyle='#f9df89';ctx.lineWidth=1;ctx.beginPath();ctx.ellipse(x,y+1,15,5,0,0,Math.PI*2);ctx.stroke();}
@@ -524,15 +542,18 @@
   powers.drawGround(ctx);attacks.drawGround(ctx,activeEnemies());gimmicks.draw(ctx,extraSheets.bus,town.id);
   const unicornActor=unicorn.state;
   const activity=town.id==='recreation'?recreation.actors(player):[];
+  const scripted=scripts.actors(town.id);
+  for(const prop of scripts.props(town.id))if(extraSheets.hurtPanther)ctx.drawImage(extraSheets.hurtPanther,Math.round(prop.x)-36,Math.round(prop.y)-28);
   const ambient=V4_STORY.actors(town.id,activity,player.id).filter(a=>a.id!==joining?.id)
-   .concat(activity.filter(a=>recreation.dogData[a.id]),town.id==='world'?[]:companions.actors,town.id==='plaza'?(squirrel.active?[squirrel]:[]).concat(unicorn.riding?[]:[unicornActor]):[]);
+   .concat(activity.filter(a=>recreation.dogData[a.id]),scripted,town.id==='world'?[]:companions.actors,town.id==='plaza'?(squirrel.active?[squirrel]:[]).concat(unicorn.riding?[]:[unicornActor]):[]);
   if(town.id==='world'){const plane=travel.model().state.plane;travel.drawPlane(ctx,plane.x,plane.y);}
   const enemies=activeEnemies();
   ambient.concat(enemies,joining?[joining]:[],player).sort((a,b)=>a.y-b.y).forEach(a=>{
    if(enemies.includes(a))drawDino(a);else if(a===squirrel)drawSquirrel();else if(a===unicornActor)unicorn.draw(ctx);
    else if(recreation.dogData[a.id]||a.swimming){
     drawSmallActor(a);
-   }else{ctx.save();if(a===joining)ctx.globalAlpha=1-Math.max(0,(a.age-.6)/.2);sprite(a,a===player);ctx.restore();}
+   }else if(a.scripted){drawScripted(a);}
+   else{ctx.save();if(a===joining)ctx.globalAlpha=1-Math.max(0,(a.age-.6)/.2);sprite(a,a===player);ctx.restore();}
   });
   if(town.id==='recreation'&&(!V4_RPG.members.jeff.joined||!V4_RPG.members.ari.joined))recreation.drawBall(ctx);
   if(town.id==='world')worldFlyers.drawOverhead(ctx,extraSheets.pterodactyl);
@@ -541,6 +562,16 @@
    ctx.drawImage(extraSheets.pterodactyl,bird.frame*128,row*128,128,128,Math.round(bird.x)-64,Math.round(bird.y)-124,128,128);
   }
   powers.drawAir(ctx);attacks.drawAir(ctx);combat.drawEffects(ctx);ctx.restore();playerCombat.drawCover(ctx,canvas.width,canvas.height);
+ }
+ // Scripted actors: a pose clip (surprised, hurt, …) drawn through the cinematic director's pose renderer when set,
+ // otherwise the normal walk sprite, lifted for the Panthers' flying tackles.
+ function drawScripted(a){
+  const x=Math.round(a.x),y=Math.round(a.y)-(a.lift||0);
+  ctx.fillStyle='#182b3645';ctx.beginPath();ctx.ellipse(Math.round(a.x),Math.round(a.y),13,4,0,0,Math.PI*2);ctx.fill();
+  if(a.pose&&V5_CINEMA.drawPose(ctx,a.id,a.pose,x,y,a.poseTime,{flip:a.direction==='left'&&!!cast[a.id]?.mirrorLeft}))return;
+  const c=cast[a.id],walking=characterWalkPose(c,a.direction,a.moving);
+  ctx.save();ctx.translate(x,y-30);if(walking.flip)ctx.scale(-1,1);
+  ctx.drawImage(sheets[a.id],(a.moving?a.frame:1)*64,walking.row*64,64,64,-c.foot.x,30-c.foot.y,64,64);ctx.restore();
  }
  function drawSmallActor(a){
   if(a.pose&&extraSheets[a.id+'Poses']){
@@ -566,7 +597,7 @@
    const x=arrival[0]*town.width/1000,y=arrival[1]*town.height/1000;
    if(blocked(x,y)){town=old;throw new Error('The entrance needs more space.');}
    dinoHome=town.indoor?null:dinoHomes[id]||null;dino=town.indoor?null:dinosaurs[id]||null;
-   prepareEnemies(id);combat.clearEffects();
+   prepareEnemies(id);combat.clearEffects();scripts.enter(id);
    background=img;Object.assign(player,{x,y,direction,frame:1,clock:0});
    arrivalPortals.clear();arrivalPoint={x,y};
    for(const portal of town.landmarks)if(portal.to&&nearPortal(portal,x,y))arrivalPortals.add(portal.id);
@@ -593,8 +624,9 @@
  const extraArt={...Object.fromEntries(Object.entries(recreation.dogData).map(([id,data])=>[id,data.sheet])),
   ...Object.fromEntries(['trex','raptor','triceratops','pterodactyl','dilophosaurus','ankylosaurus','compy'].map(id=>[id,V8_ART.url('dinosaur.'+id)])),
   barneyPoses:V8_ART.url('companion.barney.poses'),rosiePoses:V8_ART.url('companion.rosie.poses'),grenade:V8_ART.url('item.grenade'),grenadeIcon:V4_RPG.items.grenade.image,
-  towel:V8_ART.url('item.towel-whip'),bus:V8_ART.url('gimmick.bus'),swim:V8_ART.url('character.chris.swim'),sword:V8_ART.url('item.sword-slash'),swordIcon:V4_RPG.items.sword.image};
- Promise.all([loadImage(town.image).then(img=>{background=img;sceneImages.cocoRoom=img;}),...ids.map(id=>loadImage(characters[id].sheet).then(img=>{sheets[id]=img;})),
+  towel:V8_ART.url('item.towel-whip'),bus:V8_ART.url('gimmick.bus'),swim:V8_ART.url('character.chris.swim'),sword:V8_ART.url('item.sword-slash'),swordIcon:V4_RPG.items.sword.image,hurtPanther:V8_ART.url('gimmick.hurt-panther')};
+ const extraIds=Object.keys(window.EXTRAS||{});
+ Promise.all([loadImage(town.image).then(img=>{background=img;sceneImages.cocoRoom=img;}),...ids.concat(extraIds).map(id=>loadImage(cast[id].sheet).then(img=>{sheets[id]=img;})),
   ...Object.entries(extraArt).map(([id,path])=>loadImage(path).then(img=>{
    extraSheets[id]=img;
    if(V6_COMBAT.species[id]){const flash=document.createElement('canvas');flash.width=img.width;flash.height=img.height;const paint=flash.getContext('2d');paint.drawImage(img,0,0);paint.globalCompositeOperation='source-atop';paint.fillStyle='#fff5dc';paint.fillRect(0,0,flash.width,flash.height);flashSheets[id]=flash;}
@@ -616,5 +648,5 @@
  });
  V5_EVENTS.attach({scene:()=>town.id,atMeeting:()=>Math.hypot(player.x-768,player.y-865)<150,atBanquet:()=>Math.hypot(player.x-768,player.y-760)<56,
   resumeGary(){if(!select('gary'))throw new Error('Gary could not resume after the banquet.');},reset:resetInput,notify:toast,refresh:()=>{refreshParty();updateNearby();paintPower();}});
- window.GAME={get ready(){return loaded&&!changing;},get busy(){return mapOpen()||playerCombat.locked||storyBusy()||!!joining||!!pendingRecruit||flight.state.active;},get state(){return{scene:town.id,player:{...player},travel:travel.model()?.state||null,map:mapOpen(),playerCombat:playerCombat.state,incoming:attacks.state,actors:V4_STORY.actors(town.id,town.id==='recreation'?recreation.actors(player):[],player.id),joining:joining&&{...joining},story:V5_EVENTS.state,cinema:V5_CINEMA.state,companions:companions.state,flight:flight.state,recreation:recreation.state,powers:powers.state,unicorn:unicorn.state,dinosaur:dino&&{...dino},enemies:encounterEnemies().map(enemy=>({...enemy})),combat:combat.state,gimmicks:gimmicks.state,squirrel:{...squirrel},camera:V5_CINEMA.active&&V5_CINEMA.state.camera||{...camera,scale:viewScale},nearest:nearest?.id||null,viewport:{width:canvas.width,height:canvas.height},dialog:$('dialog').open,menu:window.V4_MENU.active,input:{joy:{...joy},touchRun,keys:[...keys]}};},select,blocked};
+ window.GAME={get ready(){return loaded&&!changing;},get busy(){return mapOpen()||playerCombat.locked||storyBusy()||!!joining||!!pendingRecruit||flight.state.active;},get state(){return{scene:town.id,player:{...player},travel:travel.model()?.state||null,map:mapOpen(),playerCombat:playerCombat.state,incoming:attacks.state,actors:V4_STORY.actors(town.id,town.id==='recreation'?recreation.actors(player):[],player.id),joining:joining&&{...joining},story:V5_EVENTS.state,cinema:V5_CINEMA.state,companions:companions.state,flight:flight.state,recreation:recreation.state,powers:powers.state,unicorn:unicorn.state,dinosaur:dino&&{...dino},enemies:encounterEnemies().map(enemy=>({...enemy,prey:enemy.prey?enemy.prey.id:null})),script:scripts.state(town.id),scriptActors:scripts.actors(town.id).map(a=>({id:a.id,x:a.x,y:a.y,pose:a.pose,state:a.state||null})),combat:combat.state,gimmicks:gimmicks.state,squirrel:{...squirrel},camera:V5_CINEMA.active&&V5_CINEMA.state.camera||{...camera,scale:viewScale},nearest:nearest?.id||null,viewport:{width:canvas.width,height:canvas.height},dialog:$('dialog').open,menu:window.V4_MENU.active,input:{joy:{...joy},touchRun,keys:[...keys]}};},select,blocked};
 })();

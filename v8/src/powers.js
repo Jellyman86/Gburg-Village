@@ -17,12 +17,19 @@
   jeff:{name:'Throw baseball',label:'Baseball',kind:'baseball',cooldown:.6,duration:1.4,speed:285},
   ari:{name:'Soccer volley',label:'Volley',kind:'soccer',cooldown:.6,duration:1.4,speed:265},
   gary:{name:'Patriot blaster',label:'Blast',kind:'blaster',cooldown:.65,duration:.8,range:260,width:11,extendSpeed:800},
+  kelce:{name:'Throw football',label:'Throw',kind:'football',cooldown:.45,duration:1.4,speed:265},
+  'bryce-young':{name:'Throw football',label:'Throw',kind:'football',cooldown:.45,duration:1.4,speed:265},
+  taylor:{name:'Singing shockwaves',label:'Sing',kind:'song',cooldown:.85,duration:1.25,range:125},
+  drew:{name:'Singing shockwaves',label:'Sing',kind:'song',cooldown:.85,duration:1.25,range:125},
+  alex:{name:'Singing shockwaves',label:'Sing',kind:'song',cooldown:.85,duration:1.25,range:125},
   sword:{name:'Sword slash',label:'Slash',kind:'sword',cooldown:.6,duration:.45,range:55},
   grenade:{name:'Grenade toss',label:'Grenade',kind:'grenade',cooldown:.6,duration:1.45,range:80,speed:175}
- }).map(([id,power])=>[id,Object.freeze({...power,damage:({punch:16,football:18,wave:12,kick:18,plane:16,martini:18,racket:18,turtle:20,salad:16,flip:20,tornado:16,towel:20,baseball:18,soccer:18,blaster:26,sword:24,grenade:34})[power.kind],
-  sound:({punch:'strike',kick:'strike',flip:'strike',racket:'slash',sword:'slash',towel:'whip',wave:'wave',tornado:'swirl',blaster:'blast'})[power.kind]||'throw'})])));
+ }).map(([id,power])=>[id,Object.freeze({...power,damage:({punch:16,football:18,wave:12,song:12,kick:18,plane:16,martini:18,racket:18,turtle:20,salad:16,flip:20,tornado:16,towel:20,baseball:18,soccer:18,blaster:26,sword:24,grenade:34})[power.kind],
+  sound:({punch:'strike',kick:'strike',flip:'strike',racket:'slash',sword:'slash',towel:'whip',wave:'wave',song:'wave',tornado:'swirl',blaster:'blast'})[power.kind]||'throw'})])));
  const directions={down:{x:0,y:1},left:{x:-1,y:0},right:{x:1,y:0},up:{x:0,y:-1}};
  const projectile=power=>!!power.speed;
+ // Singing is the crying shockwave with musical notes instead of tears: same ring, same reach.
+ const isWave=kind=>kind==='wave'||kind==='song';
  function create({blocked,getTarget=()=>null,getTargets=()=>{const target=getTarget();return target?[target]:[];},onHit,getActor=()=>null,getAbility=actor=>actor.id,getSwordImage=()=>null,getTowelImage=()=>null,getGrenadeImage=()=>null,onSound=()=>{}}){
   const cooldowns=Object.fromEntries(Object.keys(definitions).map(id=>[id,0])),casts=[];
   let serial=0;
@@ -42,7 +49,7 @@
    const targets=getTargets().filter(target=>target.alive!==false&&!target.hidden),actor=getActor();
    for(const cast of casts){
     const power=definitions[cast.id],previous=cast.age;cast.age+=dt;
-    if(!projectile(power)&&cast.kind!=='wave'&&actor?.id===cast.owner){cast.x=actor.x;cast.y=actor.y;}
+    if(!projectile(power)&&!isWave(cast.kind)&&actor?.id===cast.owner){cast.x=actor.x;cast.y=actor.y;}
     if(cast.kind==='grenade'){
      if(!cast.landed){
       const distance=(Math.min(.65,Math.max(.1,cast.age))-Math.min(.65,Math.max(.1,previous)))*power.speed,steps=Math.max(1,Math.ceil(distance/3));
@@ -78,7 +85,7 @@
      for(const target of targets){
       if(target.alive===false)continue;
       const dx=target.x-cast.x,dy=(target.y-cast.y)/.58,distance=Math.hypot(dx,dy);
-      const range=cast.kind==='wave'?Math.min(power.range,Math.max(0,cast.age-.08)*150):power.range;
+      const range=isWave(cast.kind)?Math.min(power.range,Math.max(0,cast.age-.08)*150):power.range;
       const facing=!['punch','racket','sword','towel'].includes(cast.kind)||dx*cast.dx+dy*cast.dy>=distance*.2;
       if(distance<=range+16&&facing&&clearLine(cast,target))hit(cast,target);
      }
@@ -101,12 +108,13 @@
   function spark(ctx,x,y,color,size=4){ctx.fillStyle=color;ctx.fillRect(x-size,y-1,size*2,2);ctx.fillRect(x-1,y-size,2,size*2);}
   function drawGround(ctx){
    for(const cast of casts){
-    if(cast.kind==='wave'){
+    if(isWave(cast.kind)){
+     const song=cast.kind==='song';
      ctx.save();ctx.lineWidth=2;
      for(const delay of [.08,.24,.4]){
       const t=cast.age-delay;if(t<0||t>.84)continue;const radius=Math.min(125,t*150);
-      ctx.globalAlpha=Math.max(0,1-t/.84);ctx.strokeStyle='#72d6fa';ctx.beginPath();ctx.ellipse(cast.x,cast.y,radius,radius*.58,0,0,Math.PI*2);ctx.stroke();
-      ctx.strokeStyle='#d9f5ff';ctx.lineWidth=1;ctx.beginPath();ctx.ellipse(cast.x,cast.y,Math.max(0,radius-3),Math.max(0,radius*.58-2),0,0,Math.PI*2);ctx.stroke();ctx.lineWidth=2;
+      ctx.globalAlpha=Math.max(0,1-t/.84);ctx.strokeStyle=song?'#f6c1ff':'#72d6fa';ctx.beginPath();ctx.ellipse(cast.x,cast.y,radius,radius*.58,0,0,Math.PI*2);ctx.stroke();
+      ctx.strokeStyle=song?'#fff0fb':'#d9f5ff';ctx.lineWidth=1;ctx.beginPath();ctx.ellipse(cast.x,cast.y,Math.max(0,radius-3),Math.max(0,radius*.58-2),0,0,Math.PI*2);ctx.stroke();ctx.lineWidth=2;
      }ctx.restore();
     }else if(cast.kind==='tornado'){
      const phase=cast.age/definitions[cast.id].duration;
@@ -146,6 +154,13 @@
     }
    }else if(cast.kind==='wave'){
     const drop=Math.floor(cast.age*24)%8;for(const side of [-1,1]){const x=Math.round(actor.x)+side*6,y=Math.round(actor.y)-29+drop;ctx.fillStyle='#c9f5ff';ctx.fillRect(x,y,2,3);ctx.fillStyle='#55bde9';ctx.fillRect(x,y+3,2,3);}
+   }else if(cast.kind==='song'){
+    // Little eighth notes float up and out from the singer's head while the shockwave rings spread.
+    for(let i=0;i<3;i++){
+     const t=(cast.age*1.6+i/3)%1,side=i%2?1:-1,x=Math.round(actor.x)+side*(8+t*14),y=Math.round(actor.y)-34-t*22;
+     ctx.save();ctx.globalAlpha=1-t;ctx.fillStyle=i===1?'#ffd6fb':'#f1a9ff';
+     ctx.fillRect(x-2,y-1,4,3);ctx.fillRect(x+1,y-8,1,8);ctx.fillRect(x+1,y-8,3,1);ctx.restore();
+    }
    }else if(cast.kind==='punch'){
     ctx.translate(Math.round(actor.x),Math.round(actor.y)-24);ctx.rotate(Math.atan2(cast.dy,cast.dx));const reach=10+Math.sin(phase*Math.PI)*18;
     ctx.fillStyle='#202e35';ctx.fillRect(4,-4,8,7);ctx.fillStyle='#e8a76d';ctx.fillRect(10,-3,reach-6,5);ctx.fillRect(reach,-5,7,8);

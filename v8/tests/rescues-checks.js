@@ -1,0 +1,115 @@
+// Scripted rescues: Las Vegas pool party (Drew & Alex), Panthers Stadium (Kelce & Taylor), Panthers Field (Bryce).
+// Enters each scene directly, lets the real-time script run, defeats the dinosaurs through the combat system and
+// asserts the recruits join with their powers. Also covers the new world sites and music places.
+return async function checkRescues(page,{width,height,touch,artifactDir}={}){
+ const assert=(value,message)=>{if(!value)throw new Error(message);};
+ const errors=[],failed=[],onError=e=>errors.push(e.message),onConsole=m=>{if(m.type()==='error')errors.push(m.text());},onResponse=r=>{if(r.status()>=400)failed.push(r.url());};
+ page.on('pageerror',onError);page.on('console',onConsole);page.on('response',onResponse);
+ const pattern='**/v8/src/game.js*';
+ await page.route(pattern,async route=>{
+  const response=await route.fetch(),source=await response.text();
+  const hook=`window.GAME={test:{enterScene,position(x,y){Object.assign(player,{x,y});resetInput();updateCamera();updateNearby();},
+   enemies:()=>encounterEnemies(),defeat(enemy){combat.hit(enemy,{power:{kind:'punch',damage:999},strength:0,x:enemy.x-10,y:enemy.y,dx:1,dy:0,owner:player.id});},
+   activate:()=>activatePower(),powers:()=>powers},`;
+  assert(source.includes('window.GAME={'),'Rescue fixture target exists');
+  await route.fulfill({response,body:source.replace('window.GAME={',hook)});
+ });
+ const screenshot=async name=>{if(artifactDir)await page.screenshot({path:artifactDir+'\\v8-'+name+'-'+width+'x'+height+'.png'});};
+ const state=()=>page.evaluate(()=>GAME.state);
+ const closeDialog=async()=>{await page.evaluate(()=>{const d=document.getElementById('dialog');if(d.open)d.close();});await page.evaluate(()=>new Promise(r=>setTimeout(r,0)));};
+ const enter=async(id,x,y)=>{await page.evaluate(([id,x,y])=>GAME.test.enterScene(id,[x,y]),[id,x,y]);await page.waitForFunction(id=>GAME.state.scene===id&&GAME.ready,id);await page.waitForTimeout(150);};
+ const defeatAll=async()=>{await page.evaluate(()=>{for(const e of GAME.test.enemies())if(e.alive&&!e.hidden)GAME.test.defeat(e);});};
+ try{
+  await page.goto(page.url().split('/v8/')[0]+'/v8/');
+  await page.waitForFunction(()=>window.GAME&&GAME.ready,null,{timeout:60000});
+  await page.locator('#intro-skip').click().catch(()=>{});
+  await page.waitForTimeout(400);
+  // Roster and extras
+  const roster=await page.evaluate(()=>({heroes:Object.keys(CHARACTERS),extras:Object.keys(EXTRAS),joined:Object.entries(V4_RPG.members).filter(([,m])=>m.joined).map(([id])=>id),abilities:Object.fromEntries(['drew','alex','kelce','taylor','bryce-young'].map(id=>[id,V4_RPG.members[id].ability]))}));
+  assert(roster.extras.includes('panthersplayer')&&!roster.heroes.includes('panthersplayer'),'Panthers Player is an extra, not a hero');
+  for(const id of ['drew','alex','kelce','taylor','bryce-young'])assert(!roster.joined.includes(id),id+' starts unrecruited');
+  assert(roster.abilities.drew==='drew'&&roster.abilities.taylor==='taylor'&&roster.abilities.kelce==='kelce'&&roster.abilities['bryce-young']==='bryce-young','New heroes own their powers');
+  assert(await page.evaluate(()=>FAMILY_POWERS.definitions.taylor.kind==='song'&&FAMILY_POWERS.definitions.drew.kind==='song'&&FAMILY_POWERS.definitions.kelce.kind==='football'&&FAMILY_POWERS.definitions['bryce-young'].kind==='football'),'Singing and football powers are defined');
+  // World sites and icons
+  assert(await page.evaluate(()=>['vegas','charlotte'].every(id=>V8_TRAVEL.sites.some(s=>s.id===id&&s.to&&s.icon))),'Las Vegas and Charlotte are playable world sites with icons');
+  // ---- Las Vegas · Encore pool party ------------------------------------------------------------------------------
+  await enter('vegas-north',780/1536*1000,960/1024*1000);
+  let s=await state();
+  assert(s.script&&s.script.phase==='idle','Pool party script starts idle');
+  assert(s.scriptActors.length===2&&s.scriptActors.every(a=>!a.pose),'Drew and Alex wait by the stage');
+  assert(s.enemies.filter(e=>e.scripted).length===3&&s.enemies.filter(e=>e.scripted).every(e=>e.hidden),'Scripted dinosaurs are hidden until triggered');
+  assert(await page.evaluate(()=>V8_MUSIC.state.mode==='vegas-north'),'Pool party plays its own music place');
+  await page.evaluate(()=>GAME.test.position(790,330));
+  await page.waitForFunction(()=>GAME.state.script.phase==='shock',null,{timeout:5000});
+  s=await state();
+  assert(s.scriptActors.every(a=>a.pose==='surprised'),'Drew and Alex go into their shocked animation');
+  assert(s.enemies.filter(e=>e.scripted).every(e=>!e.hidden),'The dinosaurs appear out of nowhere');
+  await screenshot('vegas-shock');
+  await page.waitForFunction(()=>GAME.state.script.phase==='flee',null,{timeout:5000});
+  await page.waitForTimeout(600);
+  s=await state();
+  assert(s.enemies.filter(e=>e.scripted&&e.alive).every(e=>e.prey==='drew'||e.prey==='alex'),'Dinosaurs chase Drew and Alex');
+  await page.waitForFunction(()=>GAME.state.script.phase==='down',null,{timeout:15000});
+  s=await state();
+  assert(s.scriptActors.every(a=>a.pose==='hurt'),'Drew and Alex collapse into their hurt pose');
+  assert(s.enemies.filter(e=>e.scripted&&e.alive).every(e=>!e.prey),'Dinosaurs are released to normal behaviour');
+  await defeatAll();
+  await page.waitForFunction(()=>GAME.state.script.phase==='thanks'||GAME.state.script.phase==='done',null,{timeout:8000});
+  assert(await page.evaluate(()=>document.getElementById('dialog').open&&document.getElementById('dialog-body').textContent.includes('Tower Suite 3001')),'Thank-you dialog invites you to Tower Suite 3001');
+  await closeDialog();
+  assert(await page.evaluate(()=>V4_RPG.members.drew.joined&&V4_RPG.members.alex.joined),'Drew and Alex become playable');
+  assert(await page.evaluate(()=>!document.querySelector('#party button[aria-label="Play as Drew"]').hidden),'Drew appears in the party bar');
+  // Singing power fires with notes (no errors) when playing as Drew.
+  await page.evaluate(()=>GAME.select('drew'));await page.waitForTimeout(100);
+  assert(await page.evaluate(()=>GAME.test.activate()),'Drew can sing');
+  await page.waitForTimeout(300);
+  assert(await page.evaluate(()=>GAME.state.powers.casts.some(c=>c.kind==='song')),'Singing shockwave is active');
+  await screenshot('vegas-sing');
+  await page.evaluate(()=>GAME.select('coco'));
+  // Other Vegas zones load with their music.
+  for(const [id,place] of [['vegas-central','vegas'],['vegas-east','vegas-east'],['vegas-west','vegas']]){
+   await enter(id,760/1536*1000,900/1024*1000).catch(async()=>{await enter(id,90/1536*1000,920/1024*1000);});
+   assert(await page.evaluate(p=>V8_MUSIC.state.mode===p,place),id+' plays the '+place+' playlist');
+  }
+  // ---- Charlotte · Panthers Stadium ---------------------------------------------------------------------------------
+  await enter('panthers-stadium',724/1448*1000,1000/1086*1000);
+  await page.waitForTimeout(700);
+  s=await state();
+  assert(s.script.phase==='chase'&&s.scriptActors.length===2,'Kelce and Taylor are running their loops');
+  assert(s.enemies.filter(e=>e.scripted&&e.alive).every(e=>e.prey==='kelce'||e.prey==='taylor')&&s.enemies.filter(e=>e.scripted).length===4,'Four compies chase them');
+  assert(await page.evaluate(()=>V8_MUSIC.state.mode==='stadium'),'Stadium plays Anti-Hero place');
+  const before=s.scriptActors.map(a=>[a.x,a.y]);await page.waitForTimeout(600);s=await state();
+  assert(s.scriptActors.some((a,i)=>Math.hypot(a.x-before[i][0],a.y-before[i][1])>20),'They keep moving along their paths');
+  await screenshot('stadium-chase');
+  await defeatAll();
+  await page.waitForFunction(()=>['thanks','done'].includes(GAME.state.script.phase),null,{timeout:8000});
+  await closeDialog();
+  assert(await page.evaluate(()=>V4_RPG.members.kelce.joined&&V4_RPG.members.taylor.joined),'Kelce and Taylor become playable');
+  // ---- Charlotte · Panthers Field ----------------------------------------------------------------------------------
+  await enter('panthers-field',724/1448*1000,800/1086*1000);
+  await page.waitForTimeout(1500);
+  s=await state();
+  assert(s.script.phase==='battle','The field battle is under way');
+  assert(s.scriptActors.filter(a=>a.id==='panthersplayer').length===6&&s.scriptActors.filter(a=>a.id==='panthersplayer'&&a.pose==='hurt').length>=2,'Panthers players fight and two lie hurt');
+  assert(s.scriptActors.some(a=>a.id==='bryce-young'),'Bryce Young is on the field');
+  assert(await page.evaluate(()=>V8_MUSIC.state.mode==='field'),'Field plays the NFL theme place');
+  await page.waitForFunction(()=>GAME.state.powers.casts.some(c=>c.kind==='football'&&c.owner==='bryce-young')||GAME.state.combat.lastHit,null,{timeout:12000});
+  await page.evaluate(()=>GAME.test.position(724,760));
+  await page.waitForTimeout(2500);
+  s=await state();
+  assert(s.script.fighters.some(f=>['charge','bounce','return'].includes(f))||s.combat.lastHit,'Panthers charge the dinosaurs FF6-style');
+  await screenshot('field-battle');
+  await defeatAll();
+  await page.waitForFunction(()=>['thanks','done'].includes(GAME.state.script.phase),null,{timeout:8000});
+  await closeDialog();
+  assert(await page.evaluate(()=>V4_RPG.members['bryce-young'].joined&&!V4_RPG.members.panthersplayer),'Bryce Young becomes playable; the generic player does not');
+  // Return trips
+  await enter('panthers-stadium',724/1448*1000,200/1086*1000);
+  await page.waitForFunction(()=>GAME.state.script.phase==='done'&&GAME.state.scriptActors.length===0,null,{timeout:6000});
+  assert(errors.length===0,'Unexpected page errors: '+errors.join('; '));assert(failed.length===0,'Failed assets: '+failed.join('; '));
+  return {layout:width+'x'+height,touch,pass:'Vegas pool-party rescue (shock → flee → hurt → thanks → Drew & Alex join, singing power), Stadium compy chase (Kelce & Taylor join), Field battle (Bryce throws, Panthers charge, Bryce joins), new music places, extras excluded from roster'};
+ }finally{
+  await page.unroute(pattern).catch(()=>{});
+  page.off('pageerror',onError);page.off('console',onConsole);page.off('response',onResponse);
+ }
+};

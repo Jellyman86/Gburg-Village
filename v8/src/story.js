@@ -17,6 +17,14 @@
   gary:{scene:'hq',x:200,y:350,hint:'Inside Five Guys HQ. Gary joins after everyone else is rescued and his battle is finished.'}
  };
  const order=['connor','peachy','jason','jeff','ari','chris','jaime','mark','stephanie','adam','brie','vito','kate'];
+ // Where to find the heroes rescued by scene scripts (scene-scripts.js), for the party menu's "Find …" note.
+ const hints={
+  drew:'Las Vegas · the Encore pool party north of the Strip. Save Drew and Alex from the dinosaurs.',
+  alex:'Las Vegas · the Encore pool party north of the Strip. Save Drew and Alex from the dinosaurs.',
+  kelce:'Charlotte · Panthers Stadium concourse. Clear out the compies chasing Kelce and Taylor.',
+  taylor:'Charlotte · Panthers Stadium concourse. Clear out the compies chasing Kelce and Taylor.',
+  'bryce-young':'Charlotte · Panthers Field, through the stadium tunnel. Help Bryce and the Panthers clear the field.'
+ };
  function objective(){
   if(window.V5_EVENTS)return V5_EVENTS.objective();
   const next=order.find(id=>!V4_RPG.members[id].joined);
@@ -34,5 +42,5 @@
   return Object.entries(locations).filter(([id,place])=>place.scene===scene&&id!==activeId&&(id==='gary'||!V4_RPG.members[id].joined))
    .map(([id,place])=>({...place,id:'friend-'+id,name:CHARACTERS[id].name+' · Talk',radius:62,...(id==='gary'?{npc:id}:{recruit:id})}));
  }
- window.V4_STORY={locations,order,objective,actors,encounters};
+ window.V4_STORY={locations,order,hints,objective,actors,encounters};
 })();

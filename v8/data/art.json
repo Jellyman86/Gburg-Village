@@ -626,6 +626,14 @@
    "width": 1280,
    "height": 128
   },
+  "gimmick.hurt-panther": {
+   "file": "gimmicks/hurt-panther.png",
+   "hash": "af046236cad4fc824cec2a514056bda63212a09c29ce5d47bbcf708f2380f1f5",
+   "width": 72,
+   "height": 31,
+   "source": "1017/HurtPanther Sprite.png",
+   "sourceHash": "20cf4c743ab527c3a630b8aa2f090f90bbebbb37c118a84e86e87adde8a03383"
+  },
   "item.band-instruments": {
    "file": "items/band-instruments.png",
    "hash": "a0a988e4ef89652ae81aec7a991f3dde42f1f019da76de86a5cdabe6d36cff88",
@@ -930,6 +938,22 @@
    "source": "NY West.png",
    "sourceHash": "d74b38acfbcd2859b215cc62469a3b61ec8bfcdf60cc48c6a5b6e4cbd9a053ba"
   },
+  "scene.panthers-field": {
+   "file": "scenes/panthers-field.webp",
+   "hash": "77b43f3aca7616d3639d566c7080b0d9a8404aa6b82318471fed36a42e8c16f3",
+   "width": 1448,
+   "height": 1086,
+   "source": "1017/Scene - Panthers Field.png",
+   "sourceHash": "5d8983adb43026b9c0acabb7eccb4a4115e57b884020cb8f6790392544f979a1"
+  },
+  "scene.panthers-stadium": {
+   "file": "scenes/panthers-stadium.webp",
+   "hash": "e834191786ac78edbbf3adbfb51902a3ba2bc4f21f095cdb4490d447c8e3ba47",
+   "width": 1448,
+   "height": 1086,
+   "source": "1017/Scene - Panthers Stadium.png",
+   "sourceHash": "172842caa2754a6afbcb64efdb00d5d99e66050d298d2a75bc602ef3d41a938b"
+  },
   "scene.paris-central": {
    "file": "scenes/paris-central.webp",
    "hash": "1cf72379990787662215a29576e41023910422bfd4f100d35f6e1a676eaf6981",
@@ -994,11 +1018,51 @@
    "width": 600,
    "height": 450
   },
+  "scene.vegas-central": {
+   "file": "scenes/vegas-central.webp",
+   "hash": "a46dc0ed457b9052a63ddcf4eb9f3bce0a2e34bc6e2085843fbf8e5562fdb3a2",
+   "width": 1536,
+   "height": 1024,
+   "source": "1017/Scene - Vegas Central.png",
+   "sourceHash": "fc5a7c1deca3e530ab1a67645affd03f6b8311ba18de4acfce25536146daa746"
+  },
+  "scene.vegas-east": {
+   "file": "scenes/vegas-east.webp",
+   "hash": "7973ca8fe2fe08f27e315d50c3e713e32441f7cad8f83fd39deccd4687b749dc",
+   "width": 1536,
+   "height": 1024,
+   "source": "1017/Scene - Vegas East.png",
+   "sourceHash": "922737a0e0edaaac737efec26ca70d08eda110cf7644b68cf79e64932edbe43b"
+  },
+  "scene.vegas-north": {
+   "file": "scenes/vegas-north.webp",
+   "hash": "1de13590a7261073ca351949b8713ab414ca8ed50f23f596ae7aef7863e21745",
+   "width": 1536,
+   "height": 1024,
+   "source": "1017/Scene - Vegas North.png",
+   "sourceHash": "b5b74c056faa9a0c53003efa7ef736c22d8af3a37979df0a2d37a3b8fe469d97"
+  },
+  "scene.vegas-west": {
+   "file": "scenes/vegas-west.webp",
+   "hash": "5b68f9df0746493cd75dd3ce033cde10172cf29dad78024493613831e9bc29d8",
+   "width": 1536,
+   "height": 1024,
+   "source": "1017/Scene - Vegas West.png",
+   "sourceHash": "6fa4b73c073cf8991d0564053b76ea583dcda7403de12d14e0966976b2716f7d"
+  },
   "scene.window-room": {
    "file": "scenes/window-room.png",
    "hash": "cdf9d11fada0ff75ea67ab491aedacc6ffb789ace397ef62b094ae75cd026c81",
    "width": 1672,
    "height": 941
+  },
+  "world.charlotte-icon": {
+   "file": "world/charlotte-icon.png",
+   "hash": "f4e993709b2bf2f9d493abe31b9e5e53a5ccfae3cba1cb3ecdd7d7282c5f61f8",
+   "width": 192,
+   "height": 110,
+   "source": "1017/Worldmap Sprite - Charlotte.png",
+   "sourceHash": "9d46b2b7ead510803a18256cc83ea3e4d34a58b70dbce4b01b1cfb651845e171"
   },
   "world.coasts": {
    "file": "world/coasts.png",
@@ -1067,6 +1131,14 @@
    "hash": "2ead7be88100448057d431aed8567fbab102c4de3fbfe1633920f2a87c9d2e2b",
    "width": 128,
    "height": 160
+  },
+  "world.vegas-icon": {
+   "file": "world/vegas-icon.png",
+   "hash": "c69e5a4fe23e5a34a85b38e1be69e2f38ab1c6f4d8b7d8038b199344f8483f08",
+   "width": 192,
+   "height": 124,
+   "source": "1017/Worldmap Sprite - Las Vegas.png",
+   "sourceHash": "116bc7fad7d2c11aaf5fac8f869c51fa76256a6532bf66d8513c26772398c61d"
   }
  }
 }

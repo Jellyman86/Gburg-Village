@@ -174,7 +174,7 @@
   if(pose==='startle')pose='surprised';
   const clip=window.V5_ACTION_ART[id]?.[pose];
   if(clip)return id==='vito'&&current?.event==='recruit-vito'&&recruitVitoSheets[pose]?{...clip,sheet:recruitVitoSheets[pose]}:clip;
-  const emotion=CHARACTERS[id].emotions;
+  const emotion=CHARACTERS[id]?.emotions;
   return emotion&&pose in emotion.rows?{...emotion,frameWidth:64,frameHeight:64,foot:CHARACTERS[id].foot,row:emotion.rows[pose]}:null;
  }
  function rotatePose(context,angle,scale=1){

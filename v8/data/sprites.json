@@ -170,8 +170,7 @@
    "runSpeed": 205,
    "walkFPS": 8,
    "runFPS": 12,
-   "walkRowOffset": 4,
-   "joined": true
+   "walkRowOffset": 4
   },
   "drew": {
    "name": "Drew",
@@ -182,7 +181,6 @@
    "walkFPS": 8,
    "runFPS": 12,
    "walkRowOffset": 4,
-   "joined": true,
    "mirrorLeft": true
   },
   "kelce": {
@@ -193,8 +191,7 @@
    "runSpeed": 205,
    "walkFPS": 8,
    "runFPS": 12,
-   "walkRowOffset": 4,
-   "joined": true
+   "walkRowOffset": 4
   },
   "taylor": {
    "name": "Taylor",
@@ -204,8 +201,7 @@
    "runSpeed": 205,
    "walkFPS": 8,
    "runFPS": 12,
-   "walkRowOffset": 4,
-   "joined": true
+   "walkRowOffset": 4
   },
   "alex": {
    "name": "Alex",
@@ -215,11 +211,10 @@
    "runSpeed": 205,
    "walkFPS": 8,
    "runFPS": 12,
-   "walkRowOffset": 4,
-   "joined": true
+   "walkRowOffset": 4
   },
   "panthersplayer": {
-   "name": "Panthersplayer",
+   "name": "Panthers Player",
    "walk": "character.panthersplayer.walk",
    "portrait": "portrait.panthersplayer",
    "speed": 120,
@@ -227,7 +222,7 @@
    "walkFPS": 8,
    "runFPS": 12,
    "walkRowOffset": 4,
-   "joined": true
+   "role": "npc"
   }
  },
  "poses": {

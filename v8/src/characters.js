@@ -5,7 +5,7 @@
 (()=>{
  'use strict';
  const data=window.V8_SPRITES_DATA,cell=data.cell,foot={...data.foot},rows={...data.walkRows};
- window.CHARACTERS=Object.fromEntries(Object.entries(data.characters).map(([id,c])=>{
+ const build=([id,c])=>{
   const character={id,name:c.name,sheet:V8_ART.url(c.walk),portrait:V8_ART.url(c.portrait),
    frameWidth:cell,frameHeight:cell,frames:4,rows:{...rows},foot:{...foot},
    speed:c.speed,runSpeed:c.runSpeed,walkFPS:c.walkFPS,runFPS:c.runFPS};
@@ -14,7 +14,12 @@
   if(c.joined)character.joined=true; // in the party from the start (no recruitment scene)
   if(c.emotions)character.emotions={sheet:V8_ART.url(c.emotions.art),frames:c.emotions.frames,fps:c.emotions.fps,rows:{...c.emotions.rows}};
   return [id,character];
- }));
+ };
+ // CHARACTERS is the playable roster (party, menu, stats). EXTRAS ("role": "npc") share the same sheet contract and
+ // pose clips but only ever appear as scene actors.
+ const entries=Object.entries(data.characters);
+ window.CHARACTERS=Object.fromEntries(entries.filter(([,c])=>c.role!=='npc').map(build));
+ window.EXTRAS=Object.fromEntries(entries.filter(([,c])=>c.role==='npc').map(build));
  // Action/emotion clips are drawn at native size, subtracting the clip foot from the actor's world anchor.
  window.V5_ACTION_ART=Object.fromEntries(Object.entries(data.poses).map(([id,clips])=>[id,Object.fromEntries(Object.entries(clips).map(([pose,clip])=>{
   const entry={sheet:V8_ART.url(clip.art),frameWidth:clip.frameWidth??cell,frameHeight:clip.frameHeight??cell,foot:{...(clip.foot||foot)},frames:clip.frames,fps:clip.fps};

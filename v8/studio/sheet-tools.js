@@ -147,6 +147,18 @@
    const w=job.width||source.W,h=job.height||source.H,{base64}=resize(img,w,h,{smooth:job.smooth,format:job.format});
    return {width:w,height:h,output:base64};
   }
+  // Single drawing on a transparent/white canvas (world-map icon, prop): crop to the drawing, key out white, fit it into
+  // maxWidth x maxHeight keeping aspect, bottom-centred when a fixed box is requested.
+  if(job.mode==='prop'){
+   const det=detect(source,job);
+   if(!det.cells.length)throw new Error('No drawing detected.');
+   const x0=Math.min(...det.cells.map(c=>c.x)),y0=Math.min(...det.cells.map(c=>c.y)),x1=Math.max(...det.cells.map(c=>c.x+c.w)),y1=Math.max(...det.cells.map(c=>c.y+c.h));
+   const cell={x:x0,y:y0,w:x1-x0,h:y1-y0,band:0,index:0},scale=Math.min(job.maxWidth/cell.w,job.maxHeight/cell.h,job.upscale?Infinity:1);
+   const w=Math.max(1,Math.round(cell.w*scale)),h=Math.max(1,Math.round(cell.h*scale));
+   const out=canvasOf(job.box?job.maxWidth:w,job.box?job.maxHeight:h),ctx=out.getContext('2d');ctx.imageSmoothingEnabled=!!job.smooth;ctx.imageSmoothingQuality='high';
+   drawCell(ctx,source,det,cell,job.box?Math.round((out.width-w)/2):0,job.box?out.height-h:0,w,h,false);
+   return {width:out.width,height:out.height,scale,cropped:{x:x0,y:y0,w:cell.w,h:cell.h},useKey:det.useKey,output:png(out)};
+  }
   throw new Error('Unknown mode '+job.mode);
  }
 

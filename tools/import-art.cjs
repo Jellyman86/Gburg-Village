@@ -5,6 +5,7 @@
 //   node tools/import-art.cjs portrait <id> [--from "Kate Portrait.png"] [--smooth]
 //   node tools/import-art.cjs scene <id> [--from "Scene - Paris.png"] [--width N] [--height N] [--png] [--allow-resize]
 //   node tools/import-art.cjs image <art.id> --from <file> [--to <relative asset path>] [--allow-resize]
+//   node tools/import-art.cjs prop <art.id> --from <file> --max WxH [--box] [--smooth]   crop one drawing (icon, prop) and fit it in a box
 //   node tools/import-art.cjs cells --from <file> [--gap N] [--key white]        detect sprite cells and write a numbered preview only
 //   node tools/import-art.cjs check                                               verify imported files still match their inbox originals
 //
@@ -24,27 +25,36 @@ const LAYOUTS=(()=>{const scope={};require('node:vm').runInNewContext(fs.readFil
 const folderFor=art.folderFor;
 
 const args=process.argv.slice(2),command=args[0];
-const positional=args.slice(1).filter((a,i,list)=>!a.startsWith('--')&&!(i>0&&/^--(from|pose|layout|cell|gap|key|width|height|to)$/.test(list[i-1])));
+const positional=args.slice(1).filter((a,i,list)=>!a.startsWith('--')&&!(i>0&&/^--(from|pose|layout|cell|gap|key|width|height|to|max|category)$/.test(list[i-1])));
 const option=name=>{const i=args.indexOf('--'+name);if(i<0)return undefined;const eq=args.find(a=>a.startsWith('--'+name+'='));return eq?eq.slice(name.length+3):args[i+1];};
 const has=name=>args.some(a=>a==='--'+name||a.startsWith('--'+name+'='));
 const normalize=s=>s.toLowerCase().replace(/[^a-z0-9]/g,'');
 
+// Inbox files, including one level of subfolders (e.g. "1017/Scene - Vegas Central.png"), as inbox-relative paths.
 function listInbox(){
  if(!fs.existsSync(inbox))throw new Error('The art inbox folder is missing: '+inbox);
- return fs.readdirSync(inbox).filter(f=>/\.(png|webp|jpe?g)$/i.test(f));
+ const out=[];
+ for(const entry of fs.readdirSync(inbox,{withFileTypes:true})){
+  if(entry.isFile()&&/\.(png|webp|jpe?g)$/i.test(entry.name))out.push(entry.name);
+  else if(entry.isDirectory())for(const f of fs.readdirSync(path.join(inbox,entry.name)))if(/\.(png|webp|jpe?g)$/i.test(f))out.push(entry.name+'/'+f);
+ }
+ return out;
 }
-// Find the inbox file for an id: an exact --from name, or the single file whose name contains every id token plus the type keyword.
+// Find the inbox file for an id: an exact --from name (optionally with its subfolder), or the single file whose name
+// contains every id token plus the type keyword.
 function findSource(kind,id){
  const from=option('from');
  const files=listInbox();
  if(from){
-  const exact=files.find(f=>f===from||normalize(f)===normalize(from)||normalize(path.parse(f).name)===normalize(path.parse(from).name));
-  if(!exact)throw new Error('No inbox file named "'+from+'". Inbox has:\n  '+files.join('\n  '));
-  return exact;
+  const wanted=from.replace(/\\/g,'/'),base=f=>f.split('/').pop();
+  const exact=files.filter(f=>f===wanted||normalize(f)===normalize(wanted)||normalize(base(f))===normalize(base(wanted))||normalize(path.parse(base(f)).name)===normalize(path.parse(base(wanted)).name));
+  if(exact.length===1)return exact[0];
+  if(exact.length>1){const direct=exact.find(f=>f===wanted||normalize(f)===normalize(wanted));if(direct)return direct;throw new Error('Several inbox files match "'+from+'":\n  '+exact.join('\n  ')+'\nInclude the subfolder, e.g. --from "1017/'+base(wanted)+'".');}
+  throw new Error('No inbox file named "'+from+'". Inbox has:\n  '+files.join('\n  '));
  }
  const tokens=id.split(/[-.]/).map(normalize).filter(Boolean);
  const keyword={sprite:['sprite'],portrait:['portrait','portait'],scene:['scene'],image:[]}[kind]||[];
- const matches=files.filter(f=>{const n=normalize(f);return tokens.every(t=>n.includes(t))&&(keyword.length===0||keyword.some(k=>n.includes(k)));});
+ const matches=files.filter(f=>{const n=normalize(f.split('/').pop());return tokens.every(t=>n.includes(t))&&(keyword.length===0||keyword.some(k=>n.includes(k)));});
  if(matches.length===1)return matches[0];
  throw new Error((matches.length?'Several inbox files match "'+id+'":\n  '+matches.join('\n  '):'No inbox file matches "'+id+'" for '+kind+'.')+'\nUse --from "<file name>".');
 }
@@ -166,6 +176,17 @@ async function image(){
  write(artId,file,source.bytes,source);
 }
 
+// A single drawing (world-map icon, scene prop) on a big transparent/white canvas: crop to it and fit it in a box.
+async function prop(){
+ const artId=positional[0];if(!artId||!artId.includes('.'))throw new Error('Usage: prop <category.name[.variant]> --from file --max WxH [--box] [--smooth] [--to relative/path.png]');
+ const max=/^(\d+)x(\d+)$/.exec(option('max')||'');if(!max)throw new Error('--max WxH is required (e.g. --max 192x128).');
+ const current=existing(artId),source=readSource(findSource('image',option('from')||''));
+ const result=await withPage(page=>processInBrowser(page,{mode:'prop',base64:source.base64,mime:source.mime,maxWidth:Number(max[1]),maxHeight:Number(max[2]),box:has('box'),smooth:has('smooth'),key:option('key'),gap:Number(option('gap'))||0}));
+ guardResize(artId,current,result.width,result.height);
+ console.log(`Cropped ${result.cropped.w}x${result.cropped.h} drawing at (${result.cropped.x},${result.cropped.y}); scale ${result.scale.toFixed(3)}${result.useKey?' (white keyed out)':''}.`);
+ write(artId,option('to')||(current?current.file:`${folderFor(artId)}/${artId.split('.').slice(1).join('-')}.png`),Buffer.from(result.output,'base64'),source);
+}
+
 function check(){
  const data=art.readManifest(),tracked=Object.entries(data.assets).filter(([,e])=>e.source);
  if(!fs.existsSync(inbox)){console.log(`• Inbox not present; skipped provenance for ${tracked.length} imported assets.`);return true;}
@@ -181,7 +202,7 @@ function check(){
 }
 
 (async()=>{
- const commands={sprite,portrait,scene,image,cells,check:async()=>{if(!check())process.exitCode=1;}};
+ const commands={sprite,portrait,scene,image,prop,cells,check:async()=>{if(!check())process.exitCode=1;}};
  if(!commands[command]){
   console.error(fs.readFileSync(__filename,'utf8').split('\n').slice(1,13).map(l=>l.replace(/^\/\/ ?/,'')).join('\n'));
   process.exit(command?1:0);

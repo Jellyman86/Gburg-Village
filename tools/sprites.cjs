@@ -39,7 +39,7 @@ function validate(data,assets=art.readManifest().assets){
  for(const [id,c] of Object.entries(data.characters)){
   if(!ID.test(id))fail('Invalid character id: '+id);
   const label='characters.'+id;
-  keys(c,['name','walk','portrait','speed','runSpeed','walkFPS','runFPS','walkRowOffset','mirrorLeft','emotions','joined'],label);
+  keys(c,['name','walk','portrait','speed','runSpeed','walkFPS','runFPS','walkRowOffset','mirrorLeft','emotions','joined','role'],label);
   if(typeof c.name!=='string'||!c.name.trim())fail(label+'.name is required.');
   const walk=sheet(c.walk,label+'.walk'),rowOffset=c.walkRowOffset||0;
   if(c.walkRowOffset!==undefined)integer(c.walkRowOffset,0,8,label+'.walkRowOffset');
@@ -50,6 +50,8 @@ function validate(data,assets=art.readManifest().assets){
   number(c.speed,10,1000,label+'.speed');number(c.runSpeed,10,1000,label+'.runSpeed');number(c.walkFPS,1,60,label+'.walkFPS');number(c.runFPS,1,60,label+'.runFPS');
   if(c.mirrorLeft!==undefined&&c.mirrorLeft!==true)fail(label+'.mirrorLeft must be true or omitted.');
   if(c.joined!==undefined&&c.joined!==true)fail(label+'.joined must be true or omitted (true = in the party from the start).');
+  if(c.role!==undefined&&c.role!=='npc')fail(label+'.role must be "npc" or omitted (npc = drawn in scenes, never in the party).');
+  if(c.role==='npc'&&c.joined)fail(label+' cannot be both an npc and joined.');
   if(c.emotions!==undefined){
    keys(c.emotions,['art','frames','fps','rows'],label+'.emotions');
    const e=sheet(c.emotions.art,label+'.emotions.art');

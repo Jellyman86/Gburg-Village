@@ -10,7 +10,9 @@
   {id:'russia',name:'Russia',col:88,row:20},
   {id:'hawaii',name:'Hawaii',col:8,row:42,to:'hawaii-central',arrival:[725/1448*1000,960/1086*1000],arrivalDirection:'up'},
   {id:'italy',name:'Italy',col:67,row:31,to:'italy',arrival:[717/1536*1000,985/1024*1000],arrivalDirection:'up'},
-  {id:'philippines',name:'The Philippines',col:115,row:43,to:'philippines',arrival:[775/1448*1000,1010/1086*1000],arrivalDirection:'up'}
+  {id:'philippines',name:'The Philippines',col:115,row:43,to:'philippines',arrival:[775/1448*1000,1010/1086*1000],arrivalDirection:'up'},
+  {id:'vegas',name:'Las Vegas',col:14,row:32,to:'vegas-central',arrival:[760/1536*1000,960/1024*1000],arrivalDirection:'up',icon:'vegas-icon'},
+  {id:'charlotte',name:'Charlotte',col:33,row:35,to:'panthers-stadium',arrival:[724/1448*1000,1000/1086*1000],arrivalDirection:'up',icon:'charlotte-icon'}
  ].map(site=>Object.freeze({...site,x:(site.col+.5)*tileSize,y:(site.row+.5)*tileSize,radius:38}));
  const start=Object.freeze({x:33.5*tileSize,y:33.5*tileSize});
  const field=Object.freeze({x:31.5*tileSize,y:33.5*tileSize});
@@ -144,6 +146,7 @@
    ctx.fillStyle='#eee2b4';for(let x=-32;x<=32;x+=16)ctx.fillRect(field.x+x,field.y-1,8,2);
    for(const site of sites){
     if(site.id==='nyc')ctx.drawImage(images.icon,site.x-32,site.y-60,64,64);
+    else if(site.icon&&images[site.icon]){const img=images[site.icon],w=96,h=Math.round(img.height*w/img.width);ctx.drawImage(img,site.x-w/2,site.y-6-h,w,h);}
     else{
      ctx.fillStyle=site.to?'#d2ab6b':'#b1bdc6';ctx.fillRect(site.x-9,site.y-17,18,17);
      ctx.fillStyle='#714c3f';ctx.fillRect(site.x-12,site.y-22,24,6);
@@ -170,8 +173,8 @@
   installScenes();
   api.preload=async()=>{
    const [data]=await Promise.all([
-    fetch('data/world-grid.json?v=world-1').then(async response=>{if(!response.ok)throw new Error('World terrain request failed: '+response.status);return response.json();}),
-    ...Object.entries({terrain:'terrain',transitions:'transitions',coasts:'coasts',features:'features',overview:'overview',plane:'plane',icon:'nyc-icon',ground:'nyc-ground',buildings:'nyc-buildings',park:'nyc-park',skybox:'skybox'}).map(async([key,art])=>{images[key]=await image(art);})
+    fetch('data/world-grid.json?v=vegas-1').then(async response=>{if(!response.ok)throw new Error('World terrain request failed: '+response.status);return response.json();}),
+    ...Object.entries({terrain:'terrain',transitions:'transitions',coasts:'coasts',features:'features',overview:'overview',plane:'plane',icon:'nyc-icon',ground:'nyc-ground',buildings:'nyc-buildings',park:'nyc-park',skybox:'skybox','vegas-icon':'vegas-icon','charlotte-icon':'charlotte-icon'}).map(async([key,art])=>{images[key]=await image(art);})
    ]);
    model=create(data);buildWorld();buildNYC();
   };

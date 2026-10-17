@@ -2,12 +2,26 @@
  "version": 1,
  "root": "assets/music/",
  "tracks": {
+  "anti-hero-taylor-swift8-bit-ver": {
+   "title": "Anti-Hero (8-bit)",
+   "file": "anti-hero-taylor-swift8-bit-ver.mp3",
+   "hash": "0e41d39f621cc975e69144f996f10a65dddc14b8bdf5e16d530bd527b28e8bdf",
+   "source": "Anti-Hero - Taylor Swift(8-bit VER).mp3",
+   "sourceHash": "155256a759b52d81192577fa40ce222f82f1e49c7c1e07d98d6b37d30392da85"
+  },
   "avicii-levels": {
    "title": "Levels",
    "file": "avicii-levels.mp3",
    "hash": "b47566b0d56db1075f1d0cc2bdc18ab899d11de2b14de1e5da174a803a67a752",
    "source": "Avicii_Levels_SNES_Game_Converted.m4a",
    "sourceHash": "978347732e37904bfd4216e8f8c1157559a4b732c0fe4439705a61ae68d09b3a"
+  },
+  "backstreet-boys-i-want-it-that-way": {
+   "title": "I Want It That Way",
+   "file": "backstreet-boys-i-want-it-that-way.mp3",
+   "hash": "85f0e7951db2fbd6137fc181483ef76964f9245011b8288b2d3a3d3649068e5e",
+   "source": "Backstreet_Boys_I_Want_It_That_Way_SNES_Game.m4a",
+   "sourceHash": "a351761df837684a04842f483fc45f6b1843a6d461a1b4d22cc31752c2c8089f"
   },
   "black-or-white": {
    "title": "Black Or White",
@@ -32,12 +46,26 @@
    "source": "Cliche_SNES_Style_Game.m4a",
    "sourceHash": "2c189d735da12eb15175d2dd8fe8e9f6a7688f4de4f6a3f512881bc82bc9ceb8"
   },
+  "closer": {
+   "title": "Closer",
+   "file": "closer.mp3",
+   "hash": "23b83272b4785eb90d9e21453166d0ccb3779ea8a78d7e5b50ec78ecdcd58e0a",
+   "source": "Closer_SNES_Game.m4a",
+   "sourceHash": "fc85a8b49fd6b14174b81665cf8daff80da3bc0ea7247db27466a78299efaa8f"
+  },
   "creed-one-last-breath": {
    "title": "One Last Breath",
    "file": "creed-one-last-breath.mp3",
    "hash": "69b2afd40f11dead11281b6ae0c3a5ec035cf2dcaeea804ed83016cfa0ccf368",
    "source": "Creed_One_Last_Breath_SNES_Game.m4a",
    "sourceHash": "c239c8460647bd8eeac9001a2f69d93e146c775897bfa7af896712b401525d2a"
+  },
+  "dont-let-me-down-alternate": {
+   "title": "Don't Let Me Down",
+   "file": "dont-let-me-down-alternate.mp3",
+   "hash": "7684c1fb90c91864f1715024598ec94fd1d20993a64e03c0ab9e0e280808175e",
+   "source": "Dont_Let_Me_Down_Alternate_SNES_Game.m4a",
+   "sourceHash": "dfe8ed652a9d6dfb5116d2c6208b48d499e1c1b80b7d74c212d552462a5edb7d"
   },
   "glory-of-love": {
    "title": "Glory Of Love",
@@ -74,6 +102,13 @@
    "source": "Karma_Chameleon_SNES_Game.m4a",
    "sourceHash": "a21a4cd17e3e1d23bd1b3cab548d1373f99ace4b7dd07e1e76cc3235ab549bbb",
    "gain": 0.75
+  },
+  "nfl-theme": {
+   "title": "NFL Theme",
+   "file": "nfl-theme.mp3",
+   "hash": "cb83d2de334fcae775cb2e1c457b72a64645e54f6fc73a688e3d6c3737527ebb",
+   "source": "NFL_Theme_SNES_Game.m4a",
+   "sourceHash": "64e5f21ce24813da6445be6704e806e61bd5a2bf5ace089093b380d9224c2879"
   },
   "nirvana-smells-like-teen-spirit": {
    "title": "Smells Like Teen Spirit",
@@ -159,6 +194,13 @@
    "hash": "39a234fc56692aac0536224e50211eebebba5f608c2ae092a3ee26d1f13fd557",
    "source": "Waka_Waka_SNES_Game.m4a",
    "sourceHash": "06326e931be357987efd1b20f3e6aa3923680871bbc52ccd42d2dbf1edb3d907"
+  },
+  "waking-up-in-vegas-full": {
+   "title": "Waking Up in Vegas",
+   "file": "waking-up-in-vegas-full.mp3",
+   "hash": "759cd2ecbed94ddf6484d0b09539b2942a6bd2e16a8c563993575e6e921a6930",
+   "source": "Waking_Up_In_Vegas_Full_SNES_Game.m4a",
+   "sourceHash": "dfa4d83992cd138cccd5f6a6db870a96aa49a324496f1e7c68cbe34ad2f34d7d"
   }
  },
  "characters": {
@@ -176,7 +218,12 @@
   "vito": "hate-it-or-love-it",
   "mark": "oasis-wonderwall",
   "jeff": "sweet-home-alabama",
-  "gary": "star-spangled-banner"
+  "gary": "star-spangled-banner",
+  "drew": "dont-let-me-down-alternate",
+  "alex": "dont-let-me-down-alternate",
+  "taylor": "anti-hero-taylor-swift8-bit-ver",
+  "kelce": "anti-hero-taylor-swift8-bit-ver",
+  "bryce-young": "nfl-theme"
  },
  "places": {
   "village": [],
@@ -191,6 +238,21 @@
   "italy": [],
   "philippines": [],
   "japan": [],
+  "vegas": [
+   "waking-up-in-vegas-full"
+  ],
+  "vegas-east": [
+   "backstreet-boys-i-want-it-that-way"
+  ],
+  "vegas-north": [
+   "closer"
+  ],
+  "stadium": [
+   "anti-hero-taylor-swift8-bit-ver"
+  ],
+  "field": [
+   "nfl-theme"
+  ],
   "montage": [],
   "battle": [],
   "cafe": [],

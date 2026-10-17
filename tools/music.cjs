@@ -16,7 +16,7 @@ const fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypt
 const root=path.resolve(__dirname,'..'),live=path.join(root,'v8');
 const manifestPath=path.join(live,'data','music.json'),generatedPath=path.join(live,'src','music-data.js');
 const musicRoot=path.join(live,'assets','music'),defaultInbox=path.join(root,'Music');
-const PLACES=['village','world','jet','hawaii','nyc','paris','egypt','italy','philippines','japan','montage','battle','cafe','omen'];
+const PLACES=['village','world','jet','hawaii','nyc','paris','egypt','italy','philippines','japan','vegas','vegas-east','vegas-north','stadium','field','montage','battle','cafe','omen'];
 const AUDIO=/\.(m4a|mp3|wav|ogg|flac|aac)$/i;
 
 const sha256=buffer=>crypto.createHash('sha256').update(buffer).digest('hex');

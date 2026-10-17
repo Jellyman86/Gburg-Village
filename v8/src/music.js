@@ -6,9 +6,9 @@
  const stage=document.getElementById('stage');
  if(!stage||window.V8_MUSIC)return;
  const data=window.V8_MUSIC_DATA||{root:'assets/music/',tracks:{},characters:{},places:{},characterPlaces:[]};
- const PLACES=['village','world','jet','hawaii','nyc','paris','egypt','italy','philippines','japan','montage','battle','cafe','omen'];
+ const PLACES=['village','world','jet','hawaii','nyc','paris','egypt','italy','philippines','japan','vegas','vegas-east','vegas-north','stadium','field','montage','battle','cafe','omen'];
  const SYNTH={village:'Village theme',battle:'Battle theme',cafe:'Café theme',omen:'Omen theme',jet:'Jet theme',hawaii:'Hawaii theme',montage:'Montage theme'};
- const FALLBACK={world:'village',nyc:'village',paris:'village',egypt:'village',italy:'village',philippines:'hawaii',japan:'hawaii'};
+ const FALLBACK={world:'village',nyc:'village',paris:'village',egypt:'village',italy:'village',philippines:'hawaii',japan:'hawaii',vegas:'village','vegas-east':'vegas','vegas-north':'vegas',stadium:'village',field:'stadium'};
  const CHARACTER_PLACES=new Set(data.characterPlaces&&data.characterPlaces.length?data.characterPlaces:['village','world','nyc']);
  const PREFS_KEY='gburg-v8-music',LEGACY_KEY='village-music';
  const AudioContextClass=window.AudioContext||window.webkitAudioContext;
@@ -262,7 +262,7 @@
   get state(){return state();},
   get element(){return audio;},
   places:PLACES,
-  placeLabels:{village:'Gburg Village',world:'World map',jet:'Jet',hawaii:'Hawaii',nyc:'New York',paris:'Paris',egypt:'Egypt',italy:'Italy',philippines:'The Philippines',japan:'Japan',montage:'Invasion montage (cutscene)',battle:'Boss battle (cutscene)',cafe:'Banquet (cutscene)',omen:'Meteor omen (cutscene)'},
+  placeLabels:{village:'Gburg Village',world:'World map',jet:'Jet',hawaii:'Hawaii',nyc:'New York',paris:'Paris',egypt:'Egypt',italy:'Italy',philippines:'The Philippines',japan:'Japan',vegas:'Las Vegas · Strip & casino','vegas-east':'Las Vegas · Sphere','vegas-north':'Las Vegas · Pool party',stadium:'Charlotte · Panthers Stadium',field:'Charlotte · Panthers Field',montage:'Invasion montage (cutscene)',battle:'Boss battle (cutscene)',cafe:'Banquet (cutscene)',omen:'Meteor omen (cutscene)'},
   tracks,titleOf,playlist,placePick,
   defaultPlacePick:place=>CHARACTER_PLACES.has(place)?'character':'',
   characterTheme,

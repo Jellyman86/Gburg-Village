@@ -5,12 +5,16 @@ assert.deepEqual(data,sprites.readData(),'sprites-data.js mirrors sprites.json')
 sprites.validate(data);
 const scope={window:{}};vm.createContext(scope);
 for(const name of ['art','sprites-data','characters'])vm.runInContext(fs.readFileSync(path.join(__dirname,'..','src',name+'.js'),'utf8'),scope);
-const {CHARACTERS,V5_ACTION_ART,V5_WINDOW_ART,characterWalkPose}=scope.window;
+const {CHARACTERS,EXTRAS,V5_ACTION_ART,V5_WINDOW_ART,characterWalkPose}=scope.window;
 // Objects built inside the vm have their own Object prototype, so compare them structurally.
 const same=(actual,expected,message)=>assert.equal(JSON.stringify(actual),JSON.stringify(expected),message);
-same(Object.keys(CHARACTERS),Object.keys(data.characters),'Roster order follows sprites.json');
+const playable=Object.entries(data.characters).filter(([,c])=>c.role!=='npc').map(([id])=>id),extras=Object.entries(data.characters).filter(([,c])=>c.role==='npc').map(([id])=>id);
+same(Object.keys(CHARACTERS),playable,'Roster order follows sprites.json (npc extras excluded)');
+same(Object.keys(EXTRAS),extras,'Extras ("role": "npc") are exposed separately and never join the roster');
+assert(extras.includes('panthersplayer')&&!CHARACTERS.panthersplayer,'The generic Panthers player is an extra, not a hero');
+for(const id of extras)assert(!data.characters[id].joined,'An extra is never in the party: '+id);
 assert(Object.keys(CHARACTERS).length>=15,'All fifteen playable characters are present');
-for(const [id,c] of Object.entries(CHARACTERS)){
+for(const [id,c] of Object.entries({...CHARACTERS,...EXTRAS})){
  assert.equal(c.id,id);assert.equal(c.frameWidth,64);assert.equal(c.frameHeight,64);assert.equal(c.frames,4);
  same(c.rows,{down:0,left:1,right:2,up:3});same(c.foot,{x:32,y:60});
  assert.equal(c.sheet,art.url(data.characters[id].walk),'Sheet URL comes from the manifest: '+id);
@@ -30,7 +34,7 @@ same(characterWalkPose(CHARACTERS.jason,'down',false),{row:0,flip:false},'Origin
 assert.equal(CHARACTERS.coco.emotions.sheet,art.url('character.coco.emotions'),'Coco keeps her emotion sheet');
 let clips=0;
 for(const [id,poses] of Object.entries(V5_ACTION_ART)){
- assert(CHARACTERS[id],'Poses belong to a character: '+id);
+ assert(CHARACTERS[id]||EXTRAS[id],'Poses belong to a character or extra: '+id);
  for(const [pose,clip] of Object.entries(poses)){
   clips++;
   const sheet=art.entry(data.poses[id][pose].art);

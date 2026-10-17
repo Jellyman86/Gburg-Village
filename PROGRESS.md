@@ -1,6 +1,6 @@
 # Gburg Village — current status
 
-Updated: 2026-10-16. One screen only. Git history is the detailed log; older handoff prose is in [docs/archive](docs/archive/).
+Updated: 2026-10-17. One screen only. Git history is the detailed log; older handoff prose is in [docs/archive](docs/archive/).
 
 ## Living version
 - **`v8/` is the only version under development.** Play: https://jellyman86.github.io/Gburg-Village/v8/ · [V8 guide](v8/README.md)
@@ -28,10 +28,12 @@ Opening story and 15 recruitable playable characters, FFVI-style party menu (ros
 
 - **Studio expansion, step 8 (branch `sprite-workshop`):** the **Sprites** tab is live at `/v8/studio/sprites/`. The importer's pixel code moved to `v8/studio/sheet-tools.js` and is shared by the CLI (same bytes on `Jeff Sprites.png`) and the browser; the Workshop takes an inbox or dropped image, numbers the detected drawings, maps them with presets or pick-by-click, previews on the 64-grid with the current sheet ghosted and an in-motion view through the game's `characterWalkPose`, and Save writes the PNG + `art.json` + `sprites.json` through `POST /api/asset` and `/api/doc/sprites`. Verified end to end on a scratch character (walk → portrait registered it → one-shot pose) and the game loaded it with no code; `rpg.js` now tolerates roster members without a tuned stat profile. Replacing a hand-made 3-frame pose keeps its 192 px width. **First real use:** Bryce Young (`bryce-young`) was added entirely through the Workshop — walk sheet, portrait, `surprised` pose, playable from the start via `"joined": true` — with no game-code change; tests now allow a roster larger than fifteen.
 
+- **Las Vegas + Charlotte (1017 batch):** two new world-map destinations with your icons (`import-art.cjs prop` crops a drawing and fits it in a box — also shrank the hurt-panther prop). The US coast now includes Gaithersburg, New York and Charlotte on the mainland; Vegas sits in a desert pocket west of the Rockies. Six scenes (Vegas Strip/Sphere/pool party/casino, Panthers Stadium/Field) with first-pass traces — **polish pathing in the studio's World tab**. Six tracks imported; places `vegas`, `vegas-east`, `vegas-north`, `stadium`, `field` and hero themes for the five new heroes (Drew/Alex: *Don't Let Me Down*). New `v8/src/scene-scripts.js` runs real-time choreographies inside exploration: the pool party (Drew & Alex shocked → chased → down → rescued → Tower Suite 3001 line → both join), the Stadium compy chase (Kelce & Taylor join) and the Field battle (Bryce throws footballs, Panthers charge FF6-style and bounce, two lie hurt, Bryce joins). Powers: football (Kelce, Bryce), singing shockwave with notes (Taylor, Drew, Alex). `"role": "npc"` in `sprites.json` makes an extra (Panthers Player) drawable but never in the party. `rescues` browser suite covers all three scripts; areas contract now checks every destination.
+
 ## Known limitations
 - No persistence; refreshing restarts as Coco.
 - Touch verification is Chromium emulation, not a physical iPhone. Audio has not been human-listened in CI.
-- Collision polygons are hand-traced against AI-generated backgrounds; expect occasional pathing fixes (the new destinations were traced by script from the art, never walked by a human yet).
+- Collision polygons are hand-traced against AI-generated backgrounds; expect occasional pathing fixes (the Las Vegas and Charlotte scenes are first-pass traces, never walked by a human yet).
 - Hawaii shop interiors, new quests, saves and XP/leveling are not implemented.
 
 ## How to verify a change

@@ -1,11 +1,13 @@
 const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),vm=require('node:vm');
-const areas=require('../src/areas.js'),hawaii=require('../src/hawaii.js'),travel=require('../src/world-travel.js'),flyers=require('../src/world-flyers.js');
+const areas=require('../src/areas.js'),hawaii=require('../src/hawaii.js'),destinations=require('../src/destinations.js'),travel=require('../src/world-travel.js'),flyers=require('../src/world-flyers.js');
 const artManifest=require('../src/art.js');
-for(const def of hawaii.defs)assert(artManifest.has(def.art),'Area background is declared in the art manifest: '+def.id);
+// destinations.all already includes Hawaii when hawaii.js was loaded first (as the game does), so dedupe by id.
+const defs=[...new Map(hawaii.defs.concat(destinations.all).map(def=>[def.id,def])).values()];
+for(const def of defs)assert(artManifest.has(def.art),'Area background is declared in the art manifest: '+def.id);
 const data=require('../data/world-grid.json'),world=travel.create(data),scenes={world:{world:true,width:travel.width,height:travel.height}};
-areas.install(hawaii.defs,scenes);
+areas.install(defs,scenes);
 const failures=[];
-for(const def of hawaii.defs){
+for(const def of defs){
  const scene=scenes[def.id],step=8,queue=[[scene.spawn.x,scene.spawn.y]],seen=new Set([queue[0].join(',')]);
  for(let i=0;i<queue.length;i++){
   const [x,y]=queue[i];
@@ -22,7 +24,7 @@ for(const def of hawaii.defs){
  }
  console.log(def.id+': '+queue.length+' reachable walking samples');
 }
-assert.deepEqual(failures,[],'Every Hawaii interaction, exit and enemy is connected');
+assert.deepEqual(failures,[],'Every destination interaction, exit and enemy is connected');
 for(const [id,x,y] of [['hawaii-central',725,475],['hawaii-central',725,650],['hawaii-west',1070,300],['hawaii-east',1200,700],['hawaii-north',350,500]])
  assert(areas.blocked(scenes[id],x,y),'Scenery blocks movement: '+id);
 assert.equal(travel.sites.find(s=>s.id==='hawaii').to,'hawaii-central');

@@ -40,7 +40,7 @@
    const play=element('button','Play as '+character.name,'primary');play.type='button';play.id='menu-play';
    play.disabled=!stats.joined||!!window.GAME?.busy;
    play.addEventListener('click',()=>{window.GAME.select(selected);close();});
-   detail.append(play,element('p',stats.joined?'This friend is in your party. Exploration stays real-time outside the menu.':'Find '+character.name+' to unlock them. '+(window.V4_STORY.locations[selected]?.hint||''),'menu-note'));
+   detail.append(play,element('p',stats.joined?'This friend is in your party. Exploration stays real-time outside the menu.':'Find '+character.name+' to unlock them. '+(window.V4_STORY.locations[selected]?.hint||window.V4_STORY.hints?.[selected]||''),'menu-note'));
    detail.append(element('p',window.V4_STORY.objective(),'menu-note'));
   }else if(section==='Items'){
    detail.append(element('h3','Shared inventory'));

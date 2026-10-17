@@ -3,7 +3,7 @@
 // data/scene-geometry.json (Gburg Studio), which overrides these first-pass shapes scene by scene.
 ((root)=>{
  'use strict';
- const W=1448,H=1086,ITALY={width:1536,height:1024};
+ const W=1448,H=1086,ITALY={width:1536,height:1024},VEGAS=ITALY;
  const arrival=(x,y,dims={width:W,height:H})=>[x/dims.width*1000,y/dims.height*1000];
  // Return to the world map: just south of the destination marker (matches Hawaii's 0.75-tile offset).
  const earth=(col,row)=>[(col+.5)*32/4096*1000,((row+.5)*32+40)/3072*1000];
@@ -137,7 +137,75 @@
    exits:[portal('japan-earth','↓ Earth · Return to your jet',720,1045,'world',...earth(115,33),'down',rect(640,1035,170,20,'down'))],
    points:[{id:'japan-shrine',name:'Shrine · Cherry Blossom Plaza',x:790,y:235,radius:55,text:'Lanterns glow along the shrine steps while cherry petals drift across the plaza. The pagoda, tea houses and water are solid; the torii steps and beach lead back to your jet.'}],
    enemies:[{kind:'compy',x:650,y:730},{kind:'compy',x:920,y:720},{kind:'dilophosaurus',x:930,y:540}],
-   hint:'Climb to the shrine, cross the harbor docks or the east bridge. Water, tea houses and the pagoda are solid. The south torii steps return to Earth.'})
+   hint:'Climb to the shrine, cross the harbor docks or the east bridge. Water, tea houses and the pagoda are solid. The south torii steps return to Earth.'}),
+
+  // ---- Las Vegas (4 zones, 1536x1024) -----------------------------------------------------------------------------
+  // First-pass traces; refine in Gburg Studio. Central is the Strip with the fountain; North is the Encore pool party
+  // (Drew and Alex's rescue, scripted in scene-scripts.js); East is the Sphere plaza; West is the casino floor.
+  {id:'vegas-central',name:'Las Vegas · The Strip',art:'scene.vegas-central',width:1536,height:1024,ambientFlight:true,region:'Las Vegas',music:'vegas',worldSite:'vegas',spawn:{x:760,y:960},
+   paths:[],
+   polygons:[[[640,20],[880,20],[880,430],[1516,430],[1516,700],[1100,700],[1100,1010],[420,1010],[420,700],[20,700],[20,430],[640,430]],[[430,540],[1090,540],[1090,920],[430,920]]],
+   obstacles:[],blockedPolygons:[[[540,660],[700,640],[830,640],[990,660],[1000,760],[900,830],[620,830],[530,760]]],
+   exits:[
+    portal('vegas-earth','↓ Earth · Return to your jet',760,1000,'world',...earth(14,32),'down',rect(660,992,200,22,'down')),
+    portal('vegas-north','↑ North · Encore pool party',760,45,'vegas-north',780,960,'up',rect(660,28,200,22,'up'),VEGAS),
+    portal('vegas-east','East · The Sphere →',1490,565,'vegas-east',90,920,'right',rect(1500,440,22,250,'right'),VEGAS),
+    portal('vegas-west','← West · Casino floor',46,565,'vegas-west',800,970,'left',rect(14,440,22,250,'left'),VEGAS)
+   ],
+   points:[{id:'vegas-fountain',name:'Bellagio fountains',x:765,y:600,radius:55,text:'The fountains dance to the music on the Strip. North is the Encore pool party, east the glowing Sphere, west the casino floor. The south boulevard returns to your jet.'}],
+   enemies:[{kind:'compy',x:520,y:580},{kind:'compy',x:1010,y:580}],
+   hint:'North: pool party. East: the Sphere. West: casino. The fountain basin and hotel fronts are solid; the south boulevard returns to Earth.'},
+  {id:'vegas-east',name:'Las Vegas · The Sphere',art:'scene.vegas-east',width:1536,height:1024,ambientFlight:true,region:'Las Vegas',music:'vegas-east',worldSite:'vegas',spawn:{x:90,y:920},
+   paths:[],
+   polygons:[[[20,840],[1516,840],[1516,1000],[20,1000]],[[300,440],[1240,440],[1240,860],[300,860]],[[640,400],[900,400],[900,460],[640,460]]],
+   obstacles:[],blockedPolygons:[[[600,520],[730,520],[730,700],[600,700]],[[810,520],[940,520],[940,700],[810,700]]],
+   exits:[portal('sphere-central','← The Strip',40,900,'vegas-central',1440,565,'left',rect(14,840,22,160,'left'),VEGAS)],
+   points:[{id:'vegas-sphere',name:'The Sphere · Light show',x:770,y:480,radius:60,text:'A galaxy swirls across the Sphere above the plaza. The twin fountains and planters are solid; the street west returns to the Strip.'}],
+   enemies:[{kind:'compy',x:500,y:760},{kind:'dilophosaurus',x:1040,y:760}],
+   hint:'Enjoy the light show on the plaza. The west street returns to the Strip; fountains and planters are solid.'},
+  {id:'vegas-north',name:'Las Vegas · Encore pool party',art:'scene.vegas-north',width:1536,height:1024,ambientFlight:false,region:'Las Vegas',music:'vegas-north',worldSite:'vegas',spawn:{x:780,y:960},
+   paths:[],
+   // Pool deck: a ring around the water plus the walkway in front of the DJ stage.
+   polygons:[[[120,250],[1416,250],[1416,900],[120,900]],[[640,890],[920,890],[920,1010],[640,1010]]],
+   obstacles:[],blockedPolygons:[
+    [[620,20],[960,20],[960,250],[620,250]],
+    [[300,330],[520,300],[700,340],[760,400],[830,400],[890,340],[1040,300],[1250,330],[1300,480],[1180,580],[1000,600],[870,640],[700,640],[560,600],[380,580],[250,480]],
+    [[700,520],[860,520],[860,680],[700,680]]],
+   exits:[portal('pool-central','↓ The Strip',780,1000,'vegas-central',760,95,'down',rect(660,992,240,22,'down'),VEGAS)],
+   points:[{id:'vegas-stage',name:'Encore stage',x:790,y:290,radius:50,text:'The DJ booth glows over the pool. Cabanas and loungers line the deck; the pool itself is not walkable. The south gate returns to the Strip.'}],
+   enemies:[{kind:'raptor',x:420,y:290,scripted:true},{kind:'compy',x:1150,y:290,scripted:true},{kind:'compy',x:1150,y:800,scripted:true}],
+   hint:'Walk the deck around the pool; the water, cabanas and stage are solid. The south gate returns to the Strip.'},
+  {id:'vegas-west',name:'Las Vegas · Casino floor',art:'scene.vegas-west',width:1536,height:1024,ambientFlight:false,region:'Las Vegas',music:'vegas',worldSite:'vegas',spawn:{x:800,y:970},
+   paths:[],
+   polygons:[[[560,880],[1040,880],[1040,1010],[560,1010]],[[420,430],[1180,430],[1180,900],[420,900]],[[560,160],[1020,160],[1020,440],[560,440]],[[200,520],[440,520],[440,760],[200,760]],[[1160,520],[1400,520],[1400,760],[1160,760]]],
+   obstacles:[],blockedPolygons:[[[700,560],[900,560],[900,720],[700,720]],[[640,190],[960,190],[960,330],[640,330]]],
+   exits:[portal('casino-central','↓ The Strip',800,1000,'vegas-central',110,565,'down',rect(640,992,320,22,'down'),VEGAS)],
+   points:[{id:'vegas-floor',name:'Casino floor · Fountain lounge',x:800,y:740,radius:55,text:'Slot banks, card tables and a fountain under the chandeliers. Machines, tables and the fountain are solid; the lobby doors south return to the Strip.'}],
+   enemies:[{kind:'compy',x:520,y:650},{kind:'compy',x:1080,y:650}],
+   hint:'Wander the casino floor. Machines, tables and fountains are solid; the lobby doors south return to the Strip.'},
+
+  // ---- Charlotte (1448x1086) --------------------------------------------------------------------------------------
+  // Panthers Stadium concourse (Kelce and Taylor's rescue) and the field (Bryce and the Panthers vs. the dinosaurs).
+  zone({id:'panthers-stadium',name:'Charlotte · Panthers Stadium',art:'scene.panthers-stadium',region:'Charlotte',music:'stadium',worldSite:'charlotte',spawn:{x:724,y:1000},
+   paths:[],
+   polygons:[[[560,980],[890,980],[890,1060],[560,1060]],[[200,420],[1250,420],[1250,990],[200,990]],[[600,120],[850,120],[850,430],[600,430]]],
+   obstacles:[],blockedPolygons:[[[660,660],[790,660],[790,780],[660,780]],[[260,620],[400,620],[400,760],[260,760]],[[1050,620],[1190,620],[1190,760],[1050,760]]],
+   exits:[
+    portal('stadium-earth','↓ Earth · Return to your jet',724,1045,'world',...earth(33,35),'down',rect(600,1040,250,22,'down')),
+    portal('stadium-field','↑ Tunnel · Panthers Field',724,150,'panthers-field',724,800,'up',rect(620,130,210,22,'up'))
+   ],
+   points:[{id:'stadium-statue',name:'Panther statue',x:724,y:810,radius:55,text:'The bronze panther guards the concourse. Team store and Bojangles to the west, Cook Out to the east. The tunnel north leads to the field; the gates south return to your jet.'}],
+   enemies:[{kind:'compy',x:330,y:600,scripted:true},{kind:'compy',x:330,y:900,scripted:true},{kind:'compy',x:1120,y:600,scripted:true},{kind:'compy',x:1120,y:900,scripted:true}],
+   hint:'The tunnel north leads to the field; the gates south return to Earth. Statue, tables and planters are solid.'}),
+  zone({id:'panthers-field',name:'Charlotte · Panthers Field',art:'scene.panthers-field',region:'Charlotte',music:'field',worldSite:'charlotte',spawn:{x:724,y:800},
+   paths:[],
+   // Turf plus sidelines; the tunnel in the south stands connects back to the concourse.
+   polygons:[[[160,300],[1290,300],[1290,840],[160,840]],[[660,830],[790,830],[790,1020],[660,1020]]],
+   obstacles:[],blockedPolygons:[],
+   exits:[portal('field-stadium','↓ Tunnel · Stadium concourse',724,1010,'panthers-stadium',724,200,'down',rect(660,1000,130,22,'down'))],
+   points:[{id:'field-midfield',name:'Midfield · Panthers logo',x:724,y:560,radius:60,text:'Bryce Young and the Panthers are holding the line against the dinosaurs. Help them clear the field! The stands are not walkable; the tunnel south returns to the concourse.'}],
+   enemies:[{kind:'raptor',x:420,y:560},{kind:'raptor',x:1040,y:800},{kind:'compy',x:460,y:820},{kind:'compy',x:1000,y:560},{kind:'dilophosaurus',x:1200,y:700}],
+   hint:'Help Bryce and the Panthers clear the field. Stands and benches are not walkable; the tunnel south returns to the concourse.'})
  ];
  const hawaii=root.V8_HAWAII;
  root.V8_DESTINATIONS=Object.freeze({defs,all:hawaii?hawaii.defs.concat(defs):defs,width:W,height:H});
