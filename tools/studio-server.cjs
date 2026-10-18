@@ -10,7 +10,7 @@ const root=path.resolve(__dirname,'..'),port=Number(process.env.GBURG_STUDIO_POR
 if(!Number.isInteger(port)||port<1||port>65535)throw new Error('GBURG_STUDIO_PORT must be between 1 and 65535.');
 const token=crypto.randomBytes(24).toString('hex');
 const hash=bytes=>crypto.createHash('sha256').update(bytes).digest('hex');
-const types={'.html':'text/html','.js':'text/javascript','.css':'text/css','.json':'application/json','.webmanifest':'application/manifest+json','.png':'image/png','.webp':'image/webp','.jpg':'image/jpeg','.jpeg':'image/jpeg','.mp3':'audio/mpeg'};
+const types={'.html':'text/html','.js':'text/javascript','.css':'text/css','.json':'application/json','.webmanifest':'application/manifest+json','.png':'image/png','.webp':'image/webp','.jpg':'image/jpeg','.jpeg':'image/jpeg','.mp3':'audio/mpeg','.md':'text/plain; charset=utf-8','.cjs':'text/plain; charset=utf-8'};
 // Reload a tool module on every use so a long-running studio never validates against stale scene or art definitions.
 const fresh=name=>{const file=path.join(__dirname,name);delete require.cache[require.resolve(file)];return require(file);};
 
@@ -100,7 +100,7 @@ const server=http.createServer(async(req,res)=>{
   if(req.headers.host!==expected){reply(res,403,{error:'Use the studio URL printed by the launcher.'});return;}
   if(req.headers.origin&&req.headers.origin!=='http://'+expected){reply(res,403,{error:'Cross-origin studio requests are not allowed.'});return;}
   const url=new URL(req.url,'http://'+expected);
-  if(url.pathname==='/api/studio'){reply(res,200,{documents:describe(),token,inbox:fs.existsSync(inboxDir)});return;}
+  if(url.pathname==='/api/studio'){reply(res,200,{documents:describe(),token,inbox:fs.existsSync(inboxDir),root});return;}
   if(url.pathname==='/api/inbox'){if(req.method!=='GET'){reply(res,405,{error:'Use GET.'});return;}reply(res,200,{files:listInbox(),root:'/art inbox/'});return;}
   if(url.pathname==='/api/asset'){
    if(req.method!=='POST'){reply(res,405,{error:'Use POST.'});return;}

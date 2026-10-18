@@ -8,7 +8,7 @@ return async function checkStudio(page,{width,height,artifactDir}={}){
   await page.waitForFunction(()=>window.STUDIO&&STUDIO.state.scene==='hawaii-central'&&document.querySelectorAll('#scene option').length>=15);
   await page.waitForFunction(()=>document.getElementById('status').textContent.includes('Read-only'));
   assert(await page.evaluate(()=>document.getElementById('info').textContent.includes('1448 × 1086')),'Scene info shows the real size');
-  assert(await page.evaluate(()=>document.querySelectorAll('#studio-tabs .tab').length===3&&document.querySelector('#studio-tabs .tab.active').textContent==='World'),'Studio tab bar renders with World active');
+  assert(await page.evaluate(()=>document.querySelectorAll('#studio-tabs .tab').length===4&&document.querySelector('#studio-tabs .tab.active').textContent==='World'),'Studio tab bar renders with World active');
   // Draws the actual background and overlays.
   await page.waitForFunction(()=>{const c=document.getElementById('canvas'),ctx=c.getContext('2d');const d=ctx.getImageData(c.width/2|0,c.height/2|0,1,1).data;return d[0]+d[1]+d[2]>60;});
   await page.evaluate(()=>{document.querySelector('[data-layer=mask]').click();});
@@ -79,8 +79,19 @@ return async function checkStudio(page,{width,height,artifactDir}={}){
   await page.evaluate(()=>WORKSHOP.save());
   await page.waitForFunction(()=>document.getElementById('status').textContent.includes('npm run studio'));
   await page.evaluate(()=>{window.onbeforeunload=null;});
+  // ---- Files tab: every listed path exists, resolves to a line and links to the published copy.
+  await page.evaluate(()=>{window.onbeforeunload=null;});
+  await page.goto(page.url().split('/v8/')[0]+'/v8/studio/files/',{waitUntil:'domcontentloaded'});
+  await page.waitForFunction(()=>document.querySelectorAll('.card').length>=14&&[...document.querySelectorAll('.card .line')].filter(l=>/^line \d+$/.test(l.textContent)).length>=12,null,{timeout:15000});
+  const files=await page.evaluate(()=>({active:document.querySelector('#studio-tabs .tab.active').textContent,paths:[...document.querySelectorAll('.card code')].map(c=>c.textContent),
+   missingLine:[...document.querySelectorAll('.card')].filter(c=>c.querySelector('.line').textContent===''&&!c.textContent.includes('scene-geometry')).map(c=>c.querySelector('code').textContent),
+   github:document.querySelector('.card .links a[href*="github.com"]').href}));
+  assert(files.active==='Files','The Files tab is active');
+  for(const must of ['v8/src/combat.js','v8/src/rpg.js','v8/src/powers.js','docs/ART-SPEC.md'])assert(files.paths.includes(must),'Files tab lists '+must);
+  assert(files.missingLine.length===0,'Every listed file resolves to a line (missing: '+files.missingLine.join(', ')+')');
+  assert(/#L\d+$/.test(files.github),'GitHub links point at the matching line');
   assert(errors.length===0,'Unexpected page errors: '+errors.join('; '));assert(failed.length===0,'Failed assets: '+failed.join('; '));
-  return {layout:width+'x'+height,pass:'Studio loads real scenes and backgrounds, walk-test mask, API and pointer edits, undo/redo, delete, export format, read-only save notice, scene switching; Sprite Workshop detects cells, maps walk6/pose/portrait, previews, builds sprites.json edits, read-only save notice'};
+  return {layout:width+'x'+height,pass:'Studio loads real scenes and backgrounds, walk-test mask, API and pointer edits, undo/redo, delete, export format, read-only save notice, scene switching; Sprite Workshop detects cells, maps walk6/pose/portrait, previews, builds sprites.json edits, read-only save notice; Files tab lists the stats/prompt files with live line numbers'};
  }finally{
   // Leave the page clean for the next suite.
   await page.evaluate(()=>{window.onbeforeunload=null;}).catch(()=>{});

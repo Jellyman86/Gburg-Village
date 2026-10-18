@@ -7,6 +7,7 @@
  const TABS=[
   {id:'world',label:'World',href:'',title:'Collision shapes, markers, exits and roads over the real backgrounds'},
   {id:'sprites',label:'Sprites',href:'sprites/',title:'Sprite Workshop — import or replace walk sheets, poses and portraits'},
+  {id:'files',label:'Files',href:'files/',title:'Where dinosaur health, hero stats, weapon damage and the art prompts live'},
   {id:'cinema',label:'Cinematics',href:'cinema/',title:'Cutscene director — coming in a later phase',soon:true}
  ];
  // Pages declare where the studio root is relative to them (body data-studio-root, default "./").
