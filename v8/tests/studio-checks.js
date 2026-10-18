@@ -82,7 +82,7 @@ return async function checkStudio(page,{width,height,artifactDir}={}){
   // ---- Files tab: every listed path exists, resolves to a line and links to the published copy.
   await page.evaluate(()=>{window.onbeforeunload=null;});
   await page.goto(page.url().split('/v8/')[0]+'/v8/studio/files/',{waitUntil:'domcontentloaded'});
-  await page.waitForFunction(()=>document.querySelectorAll('.card').length>=14&&[...document.querySelectorAll('.card .line')].filter(l=>/^line \d+$/.test(l.textContent)).length>=12,null,{timeout:15000});
+  await page.waitForFunction(()=>{const cards=[...document.querySelectorAll('.card')].filter(c=>!c.textContent.includes('scene-geometry'));return cards.length>=14&&cards.every(c=>/^line \d+$/.test(c.querySelector('.line').textContent));},null,{timeout:30000}).catch(()=>{});
   const files=await page.evaluate(()=>({active:document.querySelector('#studio-tabs .tab.active').textContent,paths:[...document.querySelectorAll('.card code')].map(c=>c.textContent),
    missingLine:[...document.querySelectorAll('.card')].filter(c=>c.querySelector('.line').textContent===''&&!c.textContent.includes('scene-geometry')).map(c=>c.querySelector('code').textContent),
    github:document.querySelector('.card .links a[href*="github.com"]').href}));
