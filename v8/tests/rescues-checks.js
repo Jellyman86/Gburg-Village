@@ -186,7 +186,19 @@ return async function checkRescues(page,{width,height,touch,artifactDir}={}){
   const view=await page.evaluate(()=>({scale:GAME.state.camera.scale,w:GAME.state.viewport.width,h:GAME.state.viewport.height}));
   assert(view.scale<1&&view.scale>=.5,'Niagara is zoomed out (scale '+view.scale.toFixed(2)+')');
   if(!touch&&view.w>=1000)assert(1448*view.scale<=view.w+1&&1086*view.scale<=view.h+1,'The whole Niagara plaza fits on a desktop screen');
-  assert(await page.evaluate(()=>{const before=GAME.state.camera.scale;return before<1;}),'Zoom persists after arrival');
+  // Only the artwork shrinks: characters and dinosaurs keep their normal on-screen size (effective canvas scale ~1).
+  const sizes=await page.evaluate(async()=>{
+   const seen={},draw=CanvasRenderingContext2D.prototype.drawImage;
+   CanvasRenderingContext2D.prototype.drawImage=function(img,...rest){
+    if(this.canvas.id==='game'){const src=img.src||'',kind=src.includes('/scenes/')?'scene':src.includes('/dinosaurs/pterodactyl')?'bird':src.includes('/characters/')?'character':null;if(kind)seen[kind]=this.getTransform().a;}
+    return draw.call(this,img,...rest);
+   };
+   await new Promise(r=>setTimeout(r,500));
+   CanvasRenderingContext2D.prototype.drawImage=draw;
+   return seen;
+  });
+  assert(sizes.scene<.95,'Niagara artwork is drawn zoomed out (scale '+(sizes.scene||0).toFixed(2)+')');
+  assert(Math.abs(sizes.character-1)<.06&&Math.abs(sizes.bird-1)<.06,'Characters and pterodactyls keep their normal on-screen size (character '+(sizes.character||0).toFixed(2)+', bird '+(sizes.bird||0).toFixed(2)+')');
   await page.waitForFunction(()=>GAME.state.powers.casts.some(c=>c.owner==='josh'&&c.kind==='football'),null,{timeout:20000}).catch(()=>{throw new Error('Josh throws footballs at the flock');});
   await screenshot('niagara-fight');
   await defeatAll();

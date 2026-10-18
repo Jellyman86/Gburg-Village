@@ -39,6 +39,8 @@
  const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
  // A scene script can pull the camera toward a point of interest ({x,y,w} with w 0..1) for a staged moment.
  let cameraFocus=()=>null;
+ // Zoomed-out scenes (town.zoom) draw the artwork smaller but keep sprites at their normal on-screen size.
+ const spriteZoom=()=>town.zoom&&viewScale<1?1/viewScale:1;
  function updateCamera(){
   const bounds=town.viewBounds||{left:0,top:0,right:town.width,bottom:town.height};
   const worldWidth=bounds.right-bounds.left,worldHeight=bounds.bottom-bounds.top;
@@ -155,7 +157,7 @@
  function encounterEnemies(){return (dino?[dino]:[]).concat(extraEnemies[town.id]||[]);}
  function activeEnemies(){return encounterEnemies().filter(enemy=>!enemy.hidden);}
  let dinoHome=null,dino=null;
- let powers; function makePowers(){return window.FAMILY_POWERS.create({blocked,getTargets:()=>activeEnemies().filter(enemy=>enemy.alive&&!enemy.duel),getActor:()=>player,getAbility:actor=>window.V4_RPG.members[actor.id]?.ability||actor.id,getSwordImage:()=>extraSheets.sword,getTowelImage:()=>extraSheets.towel,getGrenadeImage:()=>extraSheets.grenade, onSound:kind=>V4_SFX.play(kind),onHit:(id,hit)=>{
+ let powers; function makePowers(){return window.FAMILY_POWERS.create({blocked,getTargets:()=>activeEnemies().filter(enemy=>enemy.alive&&!enemy.duel),getActor:()=>player,getAbility:actor=>window.V4_RPG.members[actor.id]?.ability||actor.id,getSwordImage:()=>extraSheets.sword,getTowelImage:()=>extraSheets.towel,getGrenadeImage:()=>extraSheets.grenade,getScale:()=>spriteZoom(), onSound:kind=>V4_SFX.play(kind),onHit:(id,hit)=>{
    combat.hit(hit.target,{...hit,strength:window.V4_RPG.members[hit.owner]?V4_RPG.stats(hit.owner).strength:0});
  }});} powers=makePowers();
  // Scene scripts (Vegas pool party, Panthers Stadium and Field) drive their actors through this host.
@@ -573,18 +575,23 @@
    .concat(activity.filter(a=>recreation.dogData[a.id]),scripted,town.id==='world'?[]:companions.actors,town.id==='plaza'?(squirrel.active?[squirrel]:[]).concat(unicorn.riding?[]:[unicornActor]):[]);
   if(town.id==='world'){const plane=travel.model().state.plane;travel.drawPlane(ctx,plane.x,plane.y);}
   const enemies=activeEnemies();
+  const keep=spriteZoom();
   ambient.concat(enemies,joining?[joining]:[],player).sort((a,b)=>a.y-b.y).forEach(a=>{
+   // In zoomed-out scenes characters keep their normal on-screen size, scaling about their feet.
+   ctx.save();if(keep!==1){ctx.translate(a.x,a.y);ctx.scale(keep,keep);ctx.translate(-a.x,-a.y);}
    if(enemies.includes(a))drawDino(a);else if(a===squirrel)drawSquirrel();else if(a===unicornActor)unicorn.draw(ctx);
    else if(recreation.dogData[a.id]||a.swimming){
     drawSmallActor(a);
    }else if(a.scripted){drawScripted(a);}
    else{ctx.save();if(a===joining)ctx.globalAlpha=1-Math.max(0,(a.age-.6)/.2);sprite(a,a===player);ctx.restore();}
+   ctx.restore();
   });
   if(town.id==='recreation'&&(!V4_RPG.members.jeff.joined||!V4_RPG.members.ari.joined))recreation.drawBall(ctx);
   if(town.id==='world')worldFlyers.drawOverhead(ctx,extraSheets.pterodactyl);
   if(!town.indoor&&town.id!=='world'&&town.ambientFlight!==false&&flight.state.visible){
    const bird=flight.state.bird,row={down:0,left:1,right:2,up:3}[bird.direction]+4;
-   ctx.drawImage(extraSheets.pterodactyl,bird.frame*128,row*128,128,128,Math.round(bird.x)-64,Math.round(bird.y)-124,128,128);
+   ctx.save();if(keep!==1){ctx.translate(bird.x,bird.y);ctx.scale(keep,keep);ctx.translate(-bird.x,-bird.y);}
+   ctx.drawImage(extraSheets.pterodactyl,bird.frame*128,row*128,128,128,Math.round(bird.x)-64,Math.round(bird.y)-124,128,128);ctx.restore();
   }
   powers.drawAir(ctx);attacks.drawAir(ctx);combat.drawEffects(ctx);ctx.restore();playerCombat.drawCover(ctx,canvas.width,canvas.height);
  }

@@ -33,7 +33,7 @@
  const projectile=power=>!!power.speed;
  // Singing is the crying shockwave with musical notes instead of tears: same ring, same reach.
  const isWave=kind=>kind==='wave'||kind==='song';
- function create({blocked,getTarget=()=>null,getTargets=()=>{const target=getTarget();return target?[target]:[];},onHit,getActor=()=>null,getAbility=actor=>actor.id,getSwordImage=()=>null,getTowelImage=()=>null,getGrenadeImage=()=>null,onSound=()=>{}}){
+ function create({blocked,getTarget=()=>null,getTargets=()=>{const target=getTarget();return target?[target]:[];},onHit,getActor=()=>null,getAbility=actor=>actor.id,getSwordImage=()=>null,getTowelImage=()=>null,getGrenadeImage=()=>null,getScale=()=>1,onSound=()=>{}}){
   const cooldowns=Object.fromEntries(Object.keys(definitions).map(id=>[id,0])),casts=[];
   let serial=0;
   function activate(actor){
@@ -226,7 +226,7 @@
     if(!projectile(power))continue;
     const t=Math.max(0,cast.age-.1),flight=power.duration-.32,height=cast.landed?2:22+cast.lift+Math.sin(Math.min(1,t/flight)*Math.PI)*18;
     ctx.save();ctx.globalAlpha=Math.max(0,Math.min(1,(power.duration-cast.age)/.18));ctx.fillStyle='#16343944';ctx.beginPath();ctx.ellipse(Math.round(cast.x),Math.round(cast.y),5,2,0,0,Math.PI*2);ctx.fill();
-    ctx.translate(Math.round(cast.x),Math.round(cast.y-height));const spin=['football','baseball','salad','martini'].includes(cast.kind)?t*8:0;ctx.rotate(Math.atan2(cast.dy,cast.dx)+spin);drawProjectile(ctx,cast);if(cast.landed)spark(ctx,0,0,'#ffe9a8',7);ctx.restore();
+    ctx.translate(Math.round(cast.x),Math.round(cast.y-height));const zoom=getScale();if(zoom!==1)ctx.scale(zoom,zoom);const spin=['football','baseball','salad','martini'].includes(cast.kind)?t*8:0;ctx.rotate(Math.atan2(cast.dy,cast.dx)+spin);drawProjectile(ctx,cast);if(cast.landed)spark(ctx,0,0,'#ffe9a8',7);ctx.restore();
    }
   }
   return {activate,update,drawGround,drawActor,drawAir,pose,clear:()=>casts.splice(0),cooldown:id=>cooldowns[id]||0,
