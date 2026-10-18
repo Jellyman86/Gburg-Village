@@ -43,9 +43,12 @@
   const bounds=town.viewBounds||{left:0,top:0,right:town.width,bottom:town.height};
   const worldWidth=bounds.right-bounds.left,worldHeight=bounds.bottom-bounds.top;
   const overview=flight.view().overview,fit=Math.min(canvas.width/worldWidth,canvas.height/worldHeight,.8);
-  viewScale=1+(fit-1)*overview;
+  // Scenes with zoom (Niagara's wide plaza) pull back to show as much of the scene as fits, never below zoom.min.
+  const touchPx=document.body.classList.contains('touch')?Math.min(140,canvas.height*.28):0;
+  const rest=town.zoom?Math.min(1,Math.max(town.zoom.min,Math.min(canvas.width/worldWidth,(canvas.height-touchPx)/worldHeight))):1;
+  viewScale=rest+(fit-rest)*overview;
   const width=canvas.width/viewScale,height=canvas.height/viewScale;
-  const touchSpace=document.body.classList.contains('touch')?Math.min(140,canvas.height*.28)/viewScale:0;
+  const touchSpace=touchPx/viewScale;
   const focus=cameraFocus(town.id),lookX=focus?player.x+(focus.x-player.x)*focus.w:player.x,lookY=focus?player.y+(focus.y-player.y)*focus.w:player.y;
   camera.x=Math.round(width>=worldWidth?bounds.left+(worldWidth-width)/2:clamp(lookX-width/2,bounds.left,bounds.right-width));
   camera.y=Math.round(height>=worldHeight+touchSpace?bounds.top+(worldHeight+touchSpace-height)/2:clamp(lookY-height*.57,bounds.top,bounds.bottom+touchSpace-height));

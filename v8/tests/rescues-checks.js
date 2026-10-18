@@ -91,7 +91,7 @@ return async function checkRescues(page,{width,height,touch,artifactDir}={}){
   await page.waitForTimeout(700);
   s=await state();
   assert(s.script.phase==='chase'&&s.scriptActors.length===2,'Kelce and Taylor are running their loops');
-  assert(s.enemies.filter(e=>e.scripted&&e.alive).every(e=>e.kind==='raptor'&&(e.prey==='kelce'||e.prey==='taylor'))&&s.enemies.filter(e=>e.scripted).length===4,'Four raptors chase them');
+  assert(s.enemies.filter(e=>e.scripted&&e.alive).every(e=>e.kind==='raptor'&&(e.prey==='kelce'||e.prey==='taylor'))&&s.enemies.filter(e=>e.scripted).length===2&&new Set(s.enemies.filter(e=>e.scripted).map(e=>e.prey)).size===2,'One raptor chases Kelce and one chases Taylor');
   // The raptors trail behind instead of running on top of Kelce and Taylor.
   let closest=Infinity;
   for(let i=0;i<8;i++){await page.waitForTimeout(250);const now=await state();for(const e of now.enemies.filter(e=>e.scripted&&e.alive)){const prey=now.scriptActors.find(a=>a.id===e.prey);closest=Math.min(closest,Math.hypot(e.x-prey.x,e.y-prey.y));}}
@@ -182,6 +182,11 @@ return async function checkRescues(page,{width,height,touch,artifactDir}={}){
   s=await state();
   assert(s.script.phase==='fight'&&s.script.flock===6&&s.script.giant&&s.script.giant.hidden,'Josh faces six pterodactyls; the giant waits out of sight');
   assert(s.scriptActors.some(a=>a.id==='josh'),'Josh is on the overlook');
+  // The wide plaza is shown zoomed out (whole scene on big screens, never smaller than the 0.5 floor on phones).
+  const view=await page.evaluate(()=>({scale:GAME.state.camera.scale,w:GAME.state.viewport.width,h:GAME.state.viewport.height}));
+  assert(view.scale<1&&view.scale>=.5,'Niagara is zoomed out (scale '+view.scale.toFixed(2)+')');
+  if(!touch&&view.w>=1000)assert(1448*view.scale<=view.w+1&&1086*view.scale<=view.h+1,'The whole Niagara plaza fits on a desktop screen');
+  assert(await page.evaluate(()=>{const before=GAME.state.camera.scale;return before<1;}),'Zoom persists after arrival');
   await page.waitForFunction(()=>GAME.state.powers.casts.some(c=>c.owner==='josh'&&c.kind==='football'),null,{timeout:20000}).catch(()=>{throw new Error('Josh throws footballs at the flock');});
   await screenshot('niagara-fight');
   await defeatAll();

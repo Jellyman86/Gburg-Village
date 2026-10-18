@@ -192,7 +192,7 @@
 
   // ---- Niagara Falls (1448x1086) ------------------------------------------------------------------------------------
   // The observation plaza: Josh holds off a flock of pterodactyls until a giant one carries him away (scene-scripts.js).
-  zone({id:'niagara',name:'Niagara Falls · Observation Plaza',art:'scene.niagara',region:'Niagara Falls',music:'nyc',worldSite:'niagara',spawn:{x:724,y:1000},
+  zone({id:'niagara',name:'Niagara Falls · Observation Plaza',art:'scene.niagara',region:'Niagara Falls',music:'nyc',worldSite:'niagara',spawn:{x:724,y:1000},zoom:{min:.5},
    paths:[],
    polygons:[[[90,640],[1340,640],[1410,720],[1420,850],[1100,880],[1100,1070],[390,1070],[390,880],[30,850],[20,720]]],
    obstacles:[],blockedPolygons:[],
@@ -212,7 +212,7 @@
     portal('stadium-field','↑ Tunnel · Panthers Field',724,150,'panthers-field',724,800,'up',rect(620,130,210,22,'up'))
    ],
    points:[{id:'stadium-statue',name:'Panther statue',x:724,y:810,radius:55,text:'The bronze panther guards the concourse. Team store and Bojangles to the west, Cook Out to the east. The tunnel north leads to the field; the gates south return to your jet.'}],
-   enemies:[{kind:'raptor',x:440,y:680,scripted:true},{kind:'raptor',x:440,y:830,scripted:true},{kind:'raptor',x:1010,y:680,scripted:true},{kind:'raptor',x:1010,y:830,scripted:true}],
+   enemies:[{kind:'raptor',x:440,y:760,scripted:true},{kind:'raptor',x:1010,y:760,scripted:true}],
    hint:'The tunnel north leads to the field; the gates south return to Earth. Statue, tables and planters are solid.'}),
   zone({id:'panthers-field',name:'Charlotte · Panthers Field',art:'scene.panthers-field',region:'Charlotte',music:'field',worldSite:'charlotte',spawn:{x:724,y:800},
    paths:[],

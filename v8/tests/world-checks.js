@@ -42,6 +42,32 @@ return async function checkWorld(page,{width,height,touch,artifactDir}={}){
  try{
   await page.goto(page.url().split('/v8/')[0]+'/v8/',{waitUntil:'domcontentloaded'});await page.waitForFunction(()=>GAME.ready&&V3_INTRO.state.ready);
   await activate('#intro-skip');
+  // ---- Touch guard: no page zoom / scroll / selection / context menu on touch devices, desktop left alone --------------
+  const guard=await page.evaluate(()=>{
+   const fire=(type,target,init={})=>{const e=type.startsWith('touch')?new TouchEvent(type,{bubbles:true,cancelable:true,...init}):new Event(type,{bubbles:true,cancelable:true});target.dispatchEvent(e);return e.defaultPrevented;};
+   const point=(target,id)=>new Touch({identifier:id,target,clientX:10*id,clientY:10*id});
+   const toolbar=document.querySelector('.toolbar'),canvas=document.getElementById('game'),select=document.getElementById('jump-site'),cs=el=>getComputedStyle(el);
+   return {touchBody:document.body.classList.contains('touch'),viewport:document.querySelector('meta[name=viewport]').content,
+    gesture:fire('gesturestart',document.body),contextMenu:fire('contextmenu',toolbar),selectStart:fire('selectstart',toolbar),
+    dragPage:fire('touchmove',toolbar,{touches:[point(toolbar,1)]}),pinch:fire('touchmove',canvas,{touches:[point(canvas,1),point(canvas,2)]}),
+    dragSelect:fire('touchmove',select,{touches:[point(select,1)]}),
+    userSelect:cs(toolbar).userSelect||cs(toolbar).webkitUserSelect,selectFont:parseFloat(cs(select).fontSize),
+    overflow:cs(document.documentElement).overflow+'/'+cs(document.body).overflow,scrollFits:document.documentElement.scrollHeight<=window.innerHeight+2};
+  });
+  assert(/maximum-scale=1/.test(guard.viewport)&&/user-scalable=no/.test(guard.viewport),'The viewport meta blocks page zoom');
+  if(touch){
+   assert(guard.touchBody,'Touch layouts get the touch class');
+   assert(guard.gesture&&guard.pinch,'Safari pinch gestures and two-finger drags are cancelled');
+   assert(guard.contextMenu&&guard.selectStart,'Long-press context menu and text selection are cancelled outside the canvas too');
+   assert(guard.dragPage,'Dragging the page chrome cannot scroll or rubber-band the page');
+   assert(!guard.dragSelect,'Form controls (selects, sliders) can still be dragged');
+   assert(guard.userSelect==='none','Page text is not selectable on touch');
+   assert(guard.selectFont>=16,'Selects use 16px text so iOS does not zoom on focus (got '+guard.selectFont+')');
+   assert(/hidden/.test(guard.overflow),'The page itself does not scroll on touch');
+   assert(guard.scrollFits,'The whole game fits the screen, so locking page scroll hides nothing');
+  }else{
+   assert(!guard.touchBody&&!guard.contextMenu&&!guard.gesture&&!guard.dragPage,'Desktop keeps right-click, trackpad pinch and normal scrolling');
+  }
   assert(await page.evaluate(()=>GAME.test.enterScene('north',[499,78])),'North street travel accepted after the family opening');
   await page.evaluate(()=>{GAME.test.quiet();GAME.test.position(767,120);});
   await move(0,-1,650);await page.waitForFunction(()=>GAME.state.scene==='world');

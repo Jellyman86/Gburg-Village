@@ -29,3 +29,14 @@ body.touch .power-button{bottom:108px;width:66px;height:66px;min-height:0;border
 .dev-jump{align-items:center;gap:8px;margin-top:10px;padding-top:10px;border-top:1px dashed #6277a3}
 .dev-jump label{font:11px system-ui;color:#aab4d4;letter-spacing:.08em;text-transform:uppercase}
 .dev-jump select{min-height:40px;font:13px system-ui;color:inherit;background:#122052;border:1px solid #6277a3;border-radius:4px;padding:6px 8px}
+
+/* Touch devices: keep gestures inside the game (see src/touch-guard.js). */
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%;touch-action:manipulation}
+body.touch{touch-action:manipulation;overscroll-behavior:none;-webkit-tap-highlight-color:transparent}
+html:has(body.touch){overflow:hidden;overscroll-behavior:none}
+body.touch,body.touch *{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+body.touch input,body.touch textarea{-webkit-user-select:text;user-select:text}
+body.touch img,body.touch canvas{-webkit-user-drag:none}
+body.touch{overflow:hidden}
+/* iOS zooms the page when a control under 16px gets focus; keep selects and fields at 16px. */
+@media(pointer:coarse){select,input,textarea{font-size:16px!important}}

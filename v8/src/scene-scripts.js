@@ -76,7 +76,7 @@
    update(dt){
     clock+=dt;for(const a of [kelce,taylor])a.poseTime+=dt;
     if(phase==='chase'){
-     if(!armed){armed=true;scripted().forEach((e,i)=>{e.hidden=false;e.prey=i<2?kelce:taylor;e.mode='chase';e.timer=99;});}
+     if(!armed){armed=true;scripted().forEach((e,i)=>{e.hidden=false;e.prey=i===0?kelce:taylor;e.mode='chase';e.timer=99;});}
      patrol(kelce,loopK,150,dt,host.blocked);patrol(taylor,loopT,150,dt,host.blocked);
      for(const e of scripted())if(e.alive&&e.prey){e.mode='chase';e.timer=99;}
      if(scripted().every(e=>!e.alive)){
